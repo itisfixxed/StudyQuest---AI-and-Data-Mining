@@ -6,6 +6,7 @@ import { AnswerField } from './Practice.tsx';
 import type { PracticeSet, Update } from './Practice.tsx';
 import { Bubble, Icon, MathBlock, PageTitle, Pill, ProgressBar, SectionTitle, SourceNote } from './ui.tsx';
 
+import { TopicLecture } from './TopicLecture.tsx';
 import { Demonstration } from './Demonstration.tsx';
 
 export interface LessonPath { topic: string; concept: string; after?: string[] }
@@ -69,12 +70,18 @@ export function Journey({ progress, update, activeTopic, openTopic, lesson, open
   progress: Progress; update: Update; activeTopic: string | null; openTopic: (id: string | null) => void;
   lesson: LessonPath | null; openLesson: (path: LessonPath | null) => void; practice: (set: PracticeSet) => void; launchBoss: (topic: string) => void;
 }) {
+  const [lectureTopic,setLectureTopic] = useState<string|null>(null);
   const data = profile(progress);
   const active = data.find(p => p.topic.id === activeTopic);
   if (lesson) return <Lesson key={lesson.topic+'/'+lesson.concept} path={lesson} progress={progress} update={update} openTopic={() => openTopic(lesson.topic)}
     nextLesson={openLesson} practice={practice} />;
   if (active) {
     const {topic} = active;
+    if(lectureTopic===topic.id) return <TopicLecture key={topic.id} topic={topic}
+      close={()=>{setLectureTopic(null);window.scrollTo(0,0);}} openConcept={concept=>{
+        setLectureTopic(null);
+        openLesson({topic:topic.id,concept});
+      }} />;
     const locked = topicLocked(topic,progress,data);
     const related = data.filter(p => p.topic.prerequisites.includes(topic.id));
     return <>
@@ -87,6 +94,10 @@ export function Journey({ progress, update, activeTopic, openTopic, lesson, open
       <div className="session-cols"><div>
         {locked && <div className="feedback warning"><strong>Prerequisite topics recommended</strong><p>Build at least 25% mastery in {topic.prerequisites.map(id => topicById[id].short).join(' and ')} or choose to study this topic now.</p>
           <button className="button secondary" onClick={() => update(p => ({ ...p, overrides: [...new Set([...p.overrides,topic.id])] }))}>Study anyway</button></div>}
+        <section className="panel panel-pad lecture-entry">
+          <div><h2>Guided lecture</h2><p>Walk through a worked example, check each step, and explain the idea back.</p></div>
+          <button className="button primary" onClick={()=>setLectureTopic(topic.id)}><Icon name="book" size={18} /> Start lecture</button>
+        </section>
         <SectionTitle title="Concept lessons" description={active.completed + ' of ' + topic.concepts.length + ' complete'} />
         <div className="panel compact-list">{topic.concepts.map(c => <button className="question-list-item row spread" key={c.id} disabled={locked} onClick={() => openLesson({ topic:topic.id, concept:c.id })}>
           <Bubble icon={progress.lessons.some(l => l.id === topic.id + '/' + c.id) ? 'check' : 'book'} color={topic.color} /><span><strong>{c.name}</strong><small>{c.intuition}</small></span><Icon name="chevron" size={18} />
@@ -109,7 +120,7 @@ export function Journey({ progress, update, activeTopic, openTopic, lesson, open
     </>;
   }
   return <>
-    <PageTitle title="Learning Journey" description="Follow the prerequisites or choose the topic you need today." />
+    <PageTitle title="Learning Journey" description="Choose a topic to open its guided lecture, concept lessons, and practice." />
     <div className="roadmap">
       {data.map(({topic,score,stage,completed},i) => {
         const locked = topicLocked(topic,progress,data);

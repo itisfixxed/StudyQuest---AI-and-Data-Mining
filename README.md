@@ -47,3 +47,6 @@ Open **this folder** in VS Code. In **Source Control**, choose **Publish to GitH
 
 [VS Code GitHub publishing guide](https://code.visualstudio.com/docs/sourcecontrol/github)
 
+## Guided lectures
+
+Go to **Learning Journey**, choose a topic, and select **Start lecture**. Each lecture uses a three-section worked example with diagrams or charts, a hint and check per section, and a final explain-it-back exercise. Follow the linked concept lessons for more detail. Lecture checkmarks and draft explanations last for the open lecture session.

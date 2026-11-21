@@ -1,0 +1,1758 @@
+{
+  "foundations": {
+    "goal": "Use a route planner to distinguish acting rationally from imitating a person.",
+    "explain": "Explain to a friend why asking whether a planner “thinks like a human” is different from asking whether it picks a good route.",
+    "model": "A rational route planner chooses a feasible action that scores well on its stated objective using the information it has. It can do so with a hand-written travel model or a learned estimator. Human-like conversation measures a different capability.",
+    "points": [
+      "Name the objective",
+      "Describe an observable test",
+      "Distinguish reasoning from behavior"
+    ],
+    "scenes": [
+      {
+        "concept": "goals",
+        "title": "Start with a goal",
+        "content": "Imagine sending someone across campus. A useful answer depends on what you optimize: time, distance, or accessibility. “Act rationally” means selecting an action suited to the objective and evidence.",
+        "table": {
+          "columns": [
+            "Route",
+            "Travel time",
+            "Step-free?"
+          ],
+          "rows": [
+            [
+              "A",
+              "8 min",
+              "No"
+            ],
+            [
+              "B",
+              "11 min",
+              "Yes"
+            ],
+            [
+              "C",
+              "14 min",
+              "Yes"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "If travel time is the only objective, which route wins?",
+          "options": [
+            "A",
+            "B",
+            "C"
+          ],
+          "right": 0,
+          "hint": "Choose the smallest number in the travel-time column.",
+          "feedback": "A takes 8 minutes. Changing the objective or the constraints can change the best route."
+        }
+      },
+      {
+        "concept": "goals",
+        "title": "Separate a rule from a learned estimate",
+        "content": "An explicit rule can eliminate inaccessible routes. A learned travel model predicts delays from past data. One system can use both: apply the rule first, then compare predicted trip times.",
+        "table": {
+          "columns": [
+            "Operation",
+            "Uses",
+            "Output"
+          ],
+          "rows": [
+            [
+              "Apply accessibility rule",
+              "Stairs and lifts",
+              "B and C remain"
+            ],
+            [
+              "Predict delay",
+              "Previous trips",
+              "Estimated time"
+            ],
+            [
+              "Choose route",
+              "Feasible estimates",
+              "Fastest eligible route"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "With step-free travel required, which route wins using the displayed times?",
+          "options": [
+            "A",
+            "B",
+            "C"
+          ],
+          "right": 1,
+          "hint": "Remove routes that violate the constraint before comparing times.",
+          "feedback": "B is the faster of the two feasible routes."
+        }
+      },
+      {
+        "concept": "goals",
+        "title": "Choose a test that matches the claim",
+        "content": "Thinking and acting are distinct. Acting humanly means reproducing observable human behavior. A conversational imitation test does not establish that a system plans optimal routes or performs sound reasoning.",
+        "table": {
+          "columns": [
+            "Claim",
+            "Useful evidence"
+          ],
+          "rows": [
+            [
+              "Acts rationally",
+              "Low trip times among feasible routes"
+            ],
+            [
+              "Acts humanly",
+              "Responses resemble a human's"
+            ],
+            [
+              "Reasons according to rules",
+              "Valid conclusions from stated premises"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "Which observation best checks whether the planner acts rationally?",
+          "options": [
+            "It uses natural phrases",
+            "It describes a route confidently",
+            "It consistently chooses good feasible routes"
+          ],
+          "right": 2,
+          "hint": "Look for evidence about the actual decision and its objective.",
+          "feedback": "Route outcomes check planning performance. Conversational style measures a different skill."
+        }
+      }
+    ]
+  },
+  "state": {
+    "goal": "Trace one small graph before reasoning about a large search space.",
+    "explain": "Explain why changing the order of the frontier can change the route returned even though legal moves stay the same.",
+    "model": "A state graph says which moves are possible. The frontier says what to inspect next. BFS picks the oldest frontier item and finds a fewest-edge solution under unit costs. DFS follows a branch first and backtracks at dead ends. Iterative deepening repeats depth-limited DFS.",
+    "points": [
+      "Name the state and goal",
+      "Distinguish a queue from a stack",
+      "Explain what CLOSED prevents"
+    ],
+    "scenes": [
+      {
+        "concept": "representation",
+        "title": "Model the room and the key",
+        "content": "Let A be the entrance, B the key room, C a corridor and G the locked exit. A state needs both the room and whether you have the key. Two visits to room C can therefore be different states.",
+        "table": {
+          "columns": [
+            "State",
+            "Legal next step"
+          ],
+          "rows": [
+            [
+              "(C, no key)",
+              "Return to find the key"
+            ],
+            [
+              "(C, key)",
+              "Unlock G"
+            ],
+            [
+              "(B, no key)",
+              "Pick up key at B"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "Which pair should search keep distinct?",
+          "options": [
+            "(C, no key) and (C, key)",
+            "Two identical copies of (C, key)",
+            "States differing only in drawing position"
+          ],
+          "right": 0,
+          "hint": "Ask whether both states have the same legal actions.",
+          "feedback": "Only one state can unlock G, so merging them would lose information."
+        }
+      },
+      {
+        "concept": "bfs-dfs",
+        "title": "Compare the frontier after one expansion",
+        "content": "For this abstract search graph, take left children first. Start at A with successors B and C. After expanding B, its children D and E have been generated. Compare the head of OPEN in the table.",
+        "table": {
+          "columns": [
+            "Strategy",
+            "OPEN after B",
+            "Next expanded"
+          ],
+          "rows": [
+            [
+              "BFS",
+              "C, D, E",
+              "C"
+            ],
+            [
+              "DFS",
+              "D, E, C",
+              "D"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "Which property makes BFS choose C before D here?",
+          "options": [
+            "C has a larger heuristic",
+            "C entered OPEN earlier",
+            "The search has already found a goal"
+          ],
+          "right": 1,
+          "hint": "A queue removes the oldest item first.",
+          "feedback": "C was waiting before B generated D and E."
+        }
+      },
+      {
+        "concept": "ids",
+        "title": "Backtrack and control depth",
+        "content": "When a branch has no successors, DFS returns to a pending alternative. Depth-limited search also stops at the chosen depth. Iterative deepening raises that limit one at a time. Forward search starts with known states, while backward reasoning starts with the desired goal and works through predecessors.",
+        "table": {
+          "columns": [
+            "Depth limit",
+            "Nodes eligible in sketch",
+            "What changes"
+          ],
+          "rows": [
+            [
+              "0",
+              "A",
+              "Only test the start"
+            ],
+            [
+              "1",
+              "A, B, C",
+              "Inspect both immediate branches"
+            ],
+            [
+              "2",
+              "A, B, C, D, E",
+              "Reach the deeper leaves"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "Why might iterative deepening revisit A?",
+          "options": [
+            "It starts a new depth-limited search at each limit",
+            "A must be a goal",
+            "It has no depth bound"
+          ],
+          "right": 0,
+          "hint": "Each new limit is a fresh pass.",
+          "feedback": "Visits near the root are repeated so the algorithm can retain DFS-style space usage."
+        }
+      }
+    ]
+  },
+  "heuristic": {
+    "goal": "Compare estimated distance with the cost you already paid.",
+    "explain": "Explain why “closest to the goal” can lead to a more expensive overall journey.",
+    "model": "Greedy best-first ranks h alone. A* ranks f = g + h, combining paid cost and estimated future cost. A useful heuristic never overestimates the remaining cost when admissibility is needed, and consistency limits how much the estimate can drop across an edge.",
+    "points": [
+      "Define g and h",
+      "Show one frontier comparison",
+      "State a condition for optimality"
+    ],
+    "scenes": [
+      {
+        "concept": "hill-greedy",
+        "title": "Distinguish local moves from a frontier",
+        "content": "Hill climbing considers moves available from the current state and can stop at a local optimum or plateau. Greedy best-first compares heuristic scores among all states in OPEN, so an older branch can still be revisited if the current branch disappoints.",
+        "table": {
+          "columns": [
+            "Method",
+            "What it can choose next"
+          ],
+          "rows": [
+            [
+              "Hill climbing",
+              "Current state's neighbours"
+            ],
+            [
+              "Greedy best-first",
+              "Any candidate in OPEN"
+            ],
+            [
+              "A*",
+              "Lowest g + h in OPEN"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "Which method can directly reconsider an older candidate kept in OPEN?",
+          "options": [
+            "Hill climbing",
+            "Greedy best-first",
+            "Both always do"
+          ],
+          "right": 1,
+          "hint": "Think about the candidates each method remembers.",
+          "feedback": "Greedy keeps a frontier. Hill climbing usually commits to a local move."
+        }
+      },
+      {
+        "concept": "astar",
+        "title": "Put paid and remaining cost side by side",
+        "content": "Use road cost as g and a lower-bound estimate as h. A looks closer to the goal, but its route from the start is expensive. B has a lower combined score. When a cheaper path reaches a known state, replace its old g and recompute f.",
+        "table": {
+          "columns": [
+            "Frontier",
+            "g paid",
+            "h remaining",
+            "f = g + h"
+          ],
+          "rows": [
+            [
+              "A",
+              "7",
+              "1",
+              "8"
+            ],
+            [
+              "B",
+              "2",
+              "4",
+              "6"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "Which pair is selected by greedy and A*, respectively?",
+          "options": [
+            "B then A",
+            "A then A",
+            "A then B"
+          ],
+          "right": 2,
+          "hint": "Greedy compares the h column. A* compares f.",
+          "feedback": "Greedy chooses A because h = 1. A* chooses B because f = 6."
+        }
+      },
+      {
+        "concept": "heuristics",
+        "title": "Calibrate the heuristic",
+        "content": "Admissibility compares h with the true cheapest remaining cost. Consistency compares neighbours: h(u) must be at most c(u,v) + h(v). With nonnegative costs, a consistent heuristic and a standard graph-search implementation support optimal A* when a goal is removed from OPEN.",
+        "table": {
+          "columns": [
+            "Quantity",
+            "Value"
+          ],
+          "rows": [
+            [
+              "h(U)",
+              "5"
+            ],
+            [
+              "Edge U to V",
+              "2"
+            ],
+            [
+              "h(V)",
+              "2"
+            ],
+            [
+              "Local upper bound on h(U)",
+              "4"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "Does this edge satisfy consistency?",
+          "options": [
+            "Yes, 5 is greater than 2",
+            "No, 5 exceeds 2 + 2",
+            "Yes, because both estimates are positive"
+          ],
+          "right": 1,
+          "hint": "Compare h(U) with the sum of the other two entries.",
+          "feedback": "5 > 4, so this edge violates consistency. That check alone does not establish whether the heuristic is admissible."
+        }
+      }
+    ]
+  },
+  "games": {
+    "goal": "Back up values through a game tree and see where a branch can be skipped.",
+    "explain": "Explain to a friend why the larger leaf in a branch may carry little weight when the opponent chooses the leaf.",
+    "model": "Every score is from MAX's perspective. At MIN, back up the smallest child. At MAX, back up the largest child. If MIN already has an option worse than what MAX can guarantee elsewhere, the rest of that branch cannot improve MAX's decision.",
+    "points": [
+      "Identify whose turn it is",
+      "Back up both branches",
+      "Say why the skipped leaf cannot matter"
+    ],
+    "scenes": [
+      {
+        "concept": "minimax",
+        "title": "Predict an opponent’s reply",
+        "content": "MAX chooses a branch, then MIN chooses a leaf in that branch. All utilities are measured from MAX’s viewpoint. Back up the children at each node before selecting at the root.",
+        "table": {
+          "columns": [
+            "Branch",
+            "MIN's options",
+            "Value backed up"
+          ],
+          "rows": [
+            [
+              "Left",
+              "3 and 5",
+              "3"
+            ],
+            [
+              "Right",
+              "2 and 9",
+              "2"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "Which branch should MAX pick?",
+          "options": [
+            "Right, because 9 is largest",
+            "Left, because it guarantees 3",
+            "Either, because both have two leaves"
+          ],
+          "right": 1,
+          "hint": "Look at what MIN can force in each branch.",
+          "feedback": "MIN reduces Left to 3 and Right to 2. MAX selects 3."
+        }
+      },
+      {
+        "concept": "pruning",
+        "title": "Carry a bound into the next branch",
+        "content": "Search the left branch first, so MAX can guarantee at least 3. In the right branch, MIN sees a leaf of 2. MIN now knows that branch has value at most 2, whatever the unseen leaf is.",
+        "table": {
+          "columns": [
+            "Search step",
+            "Bound",
+            "Implication"
+          ],
+          "rows": [
+            [
+              "Finish Left",
+              "α = 3 at MAX",
+              "Left guarantees 3"
+            ],
+            [
+              "Visit first Right leaf",
+              "β = 2 at MIN",
+              "Right gives at most 2"
+            ],
+            [
+              "Compare",
+              "α ≥ β",
+              "Skip Right's other leaf"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "Why can the leaf 9 be skipped?",
+          "options": [
+            "MIN can already choose 2",
+            "MAX always ignores large scores",
+            "Unvisited leaves all equal 0"
+          ],
+          "right": 0,
+          "hint": "Think about who chooses the final leaf in Right.",
+          "feedback": "MIN has a reply worth 2 or less to MAX, so the 9 cannot make Right attractive."
+        }
+      },
+      {
+        "concept": "minimax",
+        "title": "Know when to use an estimate",
+        "content": "A full tree may be too large to finish. At a depth cutoff, use an evaluation function to estimate the value of an unresolved state. Terminal utilities still describe the actual game outcomes. Better move ordering speeds pruning while preserving minimax for the tree being evaluated.",
+        "table": {
+          "columns": [
+            "Node at cutoff",
+            "Value used"
+          ],
+          "rows": [
+            [
+              "Win or loss already decided",
+              "Terminal utility"
+            ],
+            [
+              "Game still in progress",
+              "Heuristic evaluation"
+            ],
+            [
+              "Parent MAX or MIN",
+              "Backed-up child value"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "If the cut occurs at a nonterminal state, where does its value come from?",
+          "options": [
+            "The final outcome is already known",
+            "A fitted heuristic evaluation",
+            "The depth number itself"
+          ],
+          "right": 1,
+          "hint": "At a cutoff we cannot search all the way to a final result.",
+          "feedback": "The evaluation function estimates the unresolved position. This may change the move compared with searching to the true end."
+        }
+      }
+    ]
+  },
+  "mining": {
+    "goal": "Discover associations in five grocery baskets and separate frequency from usefulness.",
+    "explain": "Explain why a rule with high confidence can be uninteresting, then describe one way to reduce the search for frequent patterns.",
+    "model": "Support counts all baskets containing both items. Confidence conditions on the antecedent. Lift compares confidence with the consequent’s usual rate. Apriori rejects supersets of infrequent itemsets, while FP-growth compresses ordered transactions and mines conditional patterns.",
+    "points": [
+      "Name the three denominators",
+      "Explain why association is not causation",
+      "Explain one pruning rule"
+    ],
+    "scenes": [
+      {
+        "concept": "kdd",
+        "title": "Turn records into a mining task",
+        "content": "For transaction data, each basket is an itemset. Choose a representation, clean inconsistencies, mine patterns, and evaluate whether the rules are useful. Our five baskets are {A,B}, {A,B}, {A}, {B}, {B}.",
+        "table": {
+          "columns": [
+            "Pattern",
+            "Count out of 5"
+          ],
+          "rows": [
+            [
+              "A",
+              "3"
+            ],
+            [
+              "B",
+              "4"
+            ],
+            [
+              "A and B",
+              "2"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "What is the support of {A, B}?",
+          "options": [
+            "2/3",
+            "2/4",
+            "2/5"
+          ],
+          "right": 2,
+          "hint": "Support uses the total number of baskets.",
+          "feedback": "Two of all five baskets contain both items."
+        }
+      },
+      {
+        "concept": "measures",
+        "title": "Compute confidence and compare a baseline",
+        "content": "For A → B, condition on A. The confidence is 2/3, but B occurs in 4/5 of all baskets. Lift compares 2/3 with 4/5, giving 5/6, below one. B is less common among A baskets in this tiny sample.",
+        "table": {
+          "columns": [
+            "Measure",
+            "Calculation",
+            "Value"
+          ],
+          "rows": [
+            [
+              "Support",
+              "2 ÷ 5",
+              "0.40"
+            ],
+            [
+              "Confidence",
+              "2 ÷ 3",
+              "0.67"
+            ],
+            [
+              "Lift",
+              "(2/3) ÷ (4/5)",
+              "0.83"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "What changes when the rule is reversed to B → A?",
+          "options": [
+            "Support only",
+            "Confidence, because the antecedent now occurs 4 times",
+            "The number of baskets with both items"
+          ],
+          "right": 1,
+          "hint": "The numerator is still the count of baskets containing both.",
+          "feedback": "The new confidence is 2/4. The joint support stays 2/5."
+        }
+      },
+      {
+        "concept": "apriori",
+        "title": "Find frequent patterns efficiently",
+        "content": "Set minimum count to 3. A and B pass individually, so Apriori can propose AB. AB fails with count 2, so no larger itemset containing AB can pass. FP-growth takes another route: order frequent items by global frequency and compress shared prefixes. Here the two AB baskets share B→A after ordering.",
+        "table": {
+          "columns": [
+            "Approach",
+            "What gets carried forward"
+          ],
+          "rows": [
+            [
+              "Apriori",
+              "Only frequent sets, joined to generate candidates"
+            ],
+            [
+              "FP-growth",
+              "Counted prefixes and conditional pattern bases"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "If AB fails the threshold, can ABC pass it?",
+          "options": [
+            "Yes when C is frequent",
+            "Yes when the rule has high confidence",
+            "No, every ABC basket also contains AB"
+          ],
+          "right": 2,
+          "hint": "Adding an item can only restrict the set of matching baskets.",
+          "feedback": "Support is anti-monotonic under adding items, so ABC has count at most 2."
+        }
+      }
+    ]
+  },
+  "trees": {
+    "goal": "Follow a split from class counts to a predicted label.",
+    "explain": "Explain to someone how a tree chooses a useful question and why making every training leaf pure can backfire.",
+    "model": "A split is useful if it reduces weighted impurity. We repeat the process down the tree, then use validation or pruning to avoid learning noise. Evaluation metrics use different denominators, so inspect the confusion matrix alongside accuracy.",
+    "points": [
+      "Explain weighted child impurity",
+      "Name one overfitting control",
+      "Define recall using counts"
+    ],
+    "scenes": [
+      {
+        "concept": "splits",
+        "title": "Read the label mix first",
+        "content": "At the root, 4 Yes and 4 No give balance and Gini impurity 0.5. Consider two candidates with the displayed class counts. A good split reduces weighted impurity across both children.",
+        "table": {
+          "columns": [
+            "Split",
+            "Left Yes/No",
+            "Right Yes/No"
+          ],
+          "rows": [
+            [
+              "A",
+              "4/0",
+              "0/4"
+            ],
+            [
+              "B",
+              "3/1",
+              "1/3"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "Which split gives a larger Gini reduction?",
+          "options": [
+            "B",
+            "A",
+            "Both tie"
+          ],
+          "right": 1,
+          "hint": "A child with only one class has impurity zero.",
+          "feedback": "Both A children are pure, so its weighted impurity is zero."
+        }
+      },
+      {
+        "concept": "prune-trees",
+        "title": "Weight children and stop growing",
+        "content": "For B, each child has Gini 1 − (0.75² + 0.25²) = 0.375. Its gain in Gini is 0.125. For unequal child sizes, weight each child by its share of samples. Pruning a brittle branch can improve validation results. Random forests combine diverse trees rather than relying on one tree.",
+        "table": {
+          "columns": [
+            "Decision",
+            "Evidence to use"
+          ],
+          "rows": [
+            [
+              "Choose split",
+              "Weighted impurity decrease"
+            ],
+            [
+              "Prune branch",
+              "Validation performance or pruning criterion"
+            ],
+            [
+              "Combine trees",
+              "Vote across randomized trees"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "Which child matters more in weighted impurity, one with 6 cases or one with 2?",
+          "options": [
+            "The 2-case child",
+            "Both count equally",
+            "The 6-case child"
+          ],
+          "right": 2,
+          "hint": "The weighting is proportional to the sample count.",
+          "feedback": "The 6-case child carries 6/8 of the total weight."
+        }
+      },
+      {
+        "concept": "metrics",
+        "title": "Check who was missed",
+        "content": "On held-out data, the tree found 8 true positives, missed 2 positives and flagged 4 negatives. Accuracy is 24/30, precision is 8/12, and recall is 8/10. ROC compares recall with the false-positive rate across thresholds.",
+        "table": {
+          "columns": [
+            "Actual class",
+            "Predicted Yes",
+            "Predicted No"
+          ],
+          "rows": [
+            [
+              "Yes",
+              "8 TP",
+              "2 FN"
+            ],
+            [
+              "No",
+              "4 FP",
+              "16 TN"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "What is recall for class Yes?",
+          "options": [
+            "8/10",
+            "8/12",
+            "24/30"
+          ],
+          "right": 0,
+          "hint": "Look only at cases that truly belong to the positive class.",
+          "feedback": "Recall is TP/(TP + FN) = 8/(8 + 2)."
+        }
+      }
+    ]
+  },
+  "neighbors": {
+    "goal": "See how a local vote differs from a maximum-margin separator.",
+    "explain": "Explain why a point that is far from a boundary may never affect an SVM even though every stored point is available to k-NN.",
+    "model": "k-NN chooses nearby labelled examples under a distance metric, then votes. A linear SVM chooses a separating hyperplane with a large margin. The nearest training points constrain the hard margin. Soft margins allow violations and penalize them.",
+    "points": [
+      "Describe the local vote",
+      "Identify support vectors",
+      "Explain the role of C"
+    ],
+    "scenes": [
+      {
+        "concept": "knn",
+        "title": "Vote in a neighbourhood",
+        "content": "On a line, red points lie at 1 and 3, blue points at 6 and 8, and the query is at 4. Look at distance first, then label. Standardize features when their units would otherwise give one coordinate undue influence.",
+        "table": {
+          "columns": [
+            "Point",
+            "Distance to 4",
+            "Label"
+          ],
+          "rows": [
+            [
+              "3",
+              "1",
+              "Red"
+            ],
+            [
+              "6",
+              "2",
+              "Blue"
+            ],
+            [
+              "1",
+              "3",
+              "Red"
+            ],
+            [
+              "8",
+              "4",
+              "Blue"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "Which class wins with k = 3?",
+          "options": [
+            "Blue",
+            "Red",
+            "The vote ties"
+          ],
+          "right": 1,
+          "hint": "Read the labels of the three closest points only.",
+          "feedback": "The nearest three vote Red, Blue, Red."
+        }
+      },
+      {
+        "concept": "margin",
+        "title": "Find the middle of the widest gap",
+        "content": "The closest opposing points are at 3 and 6, so the 1D hard-margin separator is x = 4.5. These two points are support vectors. In higher dimensions the boundary is wᵀx + b = 0 and the canonical full margin width is 2/‖w‖.",
+        "table": {
+          "columns": [
+            "Position",
+            "Role"
+          ],
+          "rows": [
+            [
+              "1 and 8",
+              "Far from boundary"
+            ],
+            [
+              "3 and 6",
+              "Touch the margins"
+            ],
+            [
+              "4.5",
+              "Decision boundary"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "Which edit by itself leaves the hard-margin separator unchanged?",
+          "options": [
+            "Move red point 1 farther left",
+            "Move red point 3 to 5",
+            "Move blue point 6 to 4"
+          ],
+          "right": 0,
+          "hint": "Change a point that does not constrain the current margin.",
+          "feedback": "Moving the far red point left leaves the closest opposing points at 3 and 6."
+        }
+      },
+      {
+        "concept": "soft",
+        "title": "Allow a violation at a cost",
+        "content": "If the classes overlap, a hard-margin classifier may be infeasible. A soft-margin SVM trades off a wider margin against slack penalties. Larger C gives violations more weight relative to the regularization term. Nonlinear kernels can change the geometry in which the linear separator is fitted.",
+        "table": {
+          "columns": [
+            "Setting",
+            "Relative penalty"
+          ],
+          "rows": [
+            [
+              "Lower C",
+              "More tolerance for margin violations"
+            ],
+            [
+              "Higher C",
+              "Greater pressure to avoid margin violations"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "If a single outlier is distorting the boundary, which change makes violations cheaper?",
+          "options": [
+            "Increase C",
+            "Decrease C",
+            "Set k = 1"
+          ],
+          "right": 1,
+          "hint": "C multiplies the slack penalty.",
+          "feedback": "A smaller C can make it worthwhile to tolerate the outlier. Assess the choice on validation data."
+        }
+      }
+    ]
+  },
+  "bayes": {
+    "goal": "Use a population of 100 to see Bayes’ rule before using symbols.",
+    "explain": "Explain why knowing that most faulty items trigger an alert does not tell you that most alerts come from faulty items.",
+    "model": "Bayes reverses a conditional by combining evidence with a prior and normalizing. A rare fault starts with few items, so false alarms from the larger good group can dominate alerts. Naïve Bayes multiplies feature likelihoods within each class under conditional independence.",
+    "points": [
+      "State the prior",
+      "Count both kinds of alerts",
+      "State the independence assumption"
+    ],
+    "scenes": [
+      {
+        "concept": "posterior",
+        "title": "Start from the prior",
+        "content": "Out of 100 items, 10 are faulty and 90 are good. A sensor alerts for 80% of faults and 10% of good items. The prior probability of a fault is the prevalence before looking at the alert.",
+        "table": {
+          "columns": [
+            "Group",
+            "Items before alert",
+            "Alert rate"
+          ],
+          "rows": [
+            [
+              "Faulty",
+              "10",
+              "80%"
+            ],
+            [
+              "Good",
+              "90",
+              "10%"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "How many good items generate alerts in this example?",
+          "options": [
+            "8",
+            "9",
+            "90"
+          ],
+          "right": 1,
+          "hint": "Take 10% of the good group only.",
+          "feedback": "10% of 90 is 9 false alerts."
+        }
+      },
+      {
+        "concept": "posterior",
+        "title": "Filter on the observed evidence",
+        "content": "The 8 true alerts and 9 false alerts are both compatible with an observed alert. There are 17 alerts in total. The posterior P(fault given alert) is 8/17, about 47%.",
+        "table": {
+          "columns": [
+            "Group",
+            "Alert",
+            "No alert"
+          ],
+          "rows": [
+            [
+              "Faulty",
+              "8",
+              "2"
+            ],
+            [
+              "Good",
+              "9",
+              "81"
+            ],
+            [
+              "Total",
+              "17",
+              "83"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "What denominator gives P(fault given alert)?",
+          "options": [
+            "100 items",
+            "10 faulty items",
+            "17 alerted items"
+          ],
+          "right": 2,
+          "hint": "Restrict the total to the observed event.",
+          "feedback": "Conditioning on alert means every denominator case must have alerted."
+        }
+      },
+      {
+        "concept": "naive",
+        "title": "Combine multiple clues",
+        "content": "Suppose instead that an alert and a smell are two features. Take alert likelihoods 0.8 for fault and 0.1 for good. Let smell likelihoods be 0.5 and 0.2, respectively. Under conditional independence, multiply the likelihoods inside each class, then multiply by its prior and normalize.",
+        "table": {
+          "columns": [
+            "Class",
+            "Prior × alert × smell",
+            "Score"
+          ],
+          "rows": [
+            [
+              "Fault",
+              "0.1 × 0.8 × 0.5",
+              "0.040"
+            ],
+            [
+              "Good",
+              "0.9 × 0.1 × 0.2",
+              "0.018"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "What assumption justified multiplying the two likelihoods inside the fault class?",
+          "options": [
+            "The classes are equally likely",
+            "The two features are independent given the class",
+            "An alert always implies a smell"
+          ],
+          "right": 1,
+          "hint": "Consider how the feature probabilities were conditioned.",
+          "feedback": "Naïve Bayes assumes conditional independence given each class, even if features are correlated in the full population."
+        }
+      }
+    ]
+  },
+  "neural": {
+    "goal": "Follow one network from prediction to a training update.",
+    "explain": "Explain the difference between computing a prediction and sending a training signal back through the same connection.",
+    "model": "A layer combines inputs with weights and biases, then applies an activation. The loss measures prediction error. Backpropagation applies the chain rule from the output toward the inputs. Gradient descent uses those derivatives to change parameters.",
+    "points": [
+      "Trace the forward values",
+      "Locate the loss",
+      "Say why the weights change"
+    ],
+    "scenes": [
+      {
+        "concept": "forward",
+        "title": "Build a forward pass",
+        "content": "Use input x = 2, weight w = 1 and bias b = −1. The hidden preactivation z = wx + b = 1. ReLU returns h = 1 for positive z and zero for negative z. Let the output multiply h by another weight v = 2.",
+        "table": {
+          "columns": [
+            "Signal",
+            "Calculation",
+            "Value"
+          ],
+          "rows": [
+            [
+              "z",
+              "1×2 − 1",
+              "1"
+            ],
+            [
+              "h",
+              "max(0, z)",
+              "1"
+            ],
+            [
+              "Prediction",
+              "2h",
+              "2"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "What would h be if b changed to −3?",
+          "options": [
+            "0",
+            "1",
+            "−1"
+          ],
+          "right": 0,
+          "hint": "Apply ReLU after computing the new preactivation.",
+          "feedback": "z would be −1, so ReLU clips it to zero."
+        }
+      },
+      {
+        "concept": "backprop",
+        "title": "Trace the gradient backwards",
+        "content": "The target is 1 and the prediction is 2. Use L = ½(ŷ − y)². The output derivative is ŷ − y = 1. Because ReLU is active and v = 2, the gradient with respect to w is 1×2×1×2 = 4.",
+        "table": {
+          "columns": [
+            "Factor",
+            "Value",
+            "Role"
+          ],
+          "rows": [
+            [
+              "∂L/∂ŷ",
+              "1",
+              "Output error signal"
+            ],
+            [
+              "∂ŷ/∂h",
+              "2",
+              "Output weight"
+            ],
+            [
+              "∂h/∂z",
+              "1",
+              "Active ReLU"
+            ],
+            [
+              "∂z/∂w",
+              "2",
+              "Input"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "Which factor becomes zero if z is strictly negative?",
+          "options": [
+            "Input",
+            "Output weight",
+            "ReLU derivative"
+          ],
+          "right": 2,
+          "hint": "Which step is flat for negative inputs?",
+          "feedback": "ReLU has zero derivative for strictly negative z, so this path contributes zero gradient to w."
+        }
+      },
+      {
+        "concept": "training",
+        "title": "Update a weight and check the result",
+        "content": "With learning rate 0.1, update w to 1 − 0.1×4 = 0.6, holding all other parameters fixed. The new prediction becomes 0.4 and the loss falls from 0.5 to 0.18. In full training, also update the other trainable parameters using their own gradients. A batch determines which examples contribute to an update.",
+        "table": {
+          "columns": [
+            "Stage",
+            "w",
+            "Prediction",
+            "Loss"
+          ],
+          "rows": [
+            [
+              "Before",
+              "1",
+              "2",
+              "0.5"
+            ],
+            [
+              "After",
+              "0.6",
+              "0.4",
+              "0.18"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "If a gradient is positive, what does standard gradient descent do to that weight?",
+          "options": [
+            "Raises it",
+            "Lowers it",
+            "Sets it to the target"
+          ],
+          "right": 1,
+          "hint": "Look at the minus sign in the update rule.",
+          "feedback": "Subtracting a positive learning-rate-scaled gradient lowers the parameter."
+        }
+      }
+    ]
+  },
+  "cnn": {
+    "goal": "Slide a filter, track the output shape, and pool the result.",
+    "explain": "Explain why sliding the same matrix over an image uses fewer parameters than learning separate weights at every location.",
+    "model": "A convolutional layer computes local weighted sums using the same filter at each position. Padding and stride set the spatial size. The number of filters sets output depth. Pooling summarizes nearby activations and reduces spatial resolution.",
+    "points": [
+      "Describe one local window",
+      "Count positions and channels",
+      "Explain how weights are reused"
+    ],
+    "scenes": [
+      {
+        "concept": "kernels",
+        "title": "Compute one filter response",
+        "content": "Use the cross-correlation convention common in CNN layers. For the patch [1, 0] on top and [2, 3] below, use a filter with top row [1, −1] and bottom row [1, −1]. Multiply aligned cells and add the products. Here the bias is zero.",
+        "table": {
+          "columns": [
+            "Row",
+            "Patch values",
+            "Filter values",
+            "Row sum"
+          ],
+          "rows": [
+            [
+              "Top",
+              "1, 0",
+              "1, −1",
+              "1"
+            ],
+            [
+              "Bottom",
+              "2, 3",
+              "1, −1",
+              "−1"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "What is the raw filter output?",
+          "options": [
+            "0",
+            "2",
+            "6"
+          ],
+          "right": 0,
+          "hint": "Add the two row sums.",
+          "feedback": "1×1 + 0×(−1) + 2×1 + 3×(−1) = 0."
+        }
+      },
+      {
+        "concept": "dimensions",
+        "title": "Count positions and output channels",
+        "content": "For a 5×5 input with a 3×3 kernel, no padding and stride 1, each axis has valid starts 0, 1, 2. This gives a 3×3 map. Two filters give two maps. Stride 2 changes the valid starts to 0 and 2.",
+        "table": {
+          "columns": [
+            "Stride",
+            "Starts on one axis",
+            "Two output maps"
+          ],
+          "rows": [
+            [
+              "1",
+              "0, 1, 2",
+              "3×3×2"
+            ],
+            [
+              "2",
+              "0, 2",
+              "2×2×2"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "If we change only the number of filters from two to four, what changes?",
+          "options": [
+            "Kernel width",
+            "Output depth",
+            "The number of spatial starts"
+          ],
+          "right": 1,
+          "hint": "Each filter produces its own channel.",
+          "feedback": "The depth doubles. Height and width come from the spatial parameters."
+        }
+      },
+      {
+        "concept": "pooling",
+        "title": "Keep the strongest local activation",
+        "content": "Max pooling keeps the largest activation in each window, channel by channel. It introduces no trainable weights. Using a 2×2 window with stride 2 reduces spatial resolution, so exact within-window locations are lost.",
+        "table": {
+          "columns": [
+            "Window",
+            "Top row",
+            "Bottom row",
+            "Max"
+          ],
+          "rows": [
+            [
+              "A",
+              "2, 7",
+              "1, 3",
+              "7"
+            ],
+            [
+              "B",
+              "0, 4",
+              "8, 2",
+              "8"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "What does window B produce under average pooling instead?",
+          "options": [
+            "8",
+            "4",
+            "3.5"
+          ],
+          "right": 2,
+          "hint": "Add all four cells, then divide by four.",
+          "feedback": "(0 + 4 + 8 + 2)/4 = 3.5."
+        }
+      }
+    ]
+  },
+  "generalization": {
+    "goal": "Diagnose a model with training and validation evidence.",
+    "explain": "Explain why a model can get better at its homework while becoming worse at unseen questions, and when you would stop training.",
+    "model": "Training error measures fit to seen examples. Validation error estimates generalization while you tune. A widening gap with falling training error suggests overfitting. Select training choices using validation, keep the test set for the final estimate, and verify regularization empirically.",
+    "points": [
+      "Describe the curve gap",
+      "Choose a checkpoint using validation",
+      "Protect the test set"
+    ],
+    "scenes": [
+      {
+        "concept": "bias-variance",
+        "title": "Read the gap",
+        "content": "Suppose training error falls from 30% to 6% while validation error falls first and then rises. Late training learns details that help training predictions but transfer poorly. If both errors are high and close, investigate underfit or incomplete optimization.",
+        "table": {
+          "columns": [
+            "Epoch",
+            "Training error",
+            "Validation error"
+          ],
+          "rows": [
+            [
+              "1",
+              "30%",
+              "33%"
+            ],
+            [
+              "2",
+              "18%",
+              "22%"
+            ],
+            [
+              "3",
+              "10%",
+              "17%"
+            ],
+            [
+              "4",
+              "6%",
+              "21%"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "Which checkpoint has the lowest validation error?",
+          "options": [
+            "Epoch 1",
+            "Epoch 3",
+            "Epoch 4"
+          ],
+          "right": 1,
+          "hint": "Find the minimum in the validation column.",
+          "feedback": "Epoch 3 has 17% validation error, even though epoch 4 fits the training set better."
+        }
+      },
+      {
+        "concept": "splits",
+        "title": "Give each split a job",
+        "content": "Fit model parameters and preprocessing statistics on training data. Choose hyperparameters and stopping using validation or cross-validation. Reserve test results for the final estimate. In a time-series task, also respect chronological order.",
+        "table": {
+          "columns": [
+            "Split",
+            "Appropriate use"
+          ],
+          "rows": [
+            [
+              "Training",
+              "Fit weights and scaling statistics"
+            ],
+            [
+              "Validation",
+              "Compare checkpoints or penalties"
+            ],
+            [
+              "Test",
+              "Estimate final performance"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "Where should scaling means and variances be fitted?",
+          "options": [
+            "On all examples before splitting",
+            "On the test split",
+            "On the training split only"
+          ],
+          "right": 2,
+          "hint": "Preprocessing estimates are part of fitting.",
+          "feedback": "Fitting them on held-out data leaks information about the evaluation set."
+        }
+      },
+      {
+        "concept": "regularization",
+        "title": "Test a repair",
+        "content": "A penalty such as L2 discourages large weights. Early stopping or simpler models can reduce overfit. Compare alternatives using the same validation procedure, and observe that a penalty that is too strong may harm both training and validation fit.",
+        "table": {
+          "columns": [
+            "Penalty",
+            "Training error",
+            "Validation error"
+          ],
+          "rows": [
+            [
+              "None",
+              "4%",
+              "23%"
+            ],
+            [
+              "Moderate",
+              "8%",
+              "16%"
+            ],
+            [
+              "Strong",
+              "26%",
+              "28%"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "Which is best supported by these validation results?",
+          "options": [
+            "Moderate penalty",
+            "Strong penalty",
+            "No penalty"
+          ],
+          "right": 0,
+          "hint": "Use validation to judge performance on unseen data.",
+          "feedback": "Moderate regularization has the smallest validation error here. Strong regularization appears to underfit."
+        }
+      }
+    ]
+  },
+  "clustering": {
+    "goal": "Use distances to group unlabelled points and see how different objectives change the grouping.",
+    "explain": "Explain how k-means updates clusters and why hierarchical clustering needs a definition of distance between groups.",
+    "model": "K-means alternates assignment to the closest centroid and recomputing each centroid as a mean. Agglomerative clustering merges groups by a named linkage. Both depend on scale and distance, and k-means can converge to different results from different starts.",
+    "points": [
+      "Describe assignment and update",
+      "Name two linkage choices",
+      "Discuss the role of scaling"
+    ],
+    "scenes": [
+      {
+        "concept": "distance",
+        "title": "Choose a useful distance",
+        "content": "On coordinates like salary and age, changing currency units can move one feature from a similar scale to thousands of times larger. Euclidean distance squares coordinate differences, so unscaled units can dominate. Use scaling when comparable feature influence is appropriate.",
+        "table": {
+          "columns": [
+            "Comparison",
+            "Age difference",
+            "Salary difference"
+          ],
+          "rows": [
+            [
+              "A vs B",
+              "3 years",
+              "300 dollars"
+            ],
+            [
+              "A vs C",
+              "10 years",
+              "50 dollars"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "Which can change Euclidean nearest neighbours without changing the people?",
+          "options": [
+            "Changing salary units alone",
+            "Reordering the rows",
+            "Renaming cluster labels"
+          ],
+          "right": 0,
+          "hint": "Compare how coordinate units alter the numeric differences.",
+          "feedback": "Units can change the geometry; row order and labels do not change Euclidean distances."
+        }
+      },
+      {
+        "concept": "kmeans",
+        "title": "Assign and recompute",
+        "content": "Start k-means at 0 and 8 on the line of points 0, 2, 7, 9. Compare distances and assign each point to the nearest centroid. Average the assigned points. Repeat until assignments stop changing or a convergence rule is met.",
+        "table": {
+          "columns": [
+            "Cluster",
+            "Initial center",
+            "Assigned points",
+            "New center"
+          ],
+          "rows": [
+            [
+              "Left",
+              "0",
+              "0, 2",
+              "1"
+            ],
+            [
+              "Right",
+              "8",
+              "7, 9",
+              "8"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "After the update, which center owns point 2?",
+          "options": [
+            "8",
+            "1",
+            "Neither"
+          ],
+          "right": 1,
+          "hint": "Its distance to the centers is 6 or 1.",
+          "feedback": "2 is closer to center 1. These assignments are stable here."
+        }
+      },
+      {
+        "concept": "hac",
+        "title": "Define distance between groups",
+        "content": "For A = {0,2} and B = {7,9}, cross-group distances are 7, 9, 5, and 7. Single linkage uses the nearest pair, complete linkage the farthest, and average linkage the mean across all pair distances. Agglomerative clustering merges the closest groups under its chosen rule.",
+        "table": {
+          "columns": [
+            "Linkage",
+            "Computation",
+            "Distance"
+          ],
+          "rows": [
+            [
+              "Single",
+              "min(7,9,5,7)",
+              "5"
+            ],
+            [
+              "Complete",
+              "max(7,9,5,7)",
+              "9"
+            ],
+            [
+              "Average",
+              "(7+9+5+7)/4",
+              "7"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "Which linkage is most susceptible to chaining via a single close pair?",
+          "options": [
+            "Complete",
+            "Average",
+            "Single"
+          ],
+          "right": 2,
+          "hint": "Which summary can ignore the farthest pairs?",
+          "feedback": "A single short bridge can drive a merge under single linkage."
+        }
+      }
+    ]
+  },
+  "pca": {
+    "goal": "Project onto a direction, reconstruct a point, and see what you lose.",
+    "explain": "Explain what information PCA keeps and why a high-variance direction might still be irrelevant to prediction.",
+    "model": "PCA centers the data, then chooses orthogonal directions ranked by projected variance. A projection keeps coordinates along selected directions and discards the rest. High variance describes the feature cloud and does not require a target variable.",
+    "points": [
+      "Describe centering",
+      "State what is maximized",
+      "Connect dropped components to reconstruction"
+    ],
+    "scenes": [
+      {
+        "concept": "components",
+        "title": "Center the cloud before choosing an axis",
+        "content": "Subtract the feature-wise mean so the cloud is around the origin. PCA finds the first unit direction with the greatest projected variance. Subsequent directions are orthogonal, and covariance eigenvectors give the axes.",
+        "table": {
+          "columns": [
+            "Covariance eigenpair",
+            "Interpretation"
+          ],
+          "rows": [
+            [
+              "Largest eigenvalue",
+              "Most projected variance"
+            ],
+            [
+              "Corresponding unit eigenvector",
+              "First principal direction"
+            ],
+            [
+              "Other eigenvectors",
+              "Orthogonal directions"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "If the raw data cloud is translated, what should proper centering do?",
+          "options": [
+            "Leave only the translation",
+            "Remove that shift from the centered cloud",
+            "Choose a target label"
+          ],
+          "right": 1,
+          "hint": "Subtracting the new mean subtracts the same shift.",
+          "feedback": "Translation is canceled by the mean subtraction."
+        }
+      },
+      {
+        "concept": "projection",
+        "title": "Project and reconstruct",
+        "content": "Centering has already been applied. For x = (3,1) and unit axis u = (1,0), project using xᵀu = 3. To reconstruct in centered coordinates, multiply by u again, giving (3,0). The residual is (0,1).",
+        "table": {
+          "columns": [
+            "Quantity",
+            "Value"
+          ],
+          "rows": [
+            [
+              "Centered point",
+              "(3, 1)"
+            ],
+            [
+              "One-dimensional score",
+              "3"
+            ],
+            [
+              "Reconstruction",
+              "(3, 0)"
+            ],
+            [
+              "Squared residual length",
+              "1"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "If retaining only the vertical axis for this point, what is the squared residual length?",
+          "options": [
+            "1",
+            "3",
+            "9"
+          ],
+          "right": 2,
+          "hint": "The horizontal component would be discarded.",
+          "feedback": "The remaining reconstruction is (0,1). The lost component has length 3, giving squared error 9."
+        }
+      },
+      {
+        "concept": "components",
+        "title": "Read explained variance",
+        "content": "With eigenvalues 6, 3, and 1, the total centered variance is 10. Retaining one component keeps 60%, retaining two keeps 90%. Scaling changes the covariance and can change the chosen directions. The best dimension depends on the downstream goal or acceptable reconstruction loss.",
+        "table": {
+          "columns": [
+            "Components kept",
+            "Variance retained"
+          ],
+          "rows": [
+            [
+              "1",
+              "6/10 = 60%"
+            ],
+            [
+              "2",
+              "9/10 = 90%"
+            ],
+            [
+              "3",
+              "10/10 = 100%"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "How many components are needed to retain at least 80% in this example?",
+          "options": [
+            "Two",
+            "One",
+            "All three"
+          ],
+          "right": 0,
+          "hint": "Add the largest eigenvalues first.",
+          "feedback": "The first two total 9 out of 10, above the threshold."
+        }
+      }
+    ]
+  },
+  "regression": {
+    "goal": "Fit a line by measuring how far predictions are from actual outputs.",
+    "explain": "Explain why linear regression and PCA can choose different lines for the same scatter plot.",
+    "model": "Regression uses a designated response y and minimizes squared vertical prediction errors. PCA uses geometric variance and projection error without selecting a response. Swapping inputs and outputs changes the regression problem.",
+    "points": [
+      "Identify y",
+      "Draw a vertical residual",
+      "Explain what outliers can change"
+    ],
+    "scenes": [
+      {
+        "concept": "least-squares",
+        "title": "Define the prediction and the residual",
+        "content": "For ŷ = 1 + 2x, the prediction at x = 2 is 5. If the observed y is 6, its residual y − ŷ is +1. Ordinary least squares scores the line using the sum of squared residuals across examples.",
+        "table": {
+          "columns": [
+            "x",
+            "Observed y",
+            "Predicted y",
+            "Residual"
+          ],
+          "rows": [
+            [
+              "0",
+              "1",
+              "1",
+              "0"
+            ],
+            [
+              "1",
+              "2",
+              "3",
+              "−1"
+            ],
+            [
+              "2",
+              "6",
+              "5",
+              "+1"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "What is the sum of squared residuals for this line?",
+          "options": [
+            "0",
+            "2",
+            "1"
+          ],
+          "right": 1,
+          "hint": "Square each residual before summing.",
+          "feedback": "0² + (−1)² + 1² = 2. Opposite signs do not cancel."
+        }
+      },
+      {
+        "concept": "least-squares",
+        "title": "Why slope and intercept work together",
+        "content": "With an intercept in ordinary least squares, the fitted line passes through (x̄, ȳ). The slope is centered covariance divided by centered x variance, or the equivalent ratio of centered sums. The intercept sets the height of the line so its prediction at x̄ equals ȳ.",
+        "table": {
+          "columns": [
+            "Known quantity",
+            "Value"
+          ],
+          "rows": [
+            [
+              "Mean x",
+              "2"
+            ],
+            [
+              "Mean y",
+              "5"
+            ],
+            [
+              "Slope",
+              "1.5"
+            ],
+            [
+              "Intercept",
+              "5 − 1.5×2 = 2"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "If we keep these means and the slope becomes 2, what intercept goes through the means?",
+          "options": [
+            "1",
+            "3",
+            "−1"
+          ],
+          "right": 0,
+          "hint": "Set 5 = b + 2×2 and solve for b.",
+          "feedback": "The intercept is 1."
+        }
+      },
+      {
+        "concept": "comparison",
+        "title": "Distinguish the two lines",
+        "content": "Ordinary regression minimizes vertical errors to predict y from x. The first principal axis of centered 2D data instead minimizes perpendicular squared distances for one-axis reconstruction. A high-leverage point can pull both lines but the objectives remain different.",
+        "table": {
+          "columns": [
+            "Method",
+            "Goal",
+            "Distance to line"
+          ],
+          "rows": [
+            [
+              "Regression",
+              "Predict y from x",
+              "Vertical"
+            ],
+            [
+              "PCA",
+              "Keep the cloud's main variation",
+              "Perpendicular"
+            ]
+          ]
+        },
+        "check": {
+          "prompt": "Which method directly targets prediction of a known response column?",
+          "options": [
+            "PCA only",
+            "Ordinary regression",
+            "Both use the same objective"
+          ],
+          "right": 1,
+          "hint": "Which method was told which column is the response?",
+          "feedback": "Regression has a designated output. PCA can provide features before regression, but has a different objective."
+        }
+      }
+    ]
+  }
+}
