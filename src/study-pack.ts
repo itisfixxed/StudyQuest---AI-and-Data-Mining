@@ -12,13 +12,33 @@ interface StudyPack {
 const releaseDigest = 'db56abe9ab62ddb09ee58c42ba4ed6656152b77458539fd395ffc86d9040414d';
 const databaseName = 'studyquest-ie4483-study-packs';
 
-async function readPack(file: Blob): Promise<StudyPack> {
+// The supplied ZIP stores one JSON entry without compression. Verify the
+// extracted bytes against the same digest used for standalone JSON packs.
+function packPayload(bytes: ArrayBuffer) {
+  if (bytes.byteLength < 4) return bytes;
+  const header = new DataView(bytes);
+  if (header.getUint32(0, true) !== 0x04034b50) return bytes;
+  if (bytes.byteLength < 30 || (header.getUint16(6, true) & 9) !== 0 ||
+      header.getUint16(8, true) !== 0) {
+    throw new Error('This archive is unsupported. Select the supplied IE4483 study pack ZIP.');
+  }
+  const size = header.getUint32(18, true);
+  const nameEnd = 30 + header.getUint16(26, true);
+  const start = nameEnd + header.getUint16(28, true);
+  if (size !== header.getUint32(22, true) || start + size > bytes.byteLength ||
+      new TextDecoder().decode(bytes.slice(30, nameEnd)) !== 'StudyQuest-IE4483-Study-Pack.json') {
+    throw new Error('This ZIP does not contain the supplied IE4483 study pack.');
+  }
+  return bytes.slice(start, start + size);
+}
+
+export async function readPack(file: Blob): Promise<StudyPack> {
   if (file.size > 8 * 1024 * 1024) throw new Error('Choose the IE4483 study pack, which is under 8 MB.');
-  const bytes = await file.arrayBuffer();
+  const bytes = packPayload(await file.arrayBuffer());
   const hash = await crypto.subtle.digest('SHA-256', bytes);
   const digest = Array.from(new Uint8Array(hash), byte => byte.toString(16).padStart(2, '0')).join('');
   if (digest !== releaseDigest) {
-    throw new Error('Choose the supplied StudyQuest IE4483 study-pack JSON. ZIP files, PDFs, and progress backups use different formats.');
+    throw new Error('Choose the supplied StudyQuest IE4483 study pack ZIP or JSON. The project ZIP and progress backup use different formats.');
   }
   return JSON.parse(new TextDecoder().decode(bytes)) as StudyPack;
 }

@@ -35,11 +35,11 @@ npm run dev
 
 ## Add the private IE4483 study pack on your phone
 
-1. Save the supplied **StudyQuest-IE4483-Study-Pack.json** to Files or Downloads on your phone. Keep it outside the GitHub repository.
-2. Open the deployed StudyQuest site. Go to **Settings → Private study pack → Choose IE4483 study pack** and select the JSON file.
+1. Save the supplied **StudyQuest-IE4483-Study-Pack.zip** to Files or Downloads on your phone. Keep it outside the GitHub repository.
+2. Open the deployed StudyQuest site. Go to **Settings → Private study pack → Choose IE4483 study pack** and select the ZIP without extracting it. The original study-pack JSON also works.
 3. After the page reloads, open **Exam Arena** to choose a past paper. **Practice** also includes the adapted exercises and original questions.
 
-StudyQuest verifies this edition’s study pack and stores it using browser storage. The file is read on the device and is never sent to GitHub. If you switch browsers or clear site data, import it again. Import the study pack before restoring a progress backup containing past-paper attempts. Raw PDFs and ZIP files need to be prepared as a supported study pack before they can be added.
+StudyQuest verifies this edition’s study pack and stores it using browser storage. The file is read on the device and is never sent to GitHub. If you switch browsers or clear site data, import it again. Import the study pack before restoring a progress backup containing past-paper attempts. Import the supplied study pack ZIP. The project ZIP contains the website source.
 
 ## Publish from VS Code
 

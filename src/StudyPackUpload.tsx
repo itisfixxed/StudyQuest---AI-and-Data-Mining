@@ -28,10 +28,10 @@ export function StudyPackUpload() {
     <SectionTitle title="Private study pack" description={papers.length
       ? papers.length + ' past papers are available in this browser.'
       : 'Add the past papers and course exercises to this browser.'} />
-    <p>The file stays on this device. Import the same pack on each device where you study.</p>
+    <p>Choose the study pack ZIP or JSON. The file stays on this device.</p>
     <label className="narrow-field">
       Choose IE4483 study pack
-      <input type="file" accept=".json,application/json" onChange={choose} disabled={busy} />
+      <input type="file" accept=".zip,.json,application/zip,application/x-zip-compressed,application/json" onChange={choose} disabled={busy} />
     </label>
     {(status || packLoadFailed) && <p role="status">{status || 'The saved pack could not be opened. Select the study pack again.'}</p>}
   </section>;
