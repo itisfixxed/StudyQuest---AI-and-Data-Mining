@@ -2,7 +2,7 @@ import type { ActiveExam, Answer, Attempt, ExamResult, Progress, Question, Topic
 import { isManual, lectureScenes, moduleInfo, questions, questionById, topicById, topicHistory, topics } from './content/index.ts';
 import { automaticScore, hasAnswer } from './answers.ts';
 
-export const storageKey = 'studyquest-' + moduleInfo.id.toLowerCase() + '-progress-v1';
+export const storageKey = (moduleId = moduleInfo.id) => 'studyquest-' + moduleId.toLowerCase() + '-progress-v1';
 // Mobile browsers restrict randomUUID on HTTP over a local network.
 export function createRecordId() {
   return Array.from(crypto.getRandomValues(new Uint8Array(16)), byte =>
@@ -277,6 +277,7 @@ export function finalizeResult(progress: Progress, id: string) {
  * tab's work is lost; settings and the active exam follow the incoming (most recent) write.
  */
 export function mergeProgress(local: Progress, incoming: Progress): Progress {
+  if (local.module !== incoming.module) return local;
   const byId = <T extends { id: string }>(a: T[], b: T[], prefer: (x: T, y: T) => T = x => x) => {
     const map = new Map(a.map(item => [item.id, item]));
     for (const item of b) map.set(item.id, map.has(item.id) ? prefer(map.get(item.id)!, item) : item);

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { knowledgeQuestions, practiceQuestions, references, stages, topicById } from './content/index.ts';
+import { isBuiltinModule, knowledgeQuestions, practiceQuestions, references, stages, topicById } from './content/index.ts';
 import { addLesson, profile, topicLocked } from './progress.ts';
 import type { Progress, Topic } from './types.ts';
 import { AnswerField } from './Practice.tsx';
@@ -30,7 +30,7 @@ function Lesson({ path, progress, update, openTopic, nextLesson, practice }: {
         <div className="row spread"><Pill color="indigo">Concept lesson</Pill>{complete && <Pill color="teal"><Icon name="check" size={15} /> Completed</Pill>}</div>
         <h2>Build the intuition</h2><p className="lesson-intro">{concept.intuition}</p>
         <h3>How it works</h3><p>{concept.formal}</p>
-        <Demonstration topic={topic.id} concept={concept.id} />
+        {isBuiltinModule() && <Demonstration topic={topic.id} concept={concept.id} />}
         {references.filter(r => concept.formulas.includes(r.id) && r.expression)
           .map(r => <div className="lesson-formula" key={r.id}><h3>{r.title}</h3><MathBlock expression={r.expression!} /><p>{r.parameters}</p></div>)}
         <h3>Worked example</h3><p>{concept.example}</p>

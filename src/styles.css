@@ -588,3 +588,7 @@ tbody tr:last-child td,tbody tr:last-child th { border:0; }
 .ladder-head { gap:.4rem; font-size:.9rem; }
 .ladder-head span { color:var(--muted); font-size:.82rem; }
 .ladder-worked { padding:.5rem .65rem; border-radius:.5rem; background:var(--surface); }
+
+.sidebar-module { margin: 0 1.25rem .7rem; flex-shrink: 0; min-width: 0; }
+.module-selector { display: block; min-width: 0; max-width: 100%; }
+.module-selector select { width: 100%; text-overflow: ellipsis; }

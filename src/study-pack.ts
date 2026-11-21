@@ -1,3 +1,5 @@
+import { builtinModule, validateModulePack } from './module-pack.ts';
+import type { ModuleInfo } from './types.ts';
 import { previousModuleCode, sourceLabel } from './legacy-storage.ts';
 import type { Paper, Question } from './types.ts';
 
@@ -20,6 +22,7 @@ const acceptedDigests = new Set([
 // Keep already imported packs accessible in the existing IndexedDB database.
 const databaseName = 'studyquest-' + previousModuleCode.toLowerCase() + '-study-packs';
 
+export const modulePackEntryName = 'StudyQuest-Module-Pack.json';
 const entryName = 'StudyQuest-Study-Pack.json';
 export const studyPackFilename = 'StudyQuest-Study-Pack.zip';
 const zipType = 'application/zip';
@@ -71,7 +74,7 @@ function zipPayload(payload: ArrayBuffer): Blob {
 
 // The supplied ZIP stores one JSON entry without compression. Verify the
 // extracted bytes against the same digest used for standalone JSON packs.
-function packPayload(bytes: ArrayBuffer) {
+function packPayload(bytes: ArrayBuffer, modulePack = false) {
   if (bytes.byteLength < 4) return bytes;
   const header = new DataView(bytes);
   if (header.getUint32(0, true) !== zipSignature) return bytes;
@@ -85,26 +88,45 @@ function packPayload(bytes: ArrayBuffer) {
   const name = new TextDecoder().decode(bytes.slice(30, nameEnd));
   const previousEntry = 'StudyQuest-' + previousModuleCode + '-Study-Pack.json';
   if (size !== header.getUint32(22, true) || start + size > bytes.byteLength ||
-      (name !== entryName && name !== previousEntry)) {
+      (modulePack ? name !== modulePackEntryName : name !== entryName && name !== previousEntry)) {
     throw new Error('This ZIP does not contain the supplied study pack.');
   }
   return bytes.slice(start, start + size);
 }
 
-async function verifiedPayload(file: Blob): Promise<ArrayBuffer> {
-  if (file.size > 8 * 1024 * 1024) throw new Error('Choose the study pack, which is under 8 MB.');
-  const bytes = packPayload(await file.arrayBuffer());
+async function sha256(bytes: ArrayBuffer) {
   const hash = await crypto.subtle.digest('SHA-256', bytes);
-  const digest = Array.from(new Uint8Array(hash), byte => byte.toString(16).padStart(2, '0')).join('');
-  if (!acceptedDigests.has(digest)) {
-    throw new Error('Choose the supplied StudyQuest study pack ZIP or JSON. The project ZIP and progress backup use different formats.');
-  }
-  return bytes;
+  return Array.from(new Uint8Array(hash), byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+const acceptedModuleZips = new Set(['cedbedd1c7318be4aee783fb5ccd78d7980155f824f0b9c83910f9231a72c428']);
+const acceptedModuleJson = new Set(['83a243544e75aee1405d60ab6024680579e83940131e4a2511ff35c3f003ba58']);
+const fileMismatch = 'Choose the supplied StudyQuest study pack ZIP or JSON. The project ZIP and progress backup use different formats.';
+
+async function verifiedPayload(file: Blob, modulePack = false) {
+  if (file.size > 8 * 1024 * 1024) throw new Error('Choose the study pack, which is under 8 MB.');
+  const archive = await file.arrayBuffer();
+  const payload = packPayload(archive, modulePack);
+  const isArchive = payload !== archive;
+  const digests = modulePack ? (isArchive ? acceptedModuleZips : acceptedModuleJson) : acceptedDigests;
+  if (!digests.has(await sha256(modulePack && isArchive ? archive : payload))) throw new Error(fileMismatch);
+  return payload;
+}
+
+export function parseModulePayload(bytes: ArrayBuffer) {
+  return validateModulePack(JSON.parse(new TextDecoder().decode(packPayload(bytes, true))));
+}
+
+export async function readModulePack(file: Blob) {
+  return parseModulePayload(await verifiedPayload(file, true));
 }
 
 export async function readPack(file: Blob): Promise<StudyPack> {
   const bytes = await verifiedPayload(file);
   const pack = JSON.parse(new TextDecoder().decode(bytes)) as StudyPack;
+  if (pack.version !== 1 || (pack.module !== previousModuleCode && pack.module !== builtinModule.id)) {
+    throw new Error(fileMismatch);
+  }
   if (pack.module === previousModuleCode) {
     for (const paper of pack.papers) paper.file = sourceLabel(paper.file);
     for (const question of [...pack.questions, ...pack.exercises]) question.source.file = sourceLabel(question.source.file);
@@ -130,19 +152,26 @@ function openDatabase(): Promise<IDBDatabase> {
   });
 }
 
-async function packFile(file?: Blob): Promise<Blob | undefined> {
+async function packStore<T>(mode: IDBTransactionMode, operation: (store: IDBObjectStore) => IDBRequest<T>): Promise<T> {
   const db = await openDatabase();
   try {
     return await new Promise((resolve, reject) => {
-      const transaction = db.transaction('packs', file ? 'readwrite' : 'readonly');
-      const store = transaction.objectStore('packs');
-      const request = file ? store.put(file, 'current') : store.get('current');
-      transaction.oncomplete = () => resolve(file ? undefined : request.result);
+      const transaction = db.transaction('packs', mode);
+      const request = operation(transaction.objectStore('packs'));
+      transaction.oncomplete = () => resolve(request.result);
       transaction.onerror = transaction.onabort = () => reject(transaction.error ?? new Error('Study pack storage failed.'));
     });
   } finally {
     db.close();
   }
+}
+
+async function packFile(file?: Blob): Promise<Blob | undefined> {
+  if (file) {
+    await packStore('readwrite', store => store.put(file, 'current'));
+    return;
+  }
+  return packStore('readonly', store => store.get('current'));
 }
 
 export async function loadStudyPack() {
@@ -159,3 +188,44 @@ export async function saveStudyPack(file: File) {
   }
 }
 
+
+const activeModuleKey = 'studyquest-active-module';
+const moduleKey = (id: string) => 'module:' + id;
+const metadataKey = (id: string) => 'metadata:' + id;
+
+export function selectedModuleId() {
+  try { return localStorage.getItem(activeModuleKey) || builtinModule.id; }
+  catch { return builtinModule.id; }
+}
+
+export function selectModule(id: string) {
+  localStorage.setItem(activeModuleKey, id);
+}
+
+export async function installedModules(): Promise<ModuleInfo[]> {
+  const entries = await packStore('readonly', store => store.getAll(IDBKeyRange.bound('metadata:', 'metadata:\uffff')));
+  return [builtinModule, ...entries];
+}
+
+export async function loadModulePack(id: string) {
+  const file = await packStore('readonly', store => store.get(moduleKey(id))) as Blob | undefined;
+  if (!file) return;
+  const pack = await readModulePack(file);
+  if (pack.module.id !== id) throw new Error('The stored pack has a different module ID.');
+  return pack;
+}
+
+export async function saveModulePack(file: File) {
+  const pack = await readModulePack(file);
+  await packStore('readwrite', store => {
+    store.put(file, moduleKey(pack.module.id));
+    return store.put(pack.module, metadataKey(pack.module.id));
+  });
+  return pack.module;
+}
+
+// Android storage providers sometimes report ZIP and JSON as generic binary files.
+export const studyPackAccept = [
+  '.zip', '.json', 'application/zip', 'application/x-zip-compressed', 'application/x-zip',
+  'application/json', 'text/plain', 'application/octet-stream',
+].join(',');

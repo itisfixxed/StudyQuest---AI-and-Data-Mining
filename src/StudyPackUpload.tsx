@@ -1,21 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { hasBundledPapers, papers, packLoadFailed } from './content/index.ts';
-import { downloadStudyPack, saveStudyPack, studyPackFilename } from './study-pack.ts';
+import { downloadStudyPack, saveStudyPack, studyPackAccept, studyPackFilename } from './study-pack.ts';
 import { Icon, SectionTitle } from './ui.tsx';
 
 const nameKey = 'studyquest-study-pack-name';
 function savedName() {
   try { return localStorage.getItem(nameKey) ?? ''; } catch { return ''; }
 }
-
-// Android pickers filter by the MIME type the storage provider reports,
-// which is often application/octet-stream for ZIP and JSON files.
-const ACCEPT = [
-  '.zip', '.json',
-  'application/zip', 'application/x-zip-compressed', 'application/x-zip',
-  'application/json', 'text/plain', 'application/octet-stream',
-].join(',');
 
 export function StudyPackUpload() {
   const [status, setStatus] = useState('');
@@ -72,7 +64,7 @@ export function StudyPackUpload() {
         <Icon name="upload" size={18} /> {busy ? 'Importing…' : current ? 'Replace study pack' : 'Choose study pack'}
       </button>
       <span className="file-pick-name" aria-live="polite">{chosen ? 'Selected: ' + chosen : current ? 'Current pack: ' + current : papers.length ? 'Study pack loaded' : 'No file chosen'}</span>
-      <input ref={input} className="sr-only" type="file" accept={ACCEPT} onChange={choose} disabled={busy} tabIndex={-1} aria-label="Choose study pack file" />
+      <input ref={input} className="sr-only" type="file" accept={studyPackAccept} onChange={choose} disabled={busy} tabIndex={-1} aria-label="Choose study pack file" />
     </div>
     {zipUrl && <div><a className="button secondary" href={zipUrl} download={studyPackFilename}>Download study pack ZIP</a></div>}
     {(status || packLoadFailed) && <p role="status">{status || 'The saved pack could not be opened. Select the study pack again.'}</p>}

@@ -96,3 +96,11 @@ export interface Progress {
   lectures?: Record<string, number[]>;
 }
 
+
+export interface ModuleInfo { id: string; name: string; examDate: string }
+export interface LectureScene {
+  concept: string; title: string; setup?: string; content: string;
+  table: { columns: string[]; rows: string[][] };
+  check: { prompt: string; options: string[]; right: number; hint: string; feedback: string };
+}
+export interface Lecture { goal: string; explain: string; model: string; points: string[]; scenes: LectureScene[] }

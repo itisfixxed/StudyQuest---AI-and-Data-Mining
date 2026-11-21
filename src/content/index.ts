@@ -1,19 +1,24 @@
-import { loadStudyPack } from '../study-pack.ts';
+import { installedModules, loadModulePack, loadStudyPack, selectedModuleId } from '../study-pack.ts';
+import { builtinModule } from '../module-pack.ts';
+import type { ModulePack } from '../module-pack.ts';
 import rawTopics from './topics.json' with { type: 'json' };
 import rawReferences from './references.json' with { type: 'json' };
 import rawPapers from './papers.json' with { type: 'json' };
 import rawExamQuestions from './exam-questions.json' with { type: 'json' };
 import rawDrills from './drills.json' with { type: 'json' };
-import moduleInfo from './module.json' with { type: 'json' };
 import rawLectures from './lectures.json' with { type: 'json' };
 import rawLadders from './ladders.json' with { type: 'json' };
-import type { Concept, Difficulty, Guidance, HintStep, Paper, Question, Reference, Topic } from '../types.ts';
+import type { Concept, Difficulty, Guidance, HintStep, Lecture, ModuleInfo, Paper, Question, Reference, Topic } from '../types.ts';
 
-export const topics = rawTopics as Topic[];
-export { moduleInfo };
-export const references = rawReferences as Reference[];
+export const topics = [...rawTopics] as Topic[];
+export const moduleInfo: ModuleInfo = { ...builtinModule };
+export const references = [...rawReferences] as Reference[];
+export const lectures: Record<string, Lecture> = { ...rawLectures };
 export const lectureScenes: Record<string, number> = Object.fromEntries(
-  Object.entries(rawLectures as Record<string, { scenes: unknown[] }>).map(([id, lecture]) => [id, lecture.scenes.length]));
+  Object.entries(lectures).map(([id, lecture]) => [id, lecture.scenes.length]));
+export const availableModules: ModuleInfo[] = [builtinModule];
+export let moduleLoadFailed = false;
+export const isBuiltinModule = () => moduleInfo.id === builtinModule.id;
 export const papers = [...rawPapers] as Paper[];
 export const hasBundledPapers = papers.length > 0;
 export let packLoadFailed = false;
@@ -75,7 +80,7 @@ const applied: Question[] = topics.flatMap(topic => topic.concepts.map(concept =
 const drills = [...rawDrills] as Question[];
 export const practiceQuestions = [...knowledgeQuestions, ...applied, ...drills];
 /** Authored step-by-step hint ladders (and fuller worked solutions) for generated questions, keyed by question id. */
-export const ladders = rawLadders as Record<string, { steps: HintStep[]; solution?: string[] }>;
+export const ladders = { ...rawLadders } as Record<string, { steps: HintStep[]; solution?: string[] }>;
 for (const question of practiceQuestions) {
   const entry = ladders[question.id];
   if (!entry) continue;
@@ -95,28 +100,82 @@ export const historical = calculateHistory();
 export const topicHistory = Object.fromEntries(historical.map(item => [item.topic, item]));
 export const historicalParts = papers.flatMap(paper => paper.parts);
 
+function replaceIndex<T>(target: Record<string, T>, values: [string, T][]) {
+  for (const key of Object.keys(target)) delete target[key];
+  for (const [key, value] of values) target[key] = value;
+}
+
+function addScans(scans: Record<string, string>, questions: Question[]) {
+  const urls = Object.fromEntries(Object.entries(scans).map(([path, content]) => [
+    path, URL.createObjectURL(new Blob([
+      Uint8Array.from(atob(content), char => char.charCodeAt(0))
+    ], { type: 'image/webp' }))
+  ]));
+  for (const question of questions) {
+    for (const figure of question.figures ?? []) figure.src = urls[figure.src];
+  }
+}
+
+function refreshIndexes() {
+  historicalParts.splice(0, historicalParts.length, ...papers.flatMap(paper => paper.parts));
+  historical.splice(0, historical.length, ...calculateHistory());
+  replaceIndex(topicHistory, historical.map(item => [item.topic, item]));
+  replaceIndex(questionById, questions.map(question => [question.id, question]));
+}
+
+export function activateModule(pack: ModulePack) {
+  addScans(pack.scans, [...pack.questions, ...pack.exercises]);
+  Object.assign(moduleInfo, pack.module);
+  topics.splice(0, topics.length, ...pack.topics);
+  references.splice(0, references.length, ...pack.references);
+  replaceIndex(topicById, topics.map(topic => [topic.id, topic]));
+  replaceIndex(referenceById, references.map(reference => [reference.id, reference]));
+  replaceIndex(lectures, Object.entries(pack.lectures));
+  replaceIndex(lectureScenes, Object.entries(lectures).map(([id, lecture]) => [id, lecture.scenes.length]));
+  knowledgeQuestions.splice(0, knowledgeQuestions.length, ...pack.practiceQuestions.filter(q => q.id.startsWith('check-')));
+  applied.splice(0, applied.length, ...pack.practiceQuestions.filter(q => q.id.startsWith('apply-')));
+  drills.splice(0, drills.length, ...pack.practiceQuestions.filter(q => !q.id.startsWith('check-') && !q.id.startsWith('apply-')), ...pack.exercises);
+  practiceQuestions.splice(0, practiceQuestions.length, ...pack.practiceQuestions, ...pack.exercises);
+  replaceIndex(ladders, practiceQuestions.map(q => [q.id, { steps: q.guidance.ladder!, solution: q.solution }]));
+  papers.splice(0, papers.length, ...pack.papers);
+  historicalQuestions.splice(0, historicalQuestions.length, ...pack.questions);
+  questions.splice(0, questions.length, ...practiceQuestions, ...historicalQuestions);
+  refreshIndexes();
+}
+
 export async function prepareStudyContent() {
+  try {
+    const installed = await installedModules();
+    availableModules.splice(0, availableModules.length, ...installed);
+  } catch {
+    // Bundled content remains available when the browser blocks IndexedDB.
+  }
+
+  const selected = selectedModuleId();
+  if (selected !== builtinModule.id) {
+    try {
+      const pack = await loadModulePack(selected);
+      if (pack) {
+        activateModule(pack);
+        return;
+      }
+    } catch {
+      // Fall back to the built-in module and let Settings report the failure.
+    }
+    moduleLoadFailed = true;
+  }
+
   if (hasBundledPapers || papers.length) return;
   try {
     const pack = await loadStudyPack();
     if (!pack) return;
-    const scans = Object.fromEntries(Object.entries(pack.scans).map(([path, content]) => [
-      path, URL.createObjectURL(new Blob([
-        Uint8Array.from(atob(content), char => char.charCodeAt(0))
-      ], { type: 'image/webp' }))
-    ]));
-    for (const question of pack.questions) {
-      for (const figure of question.figures ?? []) figure.src = scans[figure.src];
-    }
+    addScans(pack.scans, pack.questions);
     papers.push(...pack.papers);
-    historicalParts.push(...pack.papers.flatMap(paper => paper.parts));
     historicalQuestions.push(...pack.questions);
     drills.push(...pack.exercises);
     practiceQuestions.push(...pack.exercises);
     questions.push(...pack.questions, ...pack.exercises);
-    for (const question of [...pack.questions, ...pack.exercises]) questionById[question.id] = question;
-    historical.splice(0, historical.length, ...calculateHistory());
-    for (const item of historical) topicHistory[item.topic] = item;
+    refreshIndexes();
   } catch {
     packLoadFailed = true;
   }
@@ -134,6 +193,7 @@ export function bossQuestions(topicId: string) {
   const caseQuestion = pool.find(q => q.id === 'case-' + topicId)!;
   const original = historicalQuestions.find(q => q.topic === topicId && q.origin === 'original');
   const advanced = pool.find(q => q.difficulty === 'hard');
-  return [caseQuestion, original ?? advanced ?? applied.find(q => q.topic === topicId)!];
+  return [caseQuestion, original ?? advanced ?? applied.find(q => q.topic === topicId)]
+    .filter((q): q is Question => q !== undefined);
 }
 

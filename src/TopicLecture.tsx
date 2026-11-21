@@ -1,23 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import rawLectures from './content/lectures.json' with { type: 'json' };
+import { isBuiltinModule, lectures } from './content/index.ts';
 import { LectureGraphic } from './LectureGraphic.tsx';
-import type { Progress, Topic } from './types.ts';
+import type { Lecture, LectureScene, Progress, Topic } from './types.ts';
 import type { Update } from './Practice.tsx';
 import { lecturePassed, passLectureCheck } from './progress.ts';
 import { Bubble, Icon, PageTitle, ProgressBar, SourceNote } from './ui.tsx';
 
-type Scene = {
-  concept:string;
-  title:string;
-  setup?:string;
-  content:string;
-  table:{ columns:string[]; rows:string[][] };
-  check:{ prompt:string; options:string[]; right:number; hint:string; feedback:string };
-};
-type Lecture = { goal:string; explain:string; model:string; points:string[]; scenes:Scene[] };
-const lectures:Record<string,Lecture> = rawLectures;
-
-function SceneCheck({ check, onPass, alreadyPassed }: { check:Scene['check']; onPass:()=>void; alreadyPassed:boolean }) {
+function SceneCheck({ check, onPass, alreadyPassed }: { check:LectureScene['check']; onPass:()=>void; alreadyPassed:boolean }) {
   const [choice,setChoice] = useState<number|null>(alreadyPassed ? check.right : null);
   const [checked,setChecked] = useState(alreadyPassed);
   const [hint,setHint] = useState(false);
@@ -109,7 +98,7 @@ export function TopicLecture({ topic, progress, update, close, openConcept }: {
             <strong>Example setup</strong><p>{scene.setup}</p>
           </section>}
           <p>{scene.content}</p>
-          <LectureGraphic topic={topic.id} step={step} />
+          {isBuiltinModule() && <LectureGraphic topic={topic.id} step={step} />}
           <div className="table-scroll lecture-table">
             <table aria-label={scene.title+' worked example'}>
               <thead><tr>{scene.table.columns.map(name=><th key={name} scope="col">{name}</th>)}</tr></thead>
