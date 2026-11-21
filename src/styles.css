@@ -576,3 +576,6 @@ tbody tr:last-child td,tbody tr:last-child th { border:0; }
 .lecture-setup p { margin:.2rem 0 0; }
 .lecture-edge.skipped { opacity:.5; stroke-dasharray:5 5; }
 .lecture-node-skipped { opacity:.6; }
+
+.file-pick { align-items:center; gap:.75rem; margin:.5rem 0 .75rem; }
+.file-pick-name { color:var(--muted); font-size:.9rem; overflow-wrap:anywhere; min-width:0; }
