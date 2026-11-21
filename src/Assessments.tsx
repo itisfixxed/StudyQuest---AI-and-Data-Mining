@@ -122,8 +122,8 @@ function ResultScreen({ result, update, close, review, practice }: { result: Exa
       <div className="row"><Bubble icon={result.mode === 'boss' ? 'trophy' : 'clipboard'} large /><div><strong>{score} / {max}</strong><p>{result.finalized ? 'Marks earned' : 'Marks recorded so far'}</p></div></div>
       <div><Pill color={assisted ? 'amber' : 'teal'}>{assisted ? assisted + (assisted === 1 ? ' assisted question' : ' assisted questions') : 'No hints used'}</Pill><small>{elapsed(result.seconds)} elapsed · {outstanding ? outstanding + (outstanding === 1 ? ' response needs self-assessment' : ' responses need self-assessment') : 'Marks for written responses are estimates'}</small></div>
     </div>
-    {!result.finalized && <div className="feedback warning"><strong>{outstanding ? 'Apply the rubrics below' : 'Save your reviewed result'}</strong><p>Written responses use estimated marking criteria. Complete your assessment after reviewing the marked parts.</p>
-      <button className="button primary" disabled={outstanding > 0} onClick={() => update(p => finalizeResult(p,result.id))}>Finalize result</button></div>}
+    {!result.finalized && <div className="feedback warning"><strong>{outstanding ? 'Apply the rubrics below' : 'Save your reviewed result'}</strong><p>Written responses use estimated marking criteria. Marks only count toward mastery and your dashboard once you finalize.</p>
+      <button className="button primary" disabled={outstanding > 0} onClick={() => update(p => finalizeResult(p,result.id))}>Finalize and update progress</button></div>}
     <div className="session-cols">
       <div><SectionTitle title="Question review" description="Compare your submitted answers with the worked solutions." />
         <div className="panel exam-review">

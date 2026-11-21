@@ -1,5 +1,5 @@
-import { moduleInfo, questionById, referenceById, topicById, topics } from './content/index.ts';
-import { newProgress, storageKey } from './progress.ts';
+import { lectureScenes, moduleInfo, questionById, referenceById, topicById, topics } from './content/index.ts';
+import { backfillLessons, newProgress, storageKey } from './progress.ts';
 import { previousModuleCode } from './legacy-storage.ts';
 import type { Progress } from './types.ts';
 
@@ -37,6 +37,8 @@ export function parseProgress(text: string): Progress {
     !map(p.reviews, a => obj(a) && finite(a.last) && finite(a.due) && within(a.box, 0, 5) && Number.isInteger(a.box)) ||
     !values(p.bookmarks, a => validId(a) && (Object.hasOwn(referenceById,a) || a.startsWith('concept/') && lessonIds.has(a.slice(8)))) ||
     !values(p.overrides, knownTopic) ||
+    !(p.lectures === undefined || obj(p.lectures) && Object.entries(p.lectures).every(([topic, scenes]) =>
+      Object.hasOwn(lectureScenes, topic) && values(scenes, s => Number.isInteger(s) && within(s, 0, lectureScenes[topic] - 1)) && new Set(scenes as number[]).size === (scenes as number[]).length)) ||
     !values(p.results, a => obj(a) && examBase(a) && finite(a.at) && within(a.seconds, 0, 1e7) && typeof a.finalized === 'boolean' &&
       map(a.scores, (score, q) => within(score, 0, questionById[q].marks)) && values(a.marked, knownQ) &&
       unique(a.marked as string[]) && (a.marked as string[]).every(id => (a.questions as string[]).includes(id) && Object.hasOwn(a.scores as object,id)) &&
@@ -54,7 +56,7 @@ export function parseProgress(text: string): Progress {
   if (!unique(parsed.lessons.map(a => a.id)) || !unique(parsed.attempts.map(a => a.id)) || !unique(parsed.results.map(a => a.id))) {
     throw new Error('The progress file contains duplicate records.');
   }
-  return { ...parsed, module: moduleInfo.id };
+  return backfillLessons({ ...parsed, lectures: parsed.lectures ?? {}, module: moduleInfo.id });
 }
 
 export function loadProgress() {

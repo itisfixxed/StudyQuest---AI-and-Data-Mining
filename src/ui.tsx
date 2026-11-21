@@ -33,9 +33,10 @@ export function ProgressBar({ value, label, color = 'indigo' }: { value: number;
     <span style={{ width: normalized + '%' }} />
   </div>;
 }
-export function Ring({ value, caption, color = '' }: { value: number; caption: string; color?: string }) {
-  return <div className={'ring ' + color} aria-label={caption + ' ' + value + '%'} style={{ '--ring-value': value + '%' } as CSSProperties}>
-    <div className="ring-center"><strong>{value}%</strong><small>{caption}</small></div>
+export function Ring({ value, caption, color = '', display }: { value: number; caption: string; color?: string; display?: string }) {
+  const text = display ?? value + '%';
+  return <div className={'ring ' + color} aria-label={caption + ' ' + text} style={{ '--ring-value': value + '%' } as CSSProperties}>
+    <div className="ring-center"><strong>{text}</strong><small>{caption}</small></div>
   </div>;
 }
 export function Pill({ children, color = '' }: { children: ReactNode; color?: string }) {

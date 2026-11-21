@@ -145,3 +145,52 @@ test('backups are scoped to the module and reject bad dates, unknown questions a
   assert.deepEqual(parseProgress(JSON.stringify({...p,activeExam:exam})).activeExam,exam);
 });
 
+
+test('guided lecture checks persist, raise mastery and survive a backup round-trip', async () => {
+  const { passLectureCheck, lecturePassed } = await import('../src/progress.ts');
+  const topic = topics[0].id;
+  let p = newProgress();
+  assert.equal(profile(p).find(t => t.topic.id === topic).score, 0);
+  p = passLectureCheck(passLectureCheck(p, topic, 1), topic, 1);
+  assert.deepEqual(lecturePassed(p, topic), [1]);
+  const row = profile(p).find(t => t.topic.id === topic);
+  assert.ok(row.score > 0 && row.stage === 1 && row.lecture === 1);
+  assert.deepEqual(parseProgress(JSON.stringify(p)).lectures[topic], [1]);
+  const legacy = { ...newProgress() }; delete legacy.lectures;
+  assert.deepEqual(parseProgress(JSON.stringify(legacy)).lectures, {});
+  assert.throws(() => parseProgress(JSON.stringify({ ...newProgress(), lectures: { [topic]: [99] } })));
+});
+
+test('answering a lesson knowledge check correctly in practice completes that lesson', () => {
+  const q = knowledgeQuestions[0];
+  const p = recordAttempt(newProgress(), q, { answer: q.answer, score: q.marks, assistance: 0, retries: 0, confidence: 3, seconds: 30, mode: 'practice' });
+  assert.ok(p.lessons.some(l => l.id === q.topic + '/' + q.subtopic));
+  assert.ok(totals(p).completion > 0);
+  const wrong = recordAttempt(newProgress(), q, { answer: 'x', score: 0, assistance: 0, retries: 0, confidence: 3, seconds: 30, mode: 'practice' });
+  assert.equal(wrong.lessons.length, 0);
+});
+
+test('old backups backfill lesson credit from full-mark knowledge checks without adding study time', () => {
+  const q = knowledgeQuestions[0];
+  const p = recordAttempt(newProgress(), q, { answer: q.answer, score: q.marks, assistance: 0, retries: 0, confidence: 3, seconds: 60, mode: 'practice' });
+  const legacy = { ...p, lessons: [] };
+  const restored = parseProgress(JSON.stringify(legacy));
+  assert.equal(restored.lessons.length, 1);
+  assert.equal(restored.lessons[0].minutes, 0);
+  assert.equal(p.lessons[0].minutes, 0);
+});
+
+test('cross-tab merge keeps both tabs work and converges to identical JSON', async () => {
+  const { mergeProgress, passLectureCheck } = await import('../src/progress.ts');
+  const [q1, q2] = knowledgeQuestions;
+  const base = newProgress();
+  const a = passLectureCheck(recordAttempt(base, q1, { answer: q1.answer, score: 1, assistance: 0, retries: 0, confidence: 3, seconds: 5, mode: 'practice' }, 1000, 'aa'), topics[0].id, 0);
+  const b = passLectureCheck(recordAttempt(base, q2, { answer: q2.answer, score: 1, assistance: 0, retries: 0, confidence: 3, seconds: 5, mode: 'practice' }, 2000, 'bb'), topics[0].id, 2);
+  const inA = mergeProgress(a, b);
+  const inB = mergeProgress(b, a);
+  assert.equal(inA.attempts.length, 2);
+  assert.deepEqual(inA.lectures[topics[0].id], [0, 2]);
+  // Each tab then receives the other's merged write; both must settle on the same bytes.
+  assert.equal(JSON.stringify(mergeProgress(inB, inA)), JSON.stringify(mergeProgress(inA, inB)));
+  assert.equal(JSON.stringify(mergeProgress(inA, mergeProgress(inB, inA))), JSON.stringify(mergeProgress(inB, inA)));
+});

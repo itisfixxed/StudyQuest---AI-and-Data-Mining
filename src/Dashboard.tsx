@@ -23,7 +23,7 @@ export function Dashboard({ progress, navigate, start, openTopic }: { progress: 
   const metrics = [
     { name:'Total XP', value:summary.xp.toLocaleString(), note:'Level ' + summary.level, icon:'bolt', color:'indigo' },
     { name:'Study streak', value:summary.streak + (summary.streak === 1 ? ' day' : ' days'), note:summary.streak ? 'Keep it going' : 'Start with a lesson', icon:'flame', color:'amber' },
-    { name:'Syllabus completion', value:summary.completion + '%', note:progress.lessons.length + (progress.lessons.length === 1 ? ' lesson completed' : ' lessons completed'), icon:'book', color:'teal' },
+    { name:'Syllabus completion', value:summary.completion + '%', note:progress.lessons.length + (progress.lessons.length === 1 ? ' lesson' : ' lessons') + ' · ' + summary.lectureChecks + (summary.lectureChecks === 1 ? ' lecture check' : ' lecture checks'), icon:'book', color:'teal' },
     { name:'Exam countdown', value:date === null ? '—' : date < 0 ? 'Passed' : date === 0 ? 'Today' : date + (date === 1 ? ' day' : ' days'), note:formatDate(progress.settings.examDate), icon:'calendar', color:'blue' }
   ];
   return <>
@@ -85,8 +85,9 @@ export function Dashboard({ progress, navigate, start, openTopic }: { progress: 
         <section>
           <SectionTitle title="Exam readiness" />
           <div className="panel readiness-card">
-            <div className="readiness-overview"><Ring value={summary.readiness} caption="estimated" /><div><strong>{summary.attempted}</strong><small>Questions attempted</small><strong>{summary.accuracy === null ? '—' : summary.accuracy + '%'}</strong><small>Independent accuracy</small></div></div>
+            <div className="readiness-overview"><Ring value={summary.readiness} caption="estimated" display={summary.readiness === 0 && summary.readinessExact > 0 ? '<1%' : undefined} /><div><strong>{summary.attempted}</strong><small>Questions attempted</small><strong>{summary.accuracy === null ? '—' : summary.accuracy + '%'}</strong><small>Independent accuracy</small></div></div>
             <p>{summary.attempted ? (papers.length ? 'Based on your mastery and topic coverage in the supplied papers.' : 'Based on your current topic mastery.') : 'Answer practice questions to build your estimate.'}</p>
+            <small className="muted">Independent first-try solves count fully; answers after hints or retries count about a third, and repeating a solved question adds nothing.</small>
           </div>
         </section>
         <section className="panel focus-card"><Bubble icon={recommendedTopic.icon} color={recommendedTopic.color} /><div><h3>{recommended.title}</h3><p>{recommended.reason}</p><button className="text-button" onClick={() => start(recommended)}>Start activity <Icon name="chevron" size={16} /></button></div></section>

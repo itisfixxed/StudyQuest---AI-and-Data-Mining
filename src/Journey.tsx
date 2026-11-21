@@ -77,7 +77,7 @@ export function Journey({ progress, update, activeTopic, openTopic, lesson, open
     nextLesson={openLesson} practice={practice} />;
   if (active) {
     const {topic} = active;
-    if(lectureTopic===topic.id) return <TopicLecture key={topic.id} topic={topic}
+    if(lectureTopic===topic.id) return <TopicLecture key={topic.id} topic={topic} progress={progress} update={update}
       close={()=>{setLectureTopic(null);window.scrollTo(0,0);}} openConcept={concept=>{
         setLectureTopic(null);
         openLesson({topic:topic.id,concept});
@@ -95,8 +95,10 @@ export function Journey({ progress, update, activeTopic, openTopic, lesson, open
         {locked && <div className="feedback warning"><strong>Prerequisite topics recommended</strong><p>Build at least 25% mastery in {topic.prerequisites.map(id => topicById[id].short).join(' and ')} or choose to study this topic now.</p>
           <button className="button secondary" onClick={() => update(p => ({ ...p, overrides: [...new Set([...p.overrides,topic.id])] }))}>Study anyway</button></div>}
         <section className="panel panel-pad lecture-entry">
-          <div><h2>Guided lecture</h2><p>Walk through a worked example, check each step, and explain the idea back.</p></div>
-          <button className="button primary" onClick={()=>setLectureTopic(topic.id)}><Icon name="book" size={18} /> Start lecture</button>
+          <div><h2>Guided lecture</h2><p>Walk through a worked example, check each step, and explain the idea back.</p>
+            {active.scenes > 0 && <small className="muted">{active.lecture} of {active.scenes} checks passed</small>}</div>
+          <button className="button primary" onClick={()=>setLectureTopic(topic.id)}><Icon name="book" size={18} /> {
+            active.lecture === 0 ? 'Start lecture' : active.lecture < active.scenes ? 'Resume lecture' : 'Review lecture'}</button>
         </section>
         <SectionTitle title="Concept lessons" description={active.completed + ' of ' + topic.concepts.length + ' complete'} />
         <div className="panel compact-list">{topic.concepts.map(c => <button className="question-list-item row spread" key={c.id} disabled={locked} onClick={() => openLesson({ topic:topic.id, concept:c.id })}>

@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import rawLectures from './content/lectures.json' with { type: 'json' };
 import { LectureGraphic } from './LectureGraphic.tsx';
-import type { Topic } from './types.ts';
+import type { Progress, Topic } from './types.ts';
+import type { Update } from './Practice.tsx';
+import { lecturePassed, passLectureCheck } from './progress.ts';
 import { Bubble, Icon, PageTitle, ProgressBar, SourceNote } from './ui.tsx';
 
 type Scene = {
@@ -15,9 +17,9 @@ type Scene = {
 type Lecture = { goal:string; explain:string; model:string; points:string[]; scenes:Scene[] };
 const lectures:Record<string,Lecture> = rawLectures;
 
-function SceneCheck({ check, onPass }: { check:Scene['check']; onPass:()=>void }) {
-  const [choice,setChoice] = useState<number|null>(null);
-  const [checked,setChecked] = useState(false);
+function SceneCheck({ check, onPass, alreadyPassed }: { check:Scene['check']; onPass:()=>void; alreadyPassed:boolean }) {
+  const [choice,setChoice] = useState<number|null>(alreadyPassed ? check.right : null);
+  const [checked,setChecked] = useState(alreadyPassed);
   const [hint,setHint] = useState(false);
   const correct = checked && choice===check.right;
 
@@ -43,31 +45,38 @@ function SceneCheck({ check, onPass }: { check:Scene['check']; onPass:()=>void }
   </section>;
 }
 
-function TeachBack({ lecture }: { lecture:Lecture }) {
-  const [notes,setNotes] = useState('');
-  const [visible,setVisible] = useState(false);
+type Draft = { notes:string; ticked:number[]; visible:boolean };
+function TeachBack({ lecture, draft, setDraft }: { lecture:Lecture; draft:Draft; setDraft:(d:Draft)=>void }) {
+  const { notes, ticked, visible } = draft;
   return <div className="lecture-teach">
     <p>{lecture.explain}</p>
     <label>Draft your explanation
-      <textarea rows={4} value={notes} onChange={event=>setNotes(event.target.value)}
+      <textarea rows={4} value={notes} onChange={event=>setDraft({...draft,notes:event.target.value})}
         placeholder="You can also explain it aloud." />
     </label>
     <h3>Review your explanation</h3>
-    <ul className="lecture-checklist">{lecture.points.map(point => <li key={point}><label>
-      <input type="checkbox" /> {point}
+    <ul className="lecture-checklist">{lecture.points.map((point,i) => <li key={point}><label>
+      <input type="checkbox" checked={ticked.includes(i)} onChange={()=>setDraft({...draft,ticked:ticked.includes(i)?ticked.filter(x=>x!==i):[...ticked,i]})} /> {point}
     </label></li>)}</ul>
-    <button type="button" className="button secondary" aria-expanded={visible} onClick={()=>setVisible(value=>!value)}>
+    <button type="button" className="button secondary" aria-expanded={visible} onClick={()=>setDraft({...draft,visible:!visible})}>
       {visible ? 'Hide sample explanation' : 'Compare with a sample'}
     </button>
     {visible && <p className="lecture-model">{lecture.model}</p>}
   </div>;
 }
 
-export function TopicLecture({ topic, close, openConcept }: { topic:Topic; close:()=>void; openConcept:(id:string)=>void }) {
+export function TopicLecture({ topic, progress, update, close, openConcept }: {
+  topic:Topic; progress:Progress; update:Update; close:()=>void; openConcept:(id:string)=>void
+}) {
   const lecture = lectures[topic.id];
-  const [step,setStep] = useState(0);
-  const [passed,setPassed] = useState<number[]>([]);
+  const passed = lecturePassed(progress, topic.id);
+  // Resume at the first section whose check has not been passed yet.
+  const [step,setStep] = useState(() => {
+    const first = lecture.scenes.findIndex((_, i) => !passed.includes(i));
+    return first === -1 ? 0 : first;
+  });
   const heading = useRef<HTMLHeadingElement>(null);
+  const [draft,setDraft] = useState<Draft>({ notes:'', ticked:[], visible:false });
   const scene = lecture.scenes[step];
   const concept = scene && topic.concepts.find(item => item.id===scene.concept);
   useEffect(() => {
@@ -86,9 +95,12 @@ export function TopicLecture({ topic, close, openConcept }: { topic:Topic; close
         <ProgressBar value={passed.length/lecture.scenes.length*100} label="Lecture checks passed" />
         <p className="muted">{passed.length} of {lecture.scenes.length} checks passed</p>
         {lecture.scenes.map((item,i) => <button type="button" key={item.title} aria-current={step===i?'step':undefined} onClick={()=>setStep(i)}>
-          {passed.includes(i) && <Icon name="check" size={16} />}{item.title}
+          <span className={'lecture-step-mark'+(passed.includes(i)?' done':'')} aria-hidden="true">{passed.includes(i) ? <Icon name="check" size={14} /> : i+1}</span>
+          <span>{item.title}{passed.includes(i) && <span className="sr-only"> (check passed)</span>}</span>
         </button>)}
-        <button type="button" aria-current={!scene?'step':undefined} onClick={()=>setStep(lecture.scenes.length)}>Explain it back</button>
+        <button type="button" aria-current={!scene?'step':undefined} onClick={()=>setStep(lecture.scenes.length)}>
+          <span className="lecture-step-mark" aria-hidden="true">{lecture.scenes.length+1}</span><span>Explain it back</span>
+        </button>
       </nav>
       <article className="panel lesson-panel lecture-main">
         <h2 tabIndex={-1} ref={heading}>{scene?.title ?? 'Explain it back'}</h2>
@@ -106,12 +118,13 @@ export function TopicLecture({ topic, close, openConcept }: { topic:Topic; close
               </tr>)}</tbody>
             </table>
           </div>
-          <SceneCheck key={step} check={scene.check} onPass={()=>setPassed(old=>old.includes(step)?old:[...old,step])} />
+          <SceneCheck key={step+':'+passed.includes(step)} check={scene.check} alreadyPassed={passed.includes(step)}
+            onPass={()=>update(p=>passLectureCheck(p,topic.id,step))} />
           {concept && <div className="row wrap lecture-reference">
             <SourceNote source={concept.source} />
             <button type="button" className="text-button" onClick={()=>openConcept(concept.id)}>Study {concept.name}</button>
           </div>}
-        </> : <TeachBack lecture={lecture} />}
+        </> : <TeachBack lecture={lecture} draft={draft} setDraft={setDraft} />}
         <div className="row spread wrap lecture-controls">
           {step>0 && <button type="button" className="button secondary" onClick={()=>setStep(step-1)}>Previous section</button>}
           {scene ? <button type="button" className="button primary" onClick={()=>setStep(step+1)}>

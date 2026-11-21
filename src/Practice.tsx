@@ -7,7 +7,7 @@ import type { Answer, Progress, Question, Step } from './types.ts';
 import { Bubble, Empty, Icon, MathBlock, PageTitle, Pill, ProgressBar, SectionTitle, SourceNote } from './ui.tsx';
 
 export type Update = (fn: (progress: Progress) => Progress) => void;
-export interface PracticeSet { ids: string[]; title: string; mode: 'practice' | 'review' }
+export interface PracticeSet { ids: string[]; title: string; mode: 'practice' | 'review'; /** Position survives navigation because the set lives in App state. */ index?: number; complete?: boolean }
 export function ScreenMeta({ question }: { question: Question }) {
   return <div className="row wrap chips"><Pill color={question.origin === 'original' ? 'teal' : ['adapted', 'exercise'].includes(question.origin) ? 'amber' : 'indigo'}>{originLabel[question.origin]}</Pill>
     <Pill>{labels[question.difficulty]}</Pill><Pill><Icon name="clock" size={14} /> {question.minutes} min</Pill><Pill>{question.marks} {question.marks === 1 ? 'mark' : 'marks'}</Pill></div>;
@@ -175,8 +175,8 @@ function QuestionDrill({ question, mode, update, onAdvance, isLast, index, count
   const incorrectFeedback = chosen >= 0 ? question.optionFeedback?.[chosen] ?? question.misconception : question.misconception;
   return <div className="session-cols">
     <article className="panel question-panel">
-      <div className="row spread question-count"><strong>Question {index+1} of {count}</strong><span>{Math.round((index+1)/count*100)}%</span></div>
-      <ProgressBar value={(index+1)/count*100} label="Practice session progress" />
+      <div className="row spread question-count"><strong>Question {index+1} of {count}</strong><span>{Math.round((index+(locked||score!==null?1:0))/count*100)}%</span></div>
+      <ProgressBar value={(index+(locked||score!==null?1:0))/count*100} label="Practice session progress" />
       <ScreenMeta question={question} />
       <h2 ref={questionTitle} tabIndex={-1}>{question.title}</h2><QuestionPrompt question={question} />
       <form onSubmit={submit}>
@@ -217,8 +217,10 @@ export function Practice({ progress, update, session, setSession, openJourney }:
   const [query, setQuery] = useState('');
   const [visibleCount, setVisibleCount] = useState(15);
   const [subtopic, setSubtopic] = useState('all');
-  const [index, setIndex] = useState(0);
-  const [complete, setComplete] = useState(false);
+  const index = session?.index ?? 0;
+  const complete = session?.complete ?? false;
+  const setIndex = (next: number) => session && setSession({ ...session, index: next });
+  const setComplete = () => session && setSession({ ...session, complete: true });
   const [length, setLength] = useState(5);
   const due = dueQuestions(progress);
   const inPaper = papers.find(item => item.id === paper);
@@ -228,15 +230,15 @@ export function Practice({ progress, update, session, setSession, openJourney }:
     (difficulty === 'all' || q.difficulty === difficulty) && (source === 'all' || q.origin === source) &&
     (!inPaper || inPaperIds.has(q.id)) &&
     (!queryText || normalizeText([q.title, q.prompt, q.source.question ? 'Q' + q.source.question : '', q.source.file].join(' ')).includes(queryText)));
-  const start = (value: PracticeSet) => { setIndex(0); setComplete(false); setSession(value); };
+  const start = (value: PracticeSet) => setSession({ ...value, index: 0, complete: false });
   if (session && complete) return <><PageTitle title={session.title} description="Practice complete" />
     <Empty icon="trophy" title="Session complete" action={<div className="row wrap center"><button className="button primary" onClick={() => setSession(null)}>More practice</button>
       <button className="button secondary" onClick={openJourney}>Learning journey</button></div>}>You worked through {session.ids.length} questions. Results and review dates are saved.</Empty></>;
   if (session && session.ids[index]) return <>
     <PageTitle title={session.title} description={session.mode === 'review' ? 'Revisit and check what you can recall.' : 'Work at your own pace and ask for a hint when you need one.'}
-      action={<button className="button secondary" onClick={() => { setSession(null); setIndex(0); setComplete(false); }}><Icon name="back" size={17} /> Back to practice</button>} />
+      action={<button className="button secondary" onClick={() => setSession(null)}><Icon name="back" size={17} /> Back to practice</button>} />
     <QuestionDrill key={session.ids[index] + ':' + index} question={questionById[session.ids[index]]} index={index} count={session.ids.length} mode={session.mode} update={update}
-      isLast={index === session.ids.length-1} onAdvance={() => index === session.ids.length-1 ? setComplete(true) : setIndex(index+1)} />
+      isLast={index === session.ids.length-1} onAdvance={() => index === session.ids.length-1 ? setComplete() : setIndex(index+1)} />
   </>;
   return <>
     <PageTitle title="Practice" description="Build a session around a topic, question source, or difficulty." action={due.length ? <button className="button primary" onClick={() => start({ ids: due.slice(0,8), title: 'Spaced review', mode: 'review' })}>Review {due.length} due <Icon name="clock" size={17} /></button> : undefined} />

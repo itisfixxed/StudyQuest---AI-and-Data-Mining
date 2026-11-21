@@ -8,9 +8,9 @@ import { currentRoute, routes } from './navigation.ts';
 import type { Route } from './navigation.ts';
 import { Practice } from './Practice.tsx';
 import type { PracticeSet, Update } from './Practice.tsx';
-import { createExam, finishExam, localDate, storageKey, totals } from './progress.ts';
+import { createExam, finishExam, localDate, mergeProgress, storageKey, totals } from './progress.ts';
 import type { Recommendation } from './progress.ts';
-import { loadProgress } from './storage.ts';
+import { loadProgress, parseProgress } from './storage.ts';
 import { Library, Notebook, Planner, SettingsPage } from './StudyTools.tsx';
 import type { ActiveExam, Progress } from './types.ts';
 import { Icon, Pill, ProgressBar } from './ui.tsx';
@@ -45,7 +45,6 @@ export function App() {
   };
   const go = (next:Route) => {
     if(next==='journey') {setActiveTopic(null);setLesson(null);}
-    if(next==='practice') {setSession(null);setSessionKey(n=>n+1);}
     if(next==='exam') setResult(null);
     navigate(next);
   };
@@ -61,6 +60,19 @@ export function App() {
     return ()=>window.removeEventListener('keydown',close);
   },[mobile]);
   useEffect(()=>{
+    // Keep tabs in sync so one tab's save never overwrites work recorded in another.
+    const sync=(event:StorageEvent)=>{
+      if(event.key!==storageKey||!event.newValue) return;
+      try {const incoming=parseProgress(event.newValue);setProgress(local=>mergeProgress(local,incoming));}
+      catch {
+        // e.g. another tab loaded a study pack this tab does not have yet; saving now would overwrite its records.
+        setCanSave(false);setStorageError('Progress was updated in another tab. Reload this page to continue saving.');
+      }
+    };
+    window.addEventListener('storage',sync);
+    return ()=>window.removeEventListener('storage',sync);
+  },[]);
+  useEffect(()=>{
     document.documentElement.dataset.theme=progress.settings.theme;
   },[progress.settings.theme]);
   useEffect(()=>{
@@ -74,9 +86,12 @@ export function App() {
     const remaining=active.deadline-Date.now();
     const timeout=setTimeout(()=>{
       setProgress(p=>p.activeExam?.id===active.id ? finishExam(p) : p);
-      setResult(active.id);
-      setRoute('exam');
-      if(location.hash!=='#exam') location.hash='exam';
+      // Only bring a visible tab to the results; background tabs keep their current page.
+      if(document.visibilityState==='visible') {
+        setResult(active.id);
+        setRoute('exam');
+        if(location.hash!=='#exam') location.hash='exam';
+      }
     },Math.max(0,remaining));
     return ()=>clearTimeout(timeout);
   },[active?.id,active?.deadline]);

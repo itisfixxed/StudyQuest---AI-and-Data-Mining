@@ -1,5 +1,5 @@
 import type { ActiveExam, Answer, Attempt, ExamResult, Progress, Question, Topic } from './types.ts';
-import { isManual, moduleInfo, questions, questionById, topicById, topicHistory, topics } from './content/index.ts';
+import { isManual, lectureScenes, moduleInfo, questions, questionById, topicById, topicHistory, topics } from './content/index.ts';
 import { automaticScore, hasAnswer } from './answers.ts';
 
 export const storageKey = 'studyquest-' + moduleInfo.id.toLowerCase() + '-progress-v1';
@@ -15,8 +15,17 @@ const xpByDifficulty = { easy: 10, medium: 20, hard: 35, exam: 50 };
 const masteryWeight = { easy: 15, medium: 23, hard: 32, exam: 39 };
 export const newProgress = (): Progress => ({
   version: 1, module: moduleInfo.id, settings: { goal: 25, examDate: moduleInfo.examDate, theme: 'light' }, attempts: [], lessons: [],
-  reviews: {}, bookmarks: [], overrides: [], results: [], activeExam: null
+  reviews: {}, bookmarks: [], overrides: [], results: [], activeExam: null, lectures: {}
 });
+
+export function lecturePassed(progress: Progress, topic: string) {
+  return progress.lectures?.[topic] ?? [];
+}
+export function passLectureCheck(progress: Progress, topic: string, scene: number): Progress {
+  const passed = lecturePassed(progress, topic);
+  if (passed.includes(scene)) return progress;
+  return { ...progress, lectures: { ...progress.lectures, [topic]: [...passed, scene].sort((a, b) => a - b) } };
+}
 
 export function localDate(at = Date.now()) {
   const date = new Date(at);
@@ -76,12 +85,14 @@ export function profile(progress: Progress) {
     const evidence = [...best.values()].reduce((sum, score) => sum + score, 0);
     const advancedEvidence = [...independentlySolved].some(id => ['hard','exam'].includes(questionById[id].difficulty));
     const retentionPenalty = [...independentlySolved].filter(id => (progress.reviews[id]?.due ?? Infinity) + dayMs * 3 < Date.now()).length * 2;
+    const scenes = lectureScenes[topic.id] ?? 0;
+    const lecture = scenes ? Math.min(scenes, lecturePassed(progress, topic.id).filter(i => i >= 0 && i < scenes).length) : 0;
     const score = Math.max(0, Math.min(boss ? 100 : advancedEvidence ? 90 : independentlySolved.size >= 2 ? 75 : 45,
-      Math.round(20 * completed / topic.concepts.length + evidence + (boss ? 20 : 0) - Math.min(retentionPenalty, 15))));
+      Math.round(20 * completed / topic.concepts.length + (scenes ? 10 * lecture / scenes : 0) + evidence + (boss ? 20 : 0) - Math.min(retentionPenalty, 15))));
     const stage = boss && score >= 75 ? 4 : independentlySolved.size >= 2 ? 3 :
-      attempts.some(a => a.score > 0 && (a.assistance > 0 || a.graded === 'self')) ? 2 : completed > 0 ? 1 : 0;
+      attempts.some(a => a.score > 0 && (a.assistance > 0 || a.graded === 'self')) ? 2 : completed > 0 || lecture > 0 ? 1 : 0;
     const accuracy = autoIndependent.length ? Math.round(100 * autoIndependent.filter(a => a.score === a.max).length / autoIndependent.length) : null;
-    return { topic, score, stage, attempts, completed, independent: independentlySolved.size, accuracy, boss };
+    return { topic, score, stage, attempts, completed, independent: independentlySolved.size, accuracy, boss, lecture, scenes };
   });
 }
 
@@ -107,10 +118,12 @@ export function totals(progress: Progress) {
       r.questions.reduce((sum,id) => sum + (r.scores[id] ?? 0),0) >= 0.75 * r.questions.reduce((sum,id) => sum + questionById[id].marks,0))
       .map(r => questionById[r.questions[0]].topic)).size * 100;
   const data = profile(progress);
-  const completion = Math.round(100 * data.reduce((sum, t) => sum + t.completed, 0) / topics.reduce((sum, t) => sum + t.concepts.length, 0));
+  // Syllabus completion covers concept lessons and guided-lecture checks.
+  const completion = Math.round(100 * data.reduce((sum, t) => sum + t.completed + t.lecture, 0) / data.reduce((sum, t) => sum + t.topic.concepts.length + t.scenes, 0));
   const weighted = data.reduce((sum, t) => sum + t.score * (1 + topicHistory[t.topic.id].papers), 0);
-  const readiness = Math.round(weighted / data.reduce((sum, t) => sum + 1 + topicHistory[t.topic.id].papers, 0));
-  return { xp, level: 1 + Math.floor(xp / 200), completion, readiness, streak: streak(progress), minutes: dailyMinutes(progress),
+  const readinessExact = weighted / data.reduce((sum, t) => sum + 1 + topicHistory[t.topic.id].papers, 0);
+  const readiness = Math.round(readinessExact);
+  return { xp, level: 1 + Math.floor(xp / 200), completion, readiness, readinessExact, lectureChecks: data.reduce((sum, t) => sum + t.lecture, 0), streak: streak(progress), minutes: dailyMinutes(progress),
     attempted: new Set(progress.attempts.map(a => a.question)).size, accuracy: independent.length ? Math.round(100 * independent.filter(a => a.score === a.max).length / independent.length) : null };
 }
 
@@ -118,9 +131,19 @@ export function topicLocked(topic: Topic, progress: Progress, data = profile(pro
   return !progress.overrides.includes(topic.id) && topic.prerequisites.some(id => (data.find(p => p.topic.id === id)?.score ?? 0) < 25);
 }
 
-export function addLesson(progress: Progress, id: string, seconds: number, at = Date.now()): Progress {
+export function addLesson(progress: Progress, id: string, seconds: number, at = Date.now(), countTime = true): Progress {
   if (progress.lessons.some(lesson => lesson.id === id)) return progress;
-  return { ...progress, lessons: [...progress.lessons, { id, at, minutes: Math.max(1, Math.min(30, seconds / 60)) }] };
+  // Practice-derived completions record no extra minutes: the attempt already carries that time.
+  const minutes = countTime ? Math.max(1, Math.min(30, seconds / 60)) : 0;
+  return { ...progress, lessons: [...progress.lessons, { id, at, minutes }] };
+}
+const isLessonCheck = (q: Question) => q.id === 'check-' + q.topic + '-' + q.subtopic;
+/** Backfills lesson completions for full-mark knowledge checks recorded before practice counted toward lessons. */
+export function backfillLessons(progress: Progress): Progress {
+  return progress.attempts.reduce((state, a) => {
+    const q = questionById[a.question];
+    return q && isLessonCheck(q) && a.score === a.max ? addLesson(state, q.topic + '/' + q.subtopic, 0, a.at, false) : state;
+  }, progress);
 }
 export function reviewDate(box: number, examDate: string, now: number) {
   const days = [1, 2, 4, 8, 15, 30][box];
@@ -143,7 +166,9 @@ export function recordAttempt(progress: Progress, q: Question,
   const strong = independent && full && data.confidence >= 3;
   const box = strong ? Math.min(5, (previous?.box ?? -1) + 1) : full ? Math.max(0, (previous?.box ?? 0) - 1) : 0;
   const due = data.score < q.marks * 0.75 ? now + 3_600_000 : reviewDate(box, progress.settings.examDate, now);
-  return { ...progress, attempts: [...progress.attempts, attempt], reviews: { ...progress.reviews, [q.id]: { box, due, last: now } } };
+  const next = { ...progress, attempts: [...progress.attempts, attempt], reviews: { ...progress.reviews, [q.id]: { box, due, last: now } } };
+  // A lesson's knowledge check answered correctly anywhere (practice, review) completes that lesson.
+  return full && isLessonCheck(q) ? addLesson(next, q.topic + '/' + q.subtopic, 0, now, false) : next;
 }
 
 export function dueQuestions(progress: Progress, at = Date.now()) {
@@ -246,3 +271,33 @@ export function finalizeResult(progress: Progress, id: string) {
   return { ...updated, results: updated.results.map(r => r.id === id ? { ...r, finalized: true } : r) };
 }
 
+
+/**
+ * Merges a snapshot written by another tab into this tab's progress. Records are unioned by id so neither
+ * tab's work is lost; settings and the active exam follow the incoming (most recent) write.
+ */
+export function mergeProgress(local: Progress, incoming: Progress): Progress {
+  const byId = <T extends { id: string }>(a: T[], b: T[], prefer: (x: T, y: T) => T = x => x) => {
+    const map = new Map(a.map(item => [item.id, item]));
+    for (const item of b) map.set(item.id, map.has(item.id) ? prefer(map.get(item.id)!, item) : item);
+    return [...map.values()];
+  };
+  const reviews: Progress['reviews'] = { ...local.reviews };
+  for (const [id, review] of Object.entries(incoming.reviews)) if (!reviews[id] || review.last >= reviews[id].last) reviews[id] = review;
+  const lectures: Record<string, number[]> = { ...local.lectures };
+  for (const [topic, scenes] of Object.entries(incoming.lectures ?? {})) lectures[topic] = [...new Set([...(lectures[topic] ?? []), ...scenes])].sort((a, b) => a - b);
+  const results = byId(local.results, incoming.results, (x, y) => x.finalized ? x : y.finalized ? y : y.marked.length >= x.marked.length ? y : x);
+  const finished = new Set(results.map(r => r.id));
+  // Canonical ordering lets both tabs converge on byte-identical JSON, so sync events stop after one round.
+  const chrono = <T extends { id: string; at: number }>(list: T[]) => list.sort((a, b) => a.at - b.at || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  const sortKeys = <T,>(record: Record<string, T>) => Object.fromEntries(Object.entries(record).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0));
+  return {
+    ...incoming,
+    attempts: chrono(byId(local.attempts, incoming.attempts)),
+    lessons: chrono(byId(local.lessons, incoming.lessons, (x, y) => x.at <= y.at ? x : y)),
+    results: chrono(results), reviews: sortKeys(reviews), lectures: sortKeys(lectures),
+    bookmarks: [...new Set([...local.bookmarks, ...incoming.bookmarks])].sort(),
+    overrides: [...new Set([...local.overrides, ...incoming.overrides])].sort(),
+    activeExam: incoming.activeExam && !finished.has(incoming.activeExam.id) ? incoming.activeExam : null
+  };
+}

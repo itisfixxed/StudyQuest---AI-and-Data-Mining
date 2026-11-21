@@ -5,11 +5,14 @@ import rawPapers from './papers.json' with { type: 'json' };
 import rawExamQuestions from './exam-questions.json' with { type: 'json' };
 import rawDrills from './drills.json' with { type: 'json' };
 import moduleInfo from './module.json' with { type: 'json' };
+import rawLectures from './lectures.json' with { type: 'json' };
 import type { Concept, Difficulty, Guidance, Paper, Question, Reference, Topic } from '../types.ts';
 
 export const topics = rawTopics as Topic[];
 export { moduleInfo };
 export const references = rawReferences as Reference[];
+export const lectureScenes: Record<string, number> = Object.fromEntries(
+  Object.entries(rawLectures as Record<string, { scenes: unknown[] }>).map(([id, lecture]) => [id, lecture.scenes.length]));
 export const papers = [...rawPapers] as Paper[];
 export const hasBundledPapers = papers.length > 0;
 export let packLoadFailed = false;

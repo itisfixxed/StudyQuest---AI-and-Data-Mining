@@ -489,8 +489,10 @@ tbody tr:last-child td,tbody tr:last-child th { border:0; }
   .resume-top { display:none; }
 }
 @media (max-width: 480px) {
-  .breadcrumb { gap:.3rem; font-size:.8rem; }
-  .course-id svg { display:none; }
+  .breadcrumb { gap:.3rem; font-size:.8rem; min-width:0; }
+  .breadcrumb > .course-id,.breadcrumb > svg { display:none; }
+  .breadcrumb strong { overflow:hidden; text-overflow:ellipsis; }
+  .topbar > .row:first-child { min-width:0; flex:1 1 auto; }
   .hero-content { max-width:100%; padding:1.05rem; }
   .hero h2 { font-size:2.12rem; }
   .hero p { max-width:29ch; }
@@ -528,6 +530,10 @@ tbody tr:last-child td,tbody tr:last-child th { border:0; }
 .lecture-nav > button { text-align:left; display:flex; align-items:center; gap:.45rem; min-height:44px; padding:.55rem .65rem; border-radius:.6rem; color:var(--text); }
 .lecture-nav > button:hover,.lecture-nav > button[aria-current] { background:var(--surface-2); color:var(--accent); }
 .lecture-nav > button[aria-current] { font-weight:750; }
+.lecture-step-mark { flex:0 0 1.5rem; width:1.5rem; height:1.5rem; display:inline-grid; place-items:center; border-radius:999px; border:1.5px solid var(--border); color:var(--muted); font-size:.75rem; font-weight:700; }
+.lecture-step-mark svg { flex-shrink:0; }
+.lecture-step-mark.done { background:var(--accent); border-color:var(--accent); color:#fff; }
+.lecture-entry small { display:block; margin-top:.35rem; }
 .lecture-main { min-width:0; }
 .lecture-main > h2 { scroll-margin-top:5rem; }
 .lecture-main > h2:focus { outline:none; }

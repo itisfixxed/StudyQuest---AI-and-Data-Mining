@@ -68,5 +68,7 @@ export interface Progress {
   version: 1; module: string; settings: { goal: number; examDate: string; theme: 'light' | 'dark' };
   attempts: Attempt[]; lessons: LessonRecord[]; reviews: Record<string, Review>;
   bookmarks: string[]; overrides: string[]; results: ExamResult[]; activeExam: ActiveExam | null;
+  /** Guided-lecture scene checks passed, keyed by topic id. Optional so older backups still load. */
+  lectures?: Record<string, number[]>;
 }
 
