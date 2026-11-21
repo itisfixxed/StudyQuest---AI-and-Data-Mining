@@ -6,7 +6,8 @@ import rawExamQuestions from './exam-questions.json' with { type: 'json' };
 import rawDrills from './drills.json' with { type: 'json' };
 import moduleInfo from './module.json' with { type: 'json' };
 import rawLectures from './lectures.json' with { type: 'json' };
-import type { Concept, Difficulty, Guidance, Paper, Question, Reference, Topic } from '../types.ts';
+import rawLadders from './ladders.json' with { type: 'json' };
+import type { Concept, Difficulty, Guidance, HintStep, Paper, Question, Reference, Topic } from '../types.ts';
 
 export const topics = rawTopics as Topic[];
 export { moduleInfo };
@@ -73,6 +74,14 @@ const applied: Question[] = topics.flatMap(topic => topic.concepts.map(concept =
 
 const drills = [...rawDrills] as Question[];
 export const practiceQuestions = [...knowledgeQuestions, ...applied, ...drills];
+/** Authored step-by-step hint ladders (and fuller worked solutions) for generated questions, keyed by question id. */
+export const ladders = rawLadders as Record<string, { steps: HintStep[]; solution?: string[] }>;
+for (const question of practiceQuestions) {
+  const entry = ladders[question.id];
+  if (!entry) continue;
+  question.guidance = { ...question.guidance, ladder: entry.steps };
+  if (entry.solution?.length) question.solution = entry.solution;
+}
 export const questions = [...practiceQuestions, ...historicalQuestions];
 export const questionById = Object.fromEntries(questions.map(question => [question.id, question]));
 export const isManual = (question: Question) => question.kind === 'short' || question.kind === 'structured';

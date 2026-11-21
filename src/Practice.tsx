@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
-import { automaticScore, checkStep, hasAnswer, normalizeText } from './answers.ts';
+import { automaticScore, checkStep, displayOrder, hasAnswer, normalizeText } from './answers.ts';
 import { isManual, labels, originLabel, papers, questionById, questions, referenceById, topicById, topics } from './content/index.ts';
 import { createRecordId, dueQuestions, recordAttempt } from './progress.ts';
-import type { Answer, Progress, Question, Step } from './types.ts';
+import type { Answer, HintStep, Progress, Question, Step } from './types.ts';
 import { Bubble, Empty, Icon, MathBlock, PageTitle, Pill, ProgressBar, SectionTitle, SourceNote } from './ui.tsx';
 
 export type Update = (fn: (progress: Progress) => Progress) => void;
-export interface PracticeSet { ids: string[]; title: string; mode: 'practice' | 'review'; /** Position survives navigation because the set lives in App state. */ index?: number; complete?: boolean }
+export interface PracticeSet { ids: string[]; title: string; mode: 'practice' | 'review'; /** Position survives navigation because the set lives in App state. */ index?: number; complete?: boolean; /** Assistance used on the current question, kept across navigation. */ aid?: number }
 export function ScreenMeta({ question }: { question: Question }) {
   return <div className="row wrap chips"><Pill color={question.origin === 'original' ? 'teal' : ['adapted', 'exercise'].includes(question.origin) ? 'amber' : 'indigo'}>{originLabel[question.origin]}</Pill>
     <Pill>{labels[question.difficulty]}</Pill><Pill><Icon name="clock" size={14} /> {question.minutes} min</Pill><Pill>{question.marks} {question.marks === 1 ? 'mark' : 'marks'}</Pill></div>;
@@ -69,7 +69,7 @@ function StepCheck({ step, onPass }: { step: Step; onPass: () => void }) {
   const [checked, setChecked] = useState<null | boolean>(null);
   return <div className="step-check">
     <p>{step.prompt}</p>
-    {step.options ? <div className="hint-options">{step.options.map((option,i) => <button type="button" key={option} aria-pressed={entry === String(i)} className={'button secondary ' + (entry === String(i) ? 'selected' : '')} disabled={checked === true} onClick={() => { setEntry(String(i)); setChecked(null); }}>{option}</button>)}</div> :
+    {step.options ? <div className="hint-options">{displayOrder(step).map(i => { const option = step.options![i]; return <button type="button" key={option} aria-pressed={entry === String(i)} className={'button secondary ' + (entry === String(i) ? 'selected' : '')} disabled={checked === true} onClick={() => { setEntry(String(i)); setChecked(null); }}>{option}</button>; })}</div> :
       <label className="response-field"><span>Step answer</span><input value={entry} onChange={e => { setEntry(e.target.value); setChecked(null); }} disabled={checked === true} maxLength={170} /></label>}
     {checked !== null && <p className={checked ? 'good-text' : 'bad-text'} role="status">{checked ? step.why : step.retry}</p>}
     <button type="button" className="button secondary small" disabled={!entry.trim() || checked === true} onClick={() => {
@@ -80,7 +80,44 @@ function StepCheck({ step, onPass }: { step: Step; onPass: () => void }) {
   </div>;
 }
 
+const kindLabel: Record<HintStep['kind'], string> = { concept: 'Concept', formula: 'Formula', calculation: 'Calculation', reasoning: 'Reasoning', assemble: 'Put it together' };
+
+function LadderStep({ step, index, count, raise }: { step: HintStep; index: number; count: number; raise: (aid: number) => void }) {
+  const [shown, setShown] = useState(false);
+  const workedRef = useRef<HTMLParagraphElement>(null);
+  // Hand focus to the revealed working, since the button that revealed it disappears.
+  useEffect(() => { if (shown) workedRef.current?.focus(); }, [shown]);
+  const reveal = () => { setShown(true); raise(step.workedAid ?? 3); };
+  return <div className={'ladder-step ' + step.kind}>
+    <div className="row spread wrap ladder-head"><strong>Hint {index+1} of {count} · {kindLabel[step.kind]}</strong>{step.title && <span>{step.title}</span>}</div>
+    <p>{step.text}</p>
+    {step.formulas?.map(id => referenceById[id]?.expression ? <MathBlock key={id} expression={referenceById[id].expression!} /> : null)}
+    {step.check && <StepCheck step={step.check} onPass={() => {}} />}
+    {step.worked && (shown ? <p className="ladder-worked" role="status" tabIndex={-1} ref={workedRef}><strong>Worked step</strong> {step.worked}</p> :
+      <button type="button" className="text-button small" onClick={reveal}>{step.check ? 'Skip check and show this step' : 'Show this step'}</button>)}
+  </div>;
+}
+
+function LadderHints({ steps, level, change }: { steps: HintStep[]; level: number; change: (level: number) => void }) {
+  // After navigating away and back, reopen the levels already paid for by the recorded assistance.
+  const [opened, setOpened] = useState(() => { const i = steps.findIndex(step => step.aid > level); return level ? (i === -1 ? steps.length : i) : 0; });
+  const raise = (aid: number) => change(Math.max(level, aid));
+  const next = steps[opened];
+  return <div className="hint-area ladder">
+    {opened > 0 && <ProgressBar value={opened / steps.length * 100} label="Hints opened" />}
+    {steps.slice(0, opened).map((step, i) => <LadderStep key={i} step={step} index={i} count={steps.length} raise={raise} />)}
+    {next && <button type="button" className="button secondary" onClick={() => { setOpened(opened + 1); raise(next.aid); }}>
+      <Icon name="bulb" size={17} /> {opened === 0 ? 'Get a hint' : 'Next hint'} ({opened + 1} of {steps.length} · {kindLabel[next.kind]})
+    </button>}
+  </div>;
+}
+
 export function Hints({ question, level, change }: { question: Question; level: number; change: (level: number) => void }) {
+  if (question.guidance.ladder?.length) return <LadderHints steps={question.guidance.ladder} level={level} change={change} />;
+  return <LegacyHints question={question} level={level} change={change} />;
+}
+
+function LegacyHints({ question, level, change }: { question: Question; level: number; change: (level: number) => void }) {
   const [scaffold, setScaffold] = useState(false);
   const [walkthrough, setWalkthrough] = useState(0);
   const [stepPassed, setStepPassed] = useState(false);
@@ -131,11 +168,13 @@ export function Rubric({ question, onSave, initial }: { question: Question; onSa
   </div>;
 }
 
-function QuestionDrill({ question, mode, update, onAdvance, isLast, index, count }: {
+function QuestionDrill({ question, mode, update, onAdvance, isLast, index, count, initialAid = 0, onAid }: {
   question: Question; mode: PracticeSet['mode']; update: Update; onAdvance: () => void; isLast: boolean; index: number; count: number;
+  initialAid?: number; onAid?: (aid: number) => void;
 }) {
   const [answer, setAnswer] = useState<Answer>(question.kind === 'multi' ? [] : '');
-  const [hints, setHints] = useState(0);
+  const [hints, setHintsState] = useState(initialAid);
+  const setHints = (aid: number) => { setHintsState(aid); onAid?.(aid); };
   const [confidence, setConfidence] = useState(3);
   const [score, setScore] = useState<number | null>(null);
   const [retries, setRetries] = useState(0);
@@ -219,7 +258,7 @@ export function Practice({ progress, update, session, setSession, openJourney }:
   const [subtopic, setSubtopic] = useState('all');
   const index = session?.index ?? 0;
   const complete = session?.complete ?? false;
-  const setIndex = (next: number) => session && setSession({ ...session, index: next });
+  const setIndex = (next: number) => session && setSession({ ...session, index: next, aid: 0 });
   const setComplete = () => session && setSession({ ...session, complete: true });
   const [length, setLength] = useState(5);
   const due = dueQuestions(progress);
@@ -238,6 +277,7 @@ export function Practice({ progress, update, session, setSession, openJourney }:
     <PageTitle title={session.title} description={session.mode === 'review' ? 'Revisit and check what you can recall.' : 'Work at your own pace and ask for a hint when you need one.'}
       action={<button className="button secondary" onClick={() => setSession(null)}><Icon name="back" size={17} /> Back to practice</button>} />
     <QuestionDrill key={session.ids[index] + ':' + index} question={questionById[session.ids[index]]} index={index} count={session.ids.length} mode={session.mode} update={update}
+      initialAid={session.aid ?? 0} onAid={aid => setSession({ ...session, aid })}
       isLast={index === session.ids.length-1} onAdvance={() => index === session.ids.length-1 ? setComplete() : setIndex(index+1)} />
   </>;
   return <>

@@ -29,8 +29,32 @@ export interface Criterion { text: string; points: number }
 export interface Step {
   prompt: string; options?: string[]; answer: string | number;
   why: string; retry: string;
+  /** Absolute tolerance for numeric step answers. */
+  tolerance?: number;
+  /** Extra accepted spellings for text step answers. */
+  accept?: string[];
 }
-export interface Guidance { recall: string; direction: string; scaffold: Step; walkthrough: Step[] }
+/** How much a hint discloses: 1 recall/formula, 2 method/setup, 3 intermediate working, 4 answer plan. 5 is the full solution. */
+export type Aid = 1 | 2 | 3 | 4;
+export interface HintStep {
+  kind: 'concept' | 'formula' | 'calculation' | 'reasoning' | 'assemble';
+  title: string;
+  /** The hint itself, shown when the level opens. */
+  text: string;
+  aid: Aid;
+  formulas?: string[];
+  /** Optional MCQ (options) or typed check on this step. */
+  check?: Step;
+  /** Worked result for this step, shown after the check passes or on "Show this step". */
+  worked?: string;
+  /** Disclosure tier of the worked result (defaults to 3). */
+  workedAid?: Aid;
+}
+export interface Guidance {
+  recall: string; direction: string; scaffold: Step; walkthrough: Step[];
+  /** Variable-length (1-10) step-by-step ladder; questions without one use the legacy four-level flow. */
+  ladder?: HintStep[];
+}
 export interface Question {
   id: string; topic: string; subtopic: string; title: string; prompt: string;
   difficulty: Difficulty; kind: Kind; answer: Answer; options?: string[];

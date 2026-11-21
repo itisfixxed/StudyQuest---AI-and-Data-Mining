@@ -579,3 +579,12 @@ tbody tr:last-child td,tbody tr:last-child th { border:0; }
 
 .file-pick { align-items:center; gap:.75rem; margin:.5rem 0 .75rem; }
 .file-pick-name { color:var(--muted); font-size:.9rem; overflow-wrap:anywhere; min-width:0; }
+
+.ladder { display:grid; gap:.65rem; }
+.ladder-step { border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:.7rem; padding:.7rem .85rem; background:var(--surface-2); }
+.ladder-step.concept,.ladder-step.formula { border-left-color:var(--amber, #d99a1e); }
+.ladder-step.assemble { border-left-color:var(--teal, #14a38b); }
+.ladder-step > p { margin:.35rem 0; }
+.ladder-head { gap:.4rem; font-size:.9rem; }
+.ladder-head span { color:var(--muted); font-size:.82rem; }
+.ladder-worked { padding:.5rem .65rem; border-radius:.5rem; background:var(--surface); }

@@ -194,3 +194,37 @@ test('cross-tab merge keeps both tabs work and converges to identical JSON', asy
   assert.equal(JSON.stringify(mergeProgress(inB, inA)), JSON.stringify(mergeProgress(inA, inB)));
   assert.equal(JSON.stringify(mergeProgress(inA, mergeProgress(inB, inA))), JSON.stringify(mergeProgress(inB, inA)));
 });
+
+test('every generated question has a valid, question-specific step-by-step hint ladder', async () => {
+  const { ladderErrors } = await import('./ladder-rules.mjs');
+  const { practiceQuestions, ladders } = await import('../src/content/index.ts');
+  const ids = new Set(references.map(r => r.id));
+  const errors = practiceQuestions.flatMap(q => ladderErrors(q, ladders[q.id], ids));
+  assert.deepEqual(errors, []);
+  assert.ok(practiceQuestions.every(q => q.guidance.ladder?.length >= 1 && q.guidance.ladder.length <= 10));
+  // Ladders are not shared boilerplate: hint texts are unique to their question.
+  const texts = practiceQuestions.flatMap(q => q.guidance.ladder.map(s => s.text));
+  assert.ok(new Set(texts).size > texts.length * 0.95);
+  // The fuller authored solution replaces the old one-line solution.
+  assert.ok(practiceQuestions.filter(q => ladders[q.id].solution).every(q => q.solution === ladders[q.id].solution));
+});
+
+test('step checks honour numeric tolerance and text aliases', () => {
+  assert.ok(checkStep({ prompt: 'p', answer: '2.828', tolerance: 0.005, why: 'w', retry: 'r' }, '4/sqrt(2)'));
+  assert.ok(!checkStep({ prompt: 'p', answer: '2.828', why: 'w', retry: 'r' }, '2.83'));
+  assert.ok(checkStep({ prompt: 'p', answer: 'L2', accept: ['ridge'], why: 'w', retry: 'r' }, 'Ridge'));
+});
+
+test('hint option shuffle is unbiased across authored checks and keeps original indices', async () => {
+  const { displayOrder } = await import('../src/answers.ts');
+  const { ladders } = await import('../src/content/index.ts');
+  const checks = Object.values(ladders).flatMap(e => e.steps.map(s => s.check).filter(c => c?.options));
+  const positions = [0, 0, 0];
+  for (const c of checks) {
+    const order = displayOrder(c);
+    assert.deepEqual([...order].sort(), [...c.options.keys()]);
+    positions[order.indexOf(c.answer)]++;
+  }
+  // Authored answers are mostly first; after shuffling, no display position should dominate or be empty.
+  assert.ok(positions[0] > checks.length * 0.2 && positions[1] > checks.length * 0.2, positions.join(','));
+});
