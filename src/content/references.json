@@ -1,0 +1,502 @@
+[
+  {
+    "id": "astar-score",
+    "title": "A* priority",
+    "topic": "heuristic",
+    "expression": "f(n)=g(n)+h(n)",
+    "parameters": "g is cost already incurred, h estimates remaining cost, f estimates total cost via n.",
+    "purpose": "Rank pending routes by estimated total path cost.",
+    "assumptions": "Use smallest f on OPEN; update g when a better route arrives.",
+    "example": "g=4 and h=3 give f=7.",
+    "variation": "h=0 reduces to uniform-cost search. Greedy uses h alone.",
+    "mistake": "Using the number of edges for g when edge costs differ.",
+    "recall": [
+      "If g=5 and h=4, what is f?",
+      "9"
+    ],
+    "source": {
+      "file": "Lecture/Topic3_L6toL9_2026Aug.pdf",
+      "page": "29–48"
+    }
+  },
+  {
+    "id": "astar-consistency",
+    "title": "Heuristic bounds",
+    "topic": "heuristic",
+    "expression": "0\\le h(n)\\le h^*(n),\\qquad h(n)\\le c(n,n')+h(n')",
+    "parameters": "h* is the true remaining cost and c is the arc cost.",
+    "purpose": "Admissibility is a bound per node.",
+    "assumptions": "Admissibility is a bound per node. Consistency checks each arc and h(goal)=0.",
+    "example": "An arc of cost 2 from h=7 to h=4 violates consistency because 7>6.",
+    "variation": "A consistent heuristic with zero at goals is admissible for reachable goals.",
+    "mistake": "Checking only the overall start and goal values.",
+    "recall": [
+      "c=2 and h(child)=4. What is the maximum consistent h(parent) on this edge?",
+      "6"
+    ],
+    "source": {
+      "file": "Lecture/Topic3_L6toL9_2026Aug.pdf",
+      "page": "23–35, 55–56"
+    }
+  },
+  {
+    "id": "game-backup",
+    "title": "Minimax value",
+    "topic": "games",
+    "expression": "V(n)=\\begin{cases}U(n)&\\text{terminal}\\\\\\max_i V(n_i)&\\text{MAX}\\\\\\min_i V(n_i)&\\text{MIN}\\end{cases}",
+    "parameters": "U is terminal utility measured from MAX’s perspective and n_i are legal children.",
+    "purpose": "Perfect-information, two-player zero-sum deterministic game.",
+    "assumptions": "Perfect-information, two-player zero-sum deterministic game. Replace U with an evaluation at cutoff if depth-limited.",
+    "example": "A MIN node with leaves 5 and 9 backs up 5.",
+    "variation": "A chance node in expectiminimax uses expected utility.",
+    "mistake": "Comparing all leaves without respecting who controls each transition.",
+    "recall": [
+      "MIN faces values 4, 9 and −2. What value is backed up?",
+      "-2"
+    ],
+    "source": {
+      "file": "Lecture/Topic3_L6toL9_2026Aug.pdf",
+      "page": "60–77"
+    }
+  },
+  {
+    "id": "game-cutoff",
+    "title": "Alpha–beta cutoff",
+    "topic": "games",
+    "expression": "\\alpha\\ge\\beta \\;\\Rightarrow\\; \\text{skip remaining siblings}",
+    "parameters": "Alpha is the lower bound established by MAX and beta the upper bound established by MIN.",
+    "purpose": "Keep both bounds for depth-first minimax.",
+    "assumptions": "Keep both bounds for depth-first minimax. Update alpha at MAX and beta at MIN.",
+    "example": "Inherited α=5, new β=3 after a MIN leaf: remaining children can be skipped.",
+    "variation": "Visit promising moves early for more cutoffs.",
+    "mistake": "Resetting inherited bounds at each node.",
+    "recall": [
+      "If α=5, how large can β be and still cause a cutoff?",
+      "5"
+    ],
+    "source": {
+      "file": "Lecture/Topic3_L6toL9_2026Aug.pdf",
+      "page": "78–94"
+    }
+  },
+  {
+    "id": "arm-rule",
+    "title": "Support, confidence and lift",
+    "topic": "mining",
+    "expression": "\\mathrm{supp}(X\\to Y)=\\frac{n(X\\cup Y)}{N},\\quad \\mathrm{conf}=\\frac{n(X\\cup Y)}{n(X)},\\quad \\mathrm{lift}=\\frac{\\mathrm{conf}}{\\mathrm{supp}(Y)}",
+    "parameters": "N is the number of transactions and n(S) counts transactions containing S.",
+    "purpose": "Use disjoint nonempty antecedent and consequent.",
+    "assumptions": "Use disjoint nonempty antecedent and consequent. Know whether minsup is a proportion or count.",
+    "example": "For n(XY)=6,n(X)=8,n(Y)=10,N=20, support=.30, confidence=.75, lift=1.5.",
+    "variation": "Reverse the rule to change confidence. Lift remains symmetric.",
+    "mistake": "Using antecedent support as the lift denominator.",
+    "recall": [
+      "Of 10 transactions, 4 contain A and 3 contain both A and B. What is confidence A→B?",
+      "3/4"
+    ],
+    "source": {
+      "file": "Lecture/Topic4_L10toL12_2026Aug.pdf",
+      "page": "28–37, 59–67"
+    }
+  },
+  {
+    "id": "arm-antimonotone",
+    "title": "Antimonotone support",
+    "topic": "mining",
+    "expression": "X\\subseteq Y\\implies n(Y)\\le n(X)",
+    "parameters": "X is a subset of itemset Y and n counts containing transactions.",
+    "purpose": "Use to prune Apriori candidates when a required subset is infrequent.",
+    "assumptions": "Use to prune Apriori candidates when a required subset is infrequent.",
+    "example": "If n(AB)=2 < 3, then n(ABC)≤2 and ABC is infrequent.",
+    "variation": "Join compatible frequent sets before checking their remaining immediate subsets.",
+    "mistake": "Treating a surviving candidate as frequent before a support scan.",
+    "recall": [
+      "AB has support count 2. What is the largest possible support count of ABC?",
+      "2"
+    ],
+    "source": {
+      "file": "Lecture/Topic4_L10toL12_2026Aug.pdf",
+      "page": "38–48, 68–71"
+    }
+  },
+  {
+    "id": "tree-impurity",
+    "title": "Entropy, information gain and Gini",
+    "topic": "trees",
+    "expression": "H(D)=-\\sum_c p_c\\log_2 p_c,\\quad IG=H(D)-\\sum_j\\frac{\\lvert D_j\\rvert }{\\lvert D\\rvert }H(D_j),\\quad G=1-\\sum_c p_c^2",
+    "parameters": "p_c is the fraction of class c in the current node. D_j is a child partition.",
+    "purpose": "Apply 0 log 0=0 and weight by child size.",
+    "assumptions": "Apply 0 log 0=0 and weight by child size. Higher gain means a greater entropy decrease.",
+    "example": "A 50–50 node has entropy 1 bit and Gini .5.",
+    "variation": "Gain ratio divides information gain by entropy of the child-size fractions when nonzero.",
+    "mistake": "Using parent class fractions when evaluating a child.",
+    "recall": [
+      "A binary node is pure. What is its Gini impurity?",
+      "0"
+    ],
+    "source": {
+      "file": "Lecture/Topic5_Classification and Decision Trees.pdf",
+      "page": "9–22"
+    }
+  },
+  {
+    "id": "classification-metrics",
+    "title": "Confusion-matrix rates",
+    "topic": "trees",
+    "expression": "\\mathrm{TPR}=\\frac{TP}{TP+FN},\\quad \\mathrm{FPR}=\\frac{FP}{FP+TN},\\quad \\mathrm{Precision}=\\frac{TP}{TP+FP}",
+    "parameters": "TP, FP, TN and FN are counts relative to the chosen positive class.",
+    "purpose": "Check denominators are nonzero.",
+    "assumptions": "Check denominators are nonzero. TPR is sensitivity and 1−FPR is specificity.",
+    "example": "TP=12,FN=8,FP=10,TN=70 gives TPR=.6, FPR=.125, precision=12/22.",
+    "variation": "ROC plots TPR versus FPR across thresholds. Accuracy divides total correct by all predictions.",
+    "mistake": "Using predicted positives as the denominator for sensitivity.",
+    "recall": [
+      "TP=12 and FN=8. What is recall?",
+      "3/5"
+    ],
+    "source": {
+      "file": "Lecture/Topic5_Classification and Decision Trees.pdf",
+      "page": "27–34"
+    }
+  },
+  {
+    "id": "minkowski-distance",
+    "title": "Minkowski and cosine measures",
+    "topic": "neighbors",
+    "expression": "d_r(x,z)=\\left(\\sum_j\\lvert x_j-z_j\\rvert ^r\\right)^{1/r},\\quad \\cos(x,z)=\\frac{x^\\top z}{\\Vert x\\Vert _2\\Vert z\\Vert _2}",
+    "parameters": "x,z are coordinate vectors, r≥1, and both norms must be nonzero for cosine.",
+    "purpose": "For r=1 use absolute sum.",
+    "assumptions": "For r=1 use absolute sum; for r=2 use Euclidean. r→∞ gives maximum coordinate difference.",
+    "example": "(0,0) to (3,4) gives Euclidean 5 and L∞ 4.",
+    "variation": "Cosine compares direction, so shared positive scaling leaves it unchanged.",
+    "mistake": "Forgetting absolute values in L1 or the square root in Euclidean.",
+    "recall": [
+      "What is the Euclidean distance between (1,3) and (4,7)?",
+      "5"
+    ],
+    "source": {
+      "file": "Lecture/Topic5_IE4483-EE6483 Nearest Neighbor Classifiers and Support Vector Machines.pdf",
+      "page": "4–12"
+    }
+  },
+  {
+    "id": "svm-margin",
+    "title": "Canonical hard margin",
+    "topic": "neighbors",
+    "expression": "y_i(w^\\top x_i+b)\\ge1,\\qquad \\text{full width}=\\frac{2}{\\Vert w\\Vert _2}",
+    "parameters": "x_i is a feature vector, y_i=±1, w is the normal, b is the intercept.",
+    "purpose": "Compute the geometric separation of canonical support planes.",
+    "assumptions": "For separable data with canonical ±1 support levels. Distance from boundary to a support plane is half the width.",
+    "example": "Points 2 and 6 give w=.5,b=−2, boundary 4 and width 4.",
+    "variation": "At levels ±a the width formula is 2a/‖w‖.",
+    "mistake": "Applying 2/‖w‖ after arbitrary rescaling without rescaling support levels.",
+    "recall": [
+      "In canonical form with ‖w‖=4, what is the full width?",
+      "1/2"
+    ],
+    "source": {
+      "file": "Lecture/Topic5_IE4483-EE6483 Nearest Neighbor Classifiers and Support Vector Machines.pdf",
+      "page": "13–21"
+    }
+  },
+  {
+    "id": "svm-slack",
+    "title": "Minimum slack",
+    "topic": "neighbors",
+    "expression": "\\xi_i=\\max(0,1-y_i(w^\\top x_i+b))",
+    "parameters": "ξ is the smallest nonnegative violation and y_i is the signed training label.",
+    "purpose": "Use on the soft margin.",
+    "assumptions": "Use on the soft margin. Check the signed score to distinguish violations from classification errors.",
+    "example": "A signed score .2 gives slack .8 while the prediction is correct.",
+    "variation": "A squared slack penalty penalizes large violations differently from hinge loss.",
+    "mistake": "Treating every positive slack as a wrong class.",
+    "recall": [
+      "If the signed score is −.25, what is minimum slack?",
+      "1.25"
+    ],
+    "source": {
+      "file": "Lecture/Topic5_IE4483-EE6483 Nearest Neighbor Classifiers and Support Vector Machines.pdf",
+      "page": "22–27"
+    }
+  },
+  {
+    "id": "bayes-rule",
+    "title": "Bayesian posterior",
+    "topic": "bayes",
+    "expression": "P(H_i\\mid E)=\\frac{P(E\\mid H_i)P(H_i)}{\\sum_jP(E\\mid H_j)P(H_j)}",
+    "parameters": "H_j partition the possibilities and E is the observed evidence.",
+    "purpose": "The evidence must have positive total probability.",
+    "assumptions": "The evidence must have positive total probability.",
+    "example": "P(A)=.2, likelihoods .6 and .3 give posterior .12/.36=1/3.",
+    "variation": "When choosing MAP, compare the numerators because the denominator is shared.",
+    "mistake": "Inverting likelihood without priors and normalization.",
+    "recall": [
+      "Equal priors and likelihoods .6 and .2. What is the first hypothesis’s posterior?",
+      "3/4"
+    ],
+    "source": {
+      "file": "Lecture/EE6483_BayesianInference_afterLecture.pdf",
+      "page": "7–18, 19–29"
+    }
+  },
+  {
+    "id": "naive-score",
+    "title": "Naïve Bayes score",
+    "topic": "bayes",
+    "expression": "s_c=P(c)\\prod_j P(x_j\\mid c),\\qquad P(c\\mid x)=\\frac{s_c}{\\sum_{c'}s_{c'}}",
+    "parameters": "c indexes class labels and x_j are observed feature values.",
+    "purpose": "The model assumes conditional independence given each class.",
+    "assumptions": "The model assumes conditional independence given each class. Apply declared smoothing or raw counts.",
+    "example": "Scores .12 and .03 normalize to .80 and .20.",
+    "variation": "Take log scores for robust MAP ranking with many features.",
+    "mistake": "Omitting observed zeros or multiplying marginal feature probabilities.",
+    "recall": [
+      "Two class scores are .12 and .03. What is the first posterior?",
+      ".8"
+    ],
+    "source": {
+      "file": "Lecture/EE6483_BayesianInference_afterLecture.pdf",
+      "page": "30–39"
+    }
+  },
+  {
+    "id": "nn-forward",
+    "title": "Unit activation",
+    "topic": "neural",
+    "expression": "\\mathrm{net}_j=\\sum_iw_{ji}o_i+b_j,\\qquad o_j=G(\\mathrm{net}_j)",
+    "parameters": "w_ji connects upstream unit i to j, o_i is its output, b_j is bias and G is activation.",
+    "purpose": "Use the given activation at every unit, then pass outputs to later units.",
+    "assumptions": "Use the given activation at every unit, then pass outputs to later units.",
+    "example": "w=(.5,1), x=(2,−1), b=.4 gives net=.4 and ReLU output .4.",
+    "variation": "An explicit constant input 1 allows a bias to be represented as its weight.",
+    "mistake": "Feeding a pre-activation forward without applying the nonlinearity.",
+    "recall": [
+      "What is ReLU(−3)?",
+      "0"
+    ],
+    "source": {
+      "file": "Lecture/EE4483 - Neural Networks and Backpropagation.pdf",
+      "page": "3–21"
+    }
+  },
+  {
+    "id": "nn-backprop",
+    "title": "Squared-loss backpropagation",
+    "topic": "neural",
+    "expression": "E=\\tfrac12\\sum_k(t_k-o_k)^2,\\quad \\delta_k=(t_k-o_k)G'(\\mathrm{net}_k),\\quad \\delta_j=G'(\\mathrm{net}_j)\\sum_k w_{kj}\\delta_k",
+    "parameters": "k are downstream units, j is hidden, t are targets and δ uses the lecture’s negative-gradient convention.",
+    "purpose": "Compute the derivative at the pre-activation.",
+    "assumptions": "Compute the derivative at the pre-activation. For ReLU use 1 on positives and 0 on negatives; declare a convention at zero.",
+    "example": "Active linear/ReLU output .6 with target .2 gives δ=−.4.",
+    "variation": "A sigmoid derivative equals o(1−o). Other losses can change the output formula.",
+    "mistake": "Using incoming weights in the hidden error term.",
+    "recall": [
+      "Active output o=.6 with target t=.2. What is its delta?",
+      "-0.4"
+    ],
+    "source": {
+      "file": "Lecture/EE4483 - Neural Networks and Backpropagation.pdf",
+      "page": "22–28, 31–47"
+    }
+  },
+  {
+    "id": "nn-update",
+    "title": "Weight and bias updates",
+    "topic": "neural",
+    "expression": "\\Delta w_{ji}=\\eta\\,\\delta_j o_i,\\qquad \\Delta b_j=\\eta\\,\\delta_j",
+    "parameters": "η is learning rate, δ_j is the negative-derivative error signal and o_i is the input activation.",
+    "purpose": "Add these increments for the lecture’s delta sign.",
+    "assumptions": "Add these increments for the lecture’s delta sign. Compute deltas using pre-update weights.",
+    "example": "η=.2, δ=.5 and o_i=.3 gives Δw=.03 and Δb=.1.",
+    "variation": "In gradient notation subtract η∇E instead.",
+    "mistake": "Using the downstream unit’s activation in the incoming weight update.",
+    "recall": [
+      "η=.1, δ=.4, input .5. What is Δw?",
+      ".02"
+    ],
+    "source": {
+      "file": "Lecture/EE4483 - Neural Networks and Backpropagation.pdf",
+      "page": "22–28, 31–47"
+    }
+  },
+  {
+    "id": "gradient-descent",
+    "title": "Gradient descent",
+    "topic": "neural",
+    "expression": "\\theta_{t+1}=\\theta_t-\\eta\\nabla_\\theta E(\\theta_t)",
+    "parameters": "θ denotes parameters, η the positive step size and E the objective.",
+    "purpose": "Evaluate the gradient at the current parameters.",
+    "assumptions": "Evaluate the gradient at the current parameters; the mini-batch version estimates it from the batch.",
+    "example": "θ=2, slope=3, η=.1 yields 1.7.",
+    "variation": "SGD uses one example per update in the lecture’s convention.",
+    "mistake": "Increasing η indiscriminately can cause overshoot or divergence.",
+    "recall": [
+      "Current θ=3, derivative −2 and η=.1. What is the new θ?",
+      "3.2"
+    ],
+    "source": {
+      "file": "Lecture/EE4483 - Neural Networks and Backpropagation.pdf",
+      "page": "23–30, 42–48"
+    }
+  },
+  {
+    "id": "cnn-output",
+    "title": "Convolution output dimensions",
+    "topic": "cnn",
+    "expression": "O=\\left\\lfloor\\frac{I+2P-F}{S}\\right\\rfloor+1,\\qquad C_{\\mathrm{out}}=K",
+    "parameters": "I is one input dimension, F its filter extent, P symmetric padding, S stride and K filters.",
+    "purpose": "Dilation 1, integer stride, and at least one valid window.",
+    "assumptions": "Dilation 1, integer stride, and at least one valid window. Apply independently along each axis.",
+    "example": "I=10,F=3,P=1,S=2 gives O=5.",
+    "variation": "Valid padding sets P=0; an odd filter with P=(F−1)/2 preserves size at stride 1.",
+    "mistake": "Omitting the floor or final +1.",
+    "recall": [
+      "I=9,F=3,P=0,S=2. What is O?",
+      "4"
+    ],
+    "source": {
+      "file": "Lecture/IE4483 - Convolutional Neural Networks.pdf",
+      "page": "17–29, 32–34"
+    }
+  },
+  {
+    "id": "cnn-parameters",
+    "title": "Convolution parameter count",
+    "topic": "cnn",
+    "expression": "K(F_h F_w C_{\\mathrm{in}}+1)",
+    "parameters": "F_h,F_w are spatial filter size, C_in is input channels and K is filter count.",
+    "purpose": "For standard dense convolution with one bias per filter.",
+    "assumptions": "For standard dense convolution with one bias per filter.",
+    "example": "With six 5×5 RGB filters the count is 6(75+1)=456.",
+    "variation": "Omit +1 if biases are disabled. Standard pooling has zero learned parameters.",
+    "mistake": "Multiplying weights by spatial output locations.",
+    "recall": [
+      "Four 3×3 filters with two input channels and bias. How many parameters?",
+      "76"
+    ],
+    "source": {
+      "file": "Lecture/IE4483 - Convolutional Neural Networks.pdf",
+      "page": "17–29, 32–34"
+    }
+  },
+  {
+    "id": "bias-variance",
+    "title": "Squared-error decomposition",
+    "topic": "generalization",
+    "expression": "\\mathbb{E}[(Y-\\hat f(x))^2]=\\operatorname{Bias}[\\hat f(x)]^2+\\operatorname{Var}[\\hat f(x)]+\\sigma^2",
+    "parameters": "Expectation covers random training sets and independent test noise at x. σ² is conditional noise variance.",
+    "purpose": "Use for a fixed input with squared loss, independent train/test noise and zero-mean residual noise conditional on x.",
+    "assumptions": "Use for a fixed input with squared loss, independent train/test noise and zero-mean residual noise conditional on x.",
+    "example": "Bias .2, variance .03 and noise .10 yield expected squared error .17.",
+    "variation": "Curves give practical diagnostics without measuring each term directly.",
+    "mistake": "Assuming a smaller generalization gap alone means a better model.",
+    "recall": [
+      "Bias .3, variance .02, noise .01. What is the expected squared error?",
+      ".12"
+    ],
+    "source": {
+      "file": "Lecture/IE4483_regularization_and_optimization.pdf",
+      "page": "11–29, 33–36"
+    }
+  },
+  {
+    "id": "kmeans-update",
+    "title": "K-means centroid and objective",
+    "topic": "clustering",
+    "expression": "\\mu_k=\\frac{1}{\\lvert C_k\\rvert }\\sum_{x_i\\in C_k}x_i,\\qquad J=\\sum_k\\sum_{x_i\\in C_k}\\Vert x_i-\\mu_k\\Vert _2^2",
+    "parameters": "C_k is the set of samples in cluster k and μ_k its centroid.",
+    "purpose": "Use Euclidean assignment then recompute nonempty cluster means.",
+    "assumptions": "Use Euclidean assignment then recompute nonempty cluster means; define tie and empty-cluster policy.",
+    "example": "Cluster {2,4,9} has centroid 5 and SSE 9+1+16=26.",
+    "variation": "For L1 objective, medians replace means coordinatewise.",
+    "mistake": "Changing one centroid during the assignment pass changes Lloyd’s algorithm.",
+    "recall": [
+      "What is the centroid of 1, 2 and 9?",
+      "4"
+    ],
+    "source": {
+      "file": "Lecture/IE4483_unsupervised learning.pdf",
+      "page": "26–47"
+    }
+  },
+  {
+    "id": "hac-linkages",
+    "title": "Single, complete and average linkage",
+    "topic": "clustering",
+    "expression": "d_{\\min}(A,B)=\\min_{a,b}d(a,b),\\quad d_{\\max}(A,B)=\\max_{a,b}d(a,b),\\quad d_{\\mathrm{avg}}(A,B)=\\frac{\\sum_{a,b}d(a,b)}{\\lvert A\\rvert \\lvert B\\rvert }",
+    "parameters": "a∈A and b∈B range over all cross-cluster pairs.",
+    "purpose": "Apply the named linkage after each HAC merge.",
+    "assumptions": "Apply the named linkage after each HAC merge.",
+    "example": "{0,2} versus {6,7} gives 4, 7 and 5.5 respectively.",
+    "variation": "Average-link distances can be updated with a size-weighted mean of earlier distances.",
+    "mistake": "Dividing by \\lvert A\\rvert +\\lvert B\\rvert  instead of \\lvert A\\rvert \\lvert B\\rvert .",
+    "recall": [
+      "Cross-pair distances are 2,4,6,8. What is average linkage?",
+      "5"
+    ],
+    "source": {
+      "file": "Lecture/IE4483_unsupervised learning.pdf",
+      "page": "48–85"
+    }
+  },
+  {
+    "id": "pca-covariance",
+    "title": "Covariance and eigenvalues",
+    "topic": "pca",
+    "expression": "\\mu=\\frac1N\\sum_i x_i,\\quad S=\\frac1N \\sum_i (x_i-\\mu)(x_i-\\mu)^\\top,\\quad S u_j=\\lambda_j u_j",
+    "parameters": "N is number of samples, μ is the mean, S is covariance and λ_j is variance along unit u_j.",
+    "purpose": "Center data first.",
+    "assumptions": "Center data first. Use 1/(N−1) when sample covariance is required.",
+    "example": "S=diag(4,1) gives first direction (1,0) up to sign.",
+    "variation": "Changing covariance normalization scales eigenvalues but preserves directions when only the scalar factor changes.",
+    "mistake": "Centering across features within each sample instead of across samples for each feature.",
+    "recall": [
+      "For S=diag(4,1), what is the largest eigenvalue?",
+      "4"
+    ],
+    "source": {
+      "file": "Lecture/IE4483_PCA_Regression.pdf",
+      "page": "7–25"
+    }
+  },
+  {
+    "id": "pca-project",
+    "title": "Projection and reconstruction",
+    "topic": "pca",
+    "expression": "z=U^\\top(x-\\mu),\\qquad \\hat x=\\mu+Uz,\\qquad R_k=\\frac{\\sum_{j=1}^{k}\\lambda_j}{\\sum_j\\lambda_j}",
+    "parameters": "Columns of U are the k kept unit principal directions and R_k is retained variance fraction.",
+    "purpose": "Encode centered observations and reconstruct approximate original coordinates.",
+    "assumptions": "Use the training mean and scaling for new samples; positive total variance is required for the ratio.",
+    "example": "μ=(2,2), u=(1,0), x=(5,4) gives z=3 and x̂=(5,2).",
+    "variation": "If the basis vector’s sign is flipped, so is the score; reconstruction is unchanged.",
+    "mistake": "Leaving the reconstructed sample in centered coordinates.",
+    "recall": [
+      "Eigenvalues 6,3,1. What variance fraction do the first two components retain?",
+      ".9"
+    ],
+    "source": {
+      "file": "Lecture/IE4483_PCA_Regression.pdf",
+      "page": "20–32"
+    }
+  },
+  {
+    "id": "ols-fit",
+    "title": "Least-squares line",
+    "topic": "regression",
+    "expression": "\\hat y=mx+b,\\quad m=\\frac{\\sum_i(x_i-\\bar x)(y_i-\\bar y)}{\\sum_i(x_i-\\bar x)^2},\\quad b=\\bar y-m\\bar x",
+    "parameters": "x is the predictor, y the response and bars are sample means.",
+    "purpose": "Fit a line that minimizes vertical squared residuals.",
+    "assumptions": "Use the solution with an intercept for nonconstant predictor x.",
+    "example": "Points (0,1),(1,3),(2,5) give m=2 and b=1.",
+    "variation": "Use a design matrix for multiple linear features. A no-intercept fit uses different normal equations.",
+    "mistake": "Minimizing perpendicular residuals or ignoring the intercept.",
+    "recall": [
+      "m=2, x̄=3 and ȳ=5. What is b?",
+      "-1"
+    ],
+    "source": {
+      "file": "Lecture/IE4483_PCA_Regression.pdf",
+      "page": "35–49"
+    }
+  }
+]

@@ -1,0 +1,1356 @@
+[
+  {
+    "id": "foundations",
+    "name": "AI foundations",
+    "short": "AI foundations",
+    "icon": "cpu",
+    "color": "indigo",
+    "difficulty": 1,
+    "prerequisites": [],
+    "sources": [
+      {
+        "file": "Lecture/Topic1_Introduction_2026Aug.pdf",
+        "page": "2–16, 47"
+      }
+    ],
+    "revision": false,
+    "summary": "Distinguish AI objectives and symbolic approaches before learning search and prediction.",
+    "concepts": [
+      {
+        "id": "goals",
+        "name": "AI objectives and approaches",
+        "source": {
+          "file": "Lecture/Topic1_Introduction_2026Aug.pdf",
+          "page": "5–16"
+        },
+        "intuition": "An AI system can be judged by how it reasons, how it acts, or how closely it imitates people.",
+        "formal": "The lecture separates thinking from acting and human-like behavior from rational behavior. Symbolic systems manipulate explicit rules and representations. Learned systems infer useful patterns from data. The Turing test probes human-like conversational behavior.",
+        "cue": "Identify the system’s input, what it does with it, and how its behavior is judged.",
+        "pitfall": "Human-like behavior alone establishes neither optimal decisions nor sound reasoning.",
+        "example": "A rule-based puzzle solver can choose legal moves from explicit rules. A classifier can learn which patterns predict a label.",
+        "check": [
+          "Which criterion is most directly targeted by the classic Turing test?",
+          "Human-like conversational behavior",
+          "Finding the shortest possible route",
+          "Proving that every inference is logically valid"
+        ],
+        "apply": [
+          "Compare a barcode lookup and an adaptive route planner using the lecture’s distinction between retrieval and problem solving.",
+          "A barcode lookup retrieves a matching record. An adaptive route planner reasons over route alternatives and updates a decision as conditions change. Explain the input and decision process of each.",
+          "Identifies the lookup mechanism.",
+          "Explains how changing conditions alter the planner’s choice."
+        ],
+        "formulas": []
+      }
+    ]
+  },
+  {
+    "id": "state",
+    "name": "State-space representation and search",
+    "short": "State-space search",
+    "icon": "map",
+    "color": "teal",
+    "difficulty": 3,
+    "prerequisites": [
+      "foundations"
+    ],
+    "sources": [
+      {
+        "file": "Lecture/Topic2_L2toL5_2026Aug.pdf",
+        "page": "8–81"
+      }
+    ],
+    "revision": true,
+    "summary": "Build states and operators, then trace backtracking, BFS, DFS and iterative deepening.",
+    "concepts": [
+      {
+        "id": "representation",
+        "name": "States, operators and legal transitions",
+        "source": {
+          "file": "Lecture/Topic2_L2toL5_2026Aug.pdf",
+          "page": "8–35"
+        },
+        "intuition": "Record just enough about a situation to decide what can happen next.",
+        "formal": "A state space is [N,A,S,GD]: states, arcs, initial states and goal descriptions. Operators produce successor states subject to preconditions. A search tree can contain multiple paths to the same state in the graph. Predicate logic can express legality conditions.",
+        "cue": "For puzzles, specify tuple order, initial state, goal test, and what makes an action legal.",
+        "pitfall": "An operator name alone leaves behavior ambiguous. Include its preconditions and update.",
+        "example": "For two jugs, (a,b) may map to (min(a+b,4), max(a+b−4,0)) when pouring from the second into the first, whose capacity is 4.",
+        "check": [
+          "What information must a usable state retain?",
+          "Everything needed for legal transitions and the goal test",
+          "The entire expansion order",
+          "Only the number of moves taken"
+        ],
+        "apply": [
+          "A robot can change rooms, and a locked door opens only while it holds a key. Propose a state and an operator for entering the locked room.",
+          "Use (room, hasKey). The transition requires the robot to be adjacent to the locked room and hasKey=true, then changes room and preserves key status unless the rules consume the key.",
+          "States a room and key flag.",
+          "Gives a precondition and successor update."
+        ],
+        "formulas": []
+      },
+      {
+        "id": "direction",
+        "name": "Data-driven and goal-driven search",
+        "source": {
+          "file": "Lecture/Topic2_L2toL5_2026Aug.pdf",
+          "page": "36–46"
+        },
+        "intuition": "Start with what you have or with what you need to establish.",
+        "formal": "Forward reasoning expands from facts through applicable rules. Backward reasoning starts from a target and recursively establishes its premises. Choose based on the number of plausible starts and goals, selectivity of the rules, and whether predecessor reasoning is practical.",
+        "cue": "Count plausible fact-driven branches and candidate hypotheses before choosing a direction.",
+        "pitfall": "Backward reasoning seeks prerequisites and requires valid predecessor reasoning. It need not undo a physical action.",
+        "example": "For an eligibility rule age≥18 AND enrolled → eligible, a query about eligibility can test the age and enrollment subgoals.",
+        "check": [
+          "What does goal-driven inference expand first?",
+          "A specified goal and its premises",
+          "Every observed fact equally",
+          "Whichever state has lowest Euclidean distance"
+        ],
+        "apply": [
+          "A rule base has thousands of facts but you need to prove one specific eligibility claim. Choose and justify a search direction.",
+          "Use goal-driven search if few rules conclude the claim. Work backward to those rules’ premises and check the relevant facts.",
+          "Selects goal-driven search.",
+          "Justifies the choice using selective subgoals and branching."
+        ],
+        "formulas": []
+      },
+      {
+        "id": "backtracking",
+        "name": "Backtracking and dead ends",
+        "source": {
+          "file": "Lecture/Topic2_L2toL5_2026Aug.pdf",
+          "page": "48–58"
+        },
+        "intuition": "Walk a branch until it fails, then return to the nearest choice with an untried alternative.",
+        "formal": "The lecture tracks CS (current state), SL (current solution path), NSL (unprocessed states) and DE (dead ends). Exclude loops along the current path and apply the specified duplicate policy. Backtracking removes failed states from the current path.",
+        "cue": "Trace CS, SL, NSL and DE at each step using the question’s child order.",
+        "pitfall": "The current path differs from the entire set of expanded states.",
+        "example": "If A tries B before C and B is a leaf failure, remove B from SL and resume at the untried C branch from A.",
+        "check": [
+          "What changes when a leaf is a dead end?",
+          "The path retreats and an untried alternative is selected",
+          "The leaf is permanently added to the solution path",
+          "Every route is restarted at depth zero"
+        ],
+        "apply": [
+          "A has children B then C. B has child D, a non-goal leaf, and C is the goal. Give the visits and the path returned.",
+          "Visits A,B,D,C. Backtrack out of D and B before accepting A→C.",
+          "Gives the correct visits.",
+          "Distinguishes dead ends from the returned path."
+        ],
+        "formulas": []
+      },
+      {
+        "id": "bfs-dfs",
+        "name": "BFS, DFS and OPEN/CLOSED traces",
+        "source": {
+          "file": "Lecture/Topic2_L2toL5_2026Aug.pdf",
+          "page": "59–75"
+        },
+        "intuition": "A queue clears an entire level first. A stack follows the most recently added branch.",
+        "formal": "BFS appends successors to OPEN (FIFO) and finds a shallowest goal for equal step costs. DFS puts successors at the front (LIFO) in the prescribed visit order. CLOSED records expanded nodes. Duplicate and goal-test conventions must be stated when a trace is ambiguous.",
+        "cue": "Write one OPEN/CLOSED row per expansion. Pay attention to the specified left-to-right successor order.",
+        "pitfall": "BFS minimizes number of edges. Unequal costs require an appropriate cost-based search.",
+        "example": "If A→B,C and B→D and C→E, BFS orders A,B,C,D,E while left-first DFS orders A,B,D,C,E.",
+        "check": [
+          "Which frontier rule produces BFS?",
+          "Remove from the front and append unseen children at the back",
+          "Remove the node with the highest depth",
+          "Remove the lowest estimated cost to goal"
+        ],
+        "apply": [
+          "Using A→B,C; B→D; C→E, show OPEN after expanding B in BFS and left-first DFS.",
+          "BFS OPEN=[C,D]. Left-first DFS OPEN=[D,C]. In each, mark A and B expanded.",
+          "Gets BFS ordering right.",
+          "Gets DFS ordering and CLOSED right."
+        ],
+        "formulas": []
+      },
+      {
+        "id": "ids",
+        "name": "Depth limits and iterative deepening",
+        "source": {
+          "file": "Lecture/Topic2_L2toL5_2026Aug.pdf",
+          "page": "76–81"
+        },
+        "intuition": "Run increasingly deep passes when the goal depth is unknown.",
+        "formal": "Iterative deepening restarts depth-limited DFS with increasing depth bounds. With finite branching and unit costs it finds a shallowest solution. In the usual tree model its time is O(b^d) and storage O(bd); repetition near the root is usually cheap relative to the deepest layer for b>1.",
+        "cue": "State the initial and incremented bounds, and distinguish cutoff from exhausting a subtree.",
+        "pitfall": "Reusing a global CLOSED across bounds can suppress valid deeper visits.",
+        "example": "A unary chain A→B→C searched at bounds 1 then 2 visits A,B then A,B,C.",
+        "check": [
+          "What is restarted when the depth bound increases?",
+          "A depth-limited DFS from the start",
+          "A single BFS queue from the previous layer",
+          "Only the last leaf of the previous run"
+        ],
+        "apply": [
+          "For A→B,C; B→D; C→E, goal E, show IDS runs at bounds 1 and 2 with left-first order.",
+          "Bound 1: A,B,C, cutoff. Bound 2: A,B,D,C,E, success with A→C→E.",
+          "Lists both traces.",
+          "Explains restarts and returned path."
+        ],
+        "formulas": []
+      }
+    ]
+  },
+  {
+    "id": "heuristic",
+    "name": "Heuristic search and A*",
+    "short": "Heuristic search",
+    "icon": "target",
+    "color": "indigo",
+    "difficulty": 4,
+    "prerequisites": [
+      "state"
+    ],
+    "sources": [
+      {
+        "file": "Lecture/Topic3_L6toL9_2026Aug.pdf",
+        "page": "4–57"
+      }
+    ],
+    "revision": true,
+    "summary": "Design heuristics, trace cost-based search and justify optimality assumptions.",
+    "concepts": [
+      {
+        "id": "hill-greedy",
+        "name": "Hill climbing and greedy best-first",
+        "source": {
+          "file": "Lecture/Topic3_L6toL9_2026Aug.pdf",
+          "page": "9–21, 29–31"
+        },
+        "intuition": "A hill climber follows a neighboring improvement. Greedy best-first keeps alternatives in a frontier.",
+        "formal": "With lower heuristic values preferred, hill climbing chooses a locally improving successor and may stop at a local minimum or plateau. Greedy best-first selects globally from OPEN by h(n), which estimates remaining cost.",
+        "cue": "Look for whether alternatives survive in OPEN after a move.",
+        "pitfall": "The smallest remaining-cost estimate can coexist with a large already-paid cost.",
+        "example": "A has children B:h=1, C:h=4; B leads to D:h=2. Strict hill climbing stops at B. Greedy can expand D then revisit alternatives through OPEN.",
+        "check": [
+          "What does greedy best-first use as priority?",
+          "Estimated remaining cost h(n)",
+          "The accumulated path cost g(n)",
+          "The number of unexplored children"
+        ],
+        "apply": [
+          "A’s children have (g,h) values B=(9,1) and C=(2,5). Give the greedy choice and the reason a cheaper complete path can be missed.",
+          "Greedy expands B since h(B)=1. It ignores the paid cost g, so an early goal can have higher total path cost.",
+          "Chooses B using h.",
+          "Explains why the greedy choice may cost more overall."
+        ],
+        "formulas": []
+      },
+      {
+        "id": "astar",
+        "name": "A* search and frontier updates",
+        "source": {
+          "file": "Lecture/Topic3_L6toL9_2026Aug.pdf",
+          "page": "29–48"
+        },
+        "intuition": "Compare what you paid plus your best estimate of what remains.",
+        "formal": "A* selects smallest f=g+h. g is the known path cost, h estimates remaining cost. Keep best g and update the stored predecessor when a better path arrives. With nonnegative costs and a consistent heuristic, an expanded state need not be reopened under standard graph A*.",
+        "cue": "List g, h and f separately for candidates and pop a goal from OPEN before accepting its path.",
+        "pitfall": "Stopping when a goal is first generated can miss a cheaper path already on the frontier.",
+        "example": "A→goal costs 9. A→B costs 2, B→goal costs 2, h(B)=2. A* expands B at f=4 before accepting goal at g=4.",
+        "check": [
+          "What priority does A* assign to a node?",
+          "g(n)+h(n)",
+          "g(n)×h(n)",
+          "h(n) only"
+        ],
+        "apply": [
+          "A→B costs 3, A→C costs 1, C→B costs 1, B→G costs 4; h(B)=3,h(C)=4,h(G)=0. Show the winning path and priority updates.",
+          "Initially f(C)=5,f(B)=6. Expanding C improves B to g=2,f=5 with predecessor C. Expanding B finds G at f=6, giving A→C→B→G of cost 6.",
+          "Updates B and its predecessor.",
+          "Gives the final path and cost."
+        ],
+        "formulas": [
+          "astar-score"
+        ]
+      },
+      {
+        "id": "heuristics",
+        "name": "Heuristic design and consistency",
+        "source": {
+          "file": "Lecture/Topic3_L6toL9_2026Aug.pdf",
+          "page": "23–35, 55–56"
+        },
+        "intuition": "Imagine a simpler puzzle whose optimal cost is a lower bound for the real puzzle.",
+        "formal": "Admissibility means 0≤h(n)≤h*(n) for the usual nonnegative heuristic, with zero at goals. Consistency means h(n)≤c(n,n′)+h(n′) on every arc. Manhattan distance for numbered tiles ignores blocking constraints and sums minimum unit moves. The blank is excluded.",
+        "cue": "For a counterexample to consistency, find an arc on which h drops by more than its cost.",
+        "pitfall": "A large heuristic is useful only while the required bounds remain valid.",
+        "example": "A 1-cost arc from h=5 to h=3 fails consistency since 5>1+3.",
+        "check": [
+          "Which property requires checking every edge?",
+          "Consistency",
+          "Having a finite goal depth",
+          "Being goal-directed"
+        ],
+        "apply": [
+          "Prove that numbered-tile Manhattan distance is consistent for unit-cost legal 8-puzzle moves.",
+          "Exactly one numbered tile moves by one orthogonal step per action. Its contribution can drop by at most 1, so total h satisfies h(n)≤1+h(n′), and h(goal)=0.",
+          "Relates an action to one tile’s displacement.",
+          "States the inequality and zero-at-goal condition."
+        ],
+        "formulas": [
+          "astar-consistency"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "games",
+    "name": "Minimax and alpha–beta pruning",
+    "short": "Game trees",
+    "icon": "swords",
+    "color": "amber",
+    "difficulty": 4,
+    "prerequisites": [
+      "heuristic"
+    ],
+    "sources": [
+      {
+        "file": "Lecture/Topic3_L6toL9_2026Aug.pdf",
+        "page": "59–97"
+      }
+    ],
+    "revision": true,
+    "summary": "Back up game values, keep bounds straight and compare traversal orders.",
+    "concepts": [
+      {
+        "id": "minimax",
+        "name": "Minimax and depth-limited evaluation",
+        "source": {
+          "file": "Lecture/Topic3_L6toL9_2026Aug.pdf",
+          "page": "60–77"
+        },
+        "intuition": "Plan for the opponent to choose the move that hurts you most.",
+        "formal": "For deterministic two-player zero-sum perfect-information games, MAX backs up the highest child value and MIN the lowest. Terminal states have utilities. A depth-limited search substitutes a heuristic evaluation at nonterminal cutoff states.",
+        "cue": "Decide which player owns each node and use one consistent utility perspective.",
+        "pitfall": "A high individual leaf does not guarantee MAX can force that leaf.",
+        "example": "A MAX root with MIN branches [7,2] and [4,6] picks the second branch with backed-up value 4.",
+        "check": [
+          "A MIN node has child values 7, 2 and 4. What value is backed up?",
+          "2",
+          "7",
+          "4"
+        ],
+        "apply": [
+          "MAX may choose between MIN nodes with leaves [9,1] and [5,6]. Give the decision and outcome under optimal play.",
+          "The MIN values are 1 and 5. MAX chooses the second branch and guarantees 5.",
+          "Computes both MIN values.",
+          "Selects the correct branch and value."
+        ],
+        "formulas": [
+          "game-backup"
+        ]
+      },
+      {
+        "id": "pruning",
+        "name": "Alpha–beta bounds and move order",
+        "source": {
+          "file": "Lecture/Topic3_L6toL9_2026Aug.pdf",
+          "page": "78–94"
+        },
+        "intuition": "Once a branch cannot improve the current decision, leave its remaining siblings unread.",
+        "formal": "Alpha is MAX’s best lower bound along the current path. Beta is MIN’s best upper bound. Propagate both in depth-first traversal. Cut off remaining siblings when α≥β. The minimax root value is invariant to move ordering, but the visited nodes can change.",
+        "cue": "Trace bound changes and name every unvisited subtree. State the search direction.",
+        "pitfall": "A cutoff bound may be an interval constraint rather than an exact value for the pruned node.",
+        "example": "At a MAX root, a completed first branch has value 6. The next MIN node sees leaf 4 first, so β=4≤α=6 and its remaining leaves are pruned.",
+        "check": [
+          "Which condition permits a cutoff?",
+          "α≥β",
+          "α=−∞ and β=+∞",
+          "α<β"
+        ],
+        "apply": [
+          "At a MAX root the left MIN node has [8,5] and right MIN node has [3,7,9]. Trace left-to-right pruning.",
+          "Left returns 5. Root α=5. Right sees 3, making β=3 and α≥β. Skip 7 and 9. Root returns 5.",
+          "Updates α=5 and β=3.",
+          "Lists pruned leaves and the unchanged root value."
+        ],
+        "formulas": [
+          "game-cutoff"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mining",
+    "name": "Data mining and association rules",
+    "short": "Association mining",
+    "icon": "layers",
+    "color": "teal",
+    "difficulty": 4,
+    "prerequisites": [
+      "foundations"
+    ],
+    "sources": [
+      {
+        "file": "Lecture/Topic4_L10toL12_2026Aug.pdf",
+        "page": "3–74"
+      }
+    ],
+    "revision": true,
+    "summary": "Work from raw transactions to frequent patterns and evaluated rules.",
+    "concepts": [
+      {
+        "id": "kdd",
+        "name": "Data types, tasks and the KDD process",
+        "source": {
+          "file": "Lecture/Topic4_L10toL12_2026Aug.pdf",
+          "page": "3–25"
+        },
+        "intuition": "Discovery starts long before fitting a model or counting a pattern.",
+        "formal": "Records, transactions, and graphs encode different relationships. Knowledge discovery includes selection, cleaning, transformation, mining and interpretation. Classification, clustering, association analysis and anomaly detection solve different tasks.",
+        "cue": "Identify the data representation and whether the goal predicts labels, discovers groups, or finds co-occurrences.",
+        "pitfall": "Retrieving a known record is a query. Unearthing a recurring structure is a discovery task.",
+        "example": "Represent each basket as a set of items. Deduplicate repeated items within a basket when measuring binary transaction support.",
+        "check": [
+          "Which task groups unlabelled records by similarity?",
+          "Clustering",
+          "Classification",
+          "Retrieval by primary key"
+        ],
+        "apply": [
+          "A shop wants segments of customers and products often bought together. Suggest a data representation and method for each.",
+          "Use a feature vector per customer and cluster for segments. Use item sets per transaction and mine association rules for co-purchases.",
+          "Maps segmentation to suitable features and clustering.",
+          "Maps co-purchases to transaction itemsets and mining."
+        ],
+        "formulas": []
+      },
+      {
+        "id": "measures",
+        "name": "Support, confidence, lift and rules",
+        "source": {
+          "file": "Lecture/Topic4_L10toL12_2026Aug.pdf",
+          "page": "28–37, 59–67"
+        },
+        "intuition": "Count the co-occurrence, then ask how surprising it is relative to baseline.",
+        "formal": "Support of X→Y is P(X∪Y) from transaction counts. Confidence is P(Y∣X)=support(X∪Y)/support(X). Lift divides confidence by support(Y). For a fixed frequent union, rules with larger consequents have no higher confidence than corresponding smaller-consequent rules.",
+        "cue": "Write all numerators and denominators. Read thresholds as inclusive unless specified.",
+        "pitfall": "High confidence can simply reflect a popular consequent. Lift compares with that baseline.",
+        "example": "With 10 baskets, n(X)=5,n(Y)=8,n(XY)=4: support=.4, confidence=.8, lift=1.",
+        "check": [
+          "Which measure is directional and is equal to P(Y given X)?",
+          "Confidence of X→Y",
+          "Support of the pair",
+          "Lift of the pair"
+        ],
+        "apply": [
+          "There are 20 baskets, 8 with A, 10 with B and 6 with both. Compute the metrics for A→B and interpret lift.",
+          "Support 6/20=.30. Confidence 6/8=.75. Lift .75/.50=1.5, so B is 1.5 times as common in A baskets as in the full data.",
+          "Uses correct support and confidence denominators.",
+          "Computes and interprets lift without a causal claim."
+        ],
+        "formulas": [
+          "arm-rule"
+        ]
+      },
+      {
+        "id": "apriori",
+        "name": "Apriori candidate generation",
+        "source": {
+          "file": "Lecture/Topic4_L10toL12_2026Aug.pdf",
+          "page": "38–48, 68–71"
+        },
+        "intuition": "A bundle cannot occur more often than any part of it.",
+        "formal": "Apriori joins frequent k-itemsets that share the required sorted prefix, prunes any candidate with an infrequent k-subset, then counts support. A maximal frequent set has no frequent superset. A closed frequent set has no proper superset with equal support.",
+        "cue": "Show C_k before and after pruning and L_k after counting. Check all immediate subsets.",
+        "pitfall": "Having all frequent subsets is necessary for a candidate to survive pruning. Counting still decides whether it is frequent.",
+        "example": "If AB and AC are frequent but BC is infrequent, join AB and AC then prune ABC because BC is missing.",
+        "check": [
+          "If {A,B} is infrequent, what follows?",
+          "Every superset containing both A and B is infrequent",
+          "Every proper subset is also infrequent",
+          "A larger superset must be counted before pruning"
+        ],
+        "apply": [
+          "Frequent pairs are AB, AC, BC, BD and CD. After join and prune, list candidate triples.",
+          "ABC survives (AB, AC, BC). BCD survives (BC, BD, CD). Any triple containing AD fails because AD is absent.",
+          "Identifies both surviving triples.",
+          "Explains the subset check."
+        ],
+        "formulas": [
+          "arm-antimonotone"
+        ]
+      },
+      {
+        "id": "fp",
+        "name": "FP-tree and conditional mining",
+        "source": {
+          "file": "Lecture/Topic4_L10toL12_2026Aug.pdf",
+          "page": "49–58, 77–80"
+        },
+        "intuition": "Compress sorted transactions by sharing prefixes, then mine one suffix at a time.",
+        "formal": "Discard infrequent singles, order retained items by descending support with a fixed tie rule, insert the ordered paths with node counts, and link identical items in the header. For a suffix, collect its prefix paths weighted by suffix node counts, then prune using conditional support.",
+        "cue": "Build the header, follow each suffix node, and combine conditional counts before tree construction.",
+        "pitfall": "A conditional path’s weight comes from the suffix node count, not the prefix node’s total count.",
+        "example": "If conditional tree for X is A:4→B:3 with minimum count 3, add AX:4, BX:3 and ABX:3. A single path supports every subset with the minimum selected node count.",
+        "check": [
+          "What weight does a conditional prefix path carry?",
+          "The count at the suffix node",
+          "The count of the root’s first child",
+          "One regardless of how often it occurred"
+        ],
+        "apply": [
+          "X’s conditional pattern base has (A,B):2 and (A):3. Minimum support count is 3. Give conditional counts and patterns containing X.",
+          "A has 5; B has 2 and is removed. AX has support count 5. X itself also has count 5 given these nonempty paths account for all suffix occurrences.",
+          "Accumulates weighted counts correctly.",
+          "Prunes B and reports AX."
+        ],
+        "formulas": []
+      }
+    ]
+  },
+  {
+    "id": "trees",
+    "name": "Decision trees and evaluation",
+    "short": "Trees & evaluation",
+    "icon": "blocks",
+    "color": "blue",
+    "difficulty": 4,
+    "prerequisites": [
+      "foundations"
+    ],
+    "sources": [
+      {
+        "file": "Lecture/Topic5_Classification and Decision Trees.pdf",
+        "page": "3–35"
+      }
+    ],
+    "revision": true,
+    "summary": "Train split-based classifiers and reason about the errors they make.",
+    "concepts": [
+      {
+        "id": "splits",
+        "name": "Entropy, gain ratio and Gini",
+        "source": {
+          "file": "Lecture/Topic5_Classification and Decision Trees.pdf",
+          "page": "9–22"
+        },
+        "intuition": "Prefer a split whose child groups contain purer class mixtures.",
+        "formal": "Entropy is −Σp log₂p; information gain subtracts weighted child entropy from parent entropy. Gain ratio divides gain by the entropy of child sizes when defined. Gini is 1−Σp²; CART compares weighted child impurities.",
+        "cue": "Show each child’s class counts and size weights. A pure node has zero impurity.",
+        "pitfall": "An unweighted average misrepresents splits with unequal child sizes. Identifier splits can inflate raw gain.",
+        "example": "Parent [4+,4−], children [3+,0−] and [1+,4−]: weighted child Gini is (3/8)·0+(5/8)·.32=.20.",
+        "check": [
+          "How are child impurities combined?",
+          "Weighted by the fractions of parent samples entering each child",
+          "Always take the arithmetic mean",
+          "Take the maximum child class count"
+        ],
+        "apply": [
+          "Parent has [6+,6−]. One child [4+,0−] and the other [2+,6−]. Find parent Gini, split Gini and impurity reduction.",
+          "Parent Gini=.5. Left is 0; right is 1−(.25²+.75²)=.375. Weighted split is (8/12)·.375=.25. Reduction=.25.",
+          "Computes the node impurities.",
+          "Weights the split and calculates its reduction."
+        ],
+        "formulas": [
+          "tree-impurity"
+        ]
+      },
+      {
+        "id": "prune-trees",
+        "name": "Tree induction, pruning and forests",
+        "source": {
+          "file": "Lecture/Topic5_Classification and Decision Trees.pdf",
+          "page": "9–12, 23–26"
+        },
+        "intuition": "Grow a readable decision process, then control how much noise it memorizes.",
+        "formal": "Top-down induction splits data recursively. Pre-pruning stops before a weak or small split. Post-pruning simplifies an existing tree. Random forests aggregate trees using resampled training observations and feature randomness to reduce correlated errors.",
+        "cue": "Interpret “weak add-on subtree” as a pruning decision and “ensemble” as a diversity and aggregation question.",
+        "pitfall": "A subtree helping training accuracy may still worsen validation performance.",
+        "example": "A leaf with 2 training records can be collapsed if the parent’s class predicts more reliably on validation data.",
+        "check": [
+          "What does post-pruning do?",
+          "Replaces an existing subtree with a simpler prediction",
+          "Trains one tree on each possible feature",
+          "Always makes the training set larger"
+        ],
+        "apply": [
+          "Explain why random feature subsets matter in forests even when every tree sees a bootstrap sample.",
+          "Feature subsets prevent a single strong predictor from dominating every split. Lower correlation between tree errors helps averaging reduce variance.",
+          "Describes diversity in feature choices.",
+          "Connects decorrelation to variance reduction."
+        ],
+        "formulas": []
+      },
+      {
+        "id": "metrics",
+        "name": "Confusion matrices, ROC and validation",
+        "source": {
+          "file": "Lecture/Topic5_Classification and Decision Trees.pdf",
+          "page": "27–34"
+        },
+        "intuition": "Pick the denominator that matches the population you are asking about.",
+        "formal": "Recall or sensitivity=TP/(TP+FN), specificity=TN/(TN+FP), precision=TP/(TP+FP), and accuracy=(TP+TN)/N. ROC plots TPR against FPR at different thresholds. Use held-out data or cross-validation for evaluation.",
+        "cue": "Write actual-positive, actual-negative and predicted-positive denominators before dividing.",
+        "pitfall": "Increasing a positive-score threshold weakly lowers recall and weakly raises specificity. Precision need not be monotone.",
+        "example": "For TP=15,FN=5,FP=10,TN=70, recall=.75, precision=.60 and specificity=.875.",
+        "check": [
+          "What denominator is used for recall?",
+          "All actual positives",
+          "All predicted positives",
+          "All predictions"
+        ],
+        "apply": [
+          "For TP=20, FN=5, FP=10 and TN=65, calculate recall, precision and FPR.",
+          "Recall=20/25=.80; precision=20/30=2/3; FPR=10/75=2/15.",
+          "Computes recall and precision using the right populations.",
+          "Computes FPR from actual negatives."
+        ],
+        "formulas": [
+          "classification-metrics"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "neighbors",
+    "name": "Nearest neighbours and SVM",
+    "short": "k-NN & SVM",
+    "icon": "crosshair",
+    "color": "rose",
+    "difficulty": 4,
+    "prerequisites": [
+      "trees"
+    ],
+    "sources": [
+      {
+        "file": "Lecture/Topic5_IE4483-EE6483 Nearest Neighbor Classifiers and Support Vector Machines.pdf",
+        "page": "4–27"
+      }
+    ],
+    "revision": true,
+    "summary": "Compute neighbour votes and derive linear SVM decisions and margins.",
+    "concepts": [
+      {
+        "id": "knn",
+        "name": "Distances, neighbour votes and scaling",
+        "source": {
+          "file": "Lecture/Topic5_IE4483-EE6483 Nearest Neighbor Classifiers and Support Vector Machines.pdf",
+          "page": "4–12"
+        },
+        "intuition": "Label a point by how its nearest known neighbours vote.",
+        "formal": "k-NN is a lazy classifier. Minkowski r=1,2,∞ gives Manhattan, Euclidean and supremum distances. Cosine similarity compares directions when both norms are nonzero. Scale numeric features when units otherwise dominate distance.",
+        "cue": "Read k, metric, tie policy and whether the query point is excluded from training neighbours.",
+        "pitfall": "A classification of training points can depend on whether self-neighbours count. State the convention.",
+        "example": "For x=(1,1), a=(3,2), b=(2,3), both distances in Euclidean metric are √5; a tie needs a stated policy.",
+        "check": [
+          "Which distance is max over coordinate differences?",
+          "Supremum distance",
+          "Manhattan distance",
+          "Squared Euclidean distance"
+        ],
+        "apply": [
+          "For x=(0,0), compare (3,0) and (2,2) using Manhattan and Euclidean distances.",
+          "Manhattan distances 3 and 4 favor (3,0). Euclidean distances 3 and √8 favor (2,2).",
+          "Computes both Manhattan distances.",
+          "Computes Euclidean distances and notes the metric changes the ranking."
+        ],
+        "formulas": [
+          "minkowski-distance"
+        ]
+      },
+      {
+        "id": "margin",
+        "name": "Hard-margin geometry and support vectors",
+        "source": {
+          "file": "Lecture/Topic5_IE4483-EE6483 Nearest Neighbor Classifiers and Support Vector Machines.pdf",
+          "page": "13–21"
+        },
+        "intuition": "Put the boundary at the widest gap supported by the closest training points.",
+        "formal": "Predict sign(w·x+b). With functional support levels ±1, hard-margin constraints are y_i(w·x_i+b)≥1 and the full geometric width is 2/‖w‖. Distance from boundary is abs(w·x+b)/‖w‖. Support vectors touch a margin under the canonical normalization.",
+        "cue": "Distinguish decision boundary, support hyperplanes, one-sided distance and full margin.",
+        "pitfall": "Scaling (w,b) by a positive constant preserves the boundary. Width 2/‖w‖ assumes the ±1 convention.",
+        "example": "Classes at x=2 and x=6 have boundary x=4, canonical w=.5,b=−2, full margin 4.",
+        "check": [
+          "What points support a canonical hard margin?",
+          "Points for which y_i(w·x_i+b)=1",
+          "Every point with a positive first coordinate",
+          "Points with largest signed distance from the boundary"
+        ],
+        "apply": [
+          "For negative (1,0) and positive (5,0), give one canonical w,b, boundary and full margin.",
+          "w=(.5,0), b=−1.5 gives scores −1,+1. Boundary x₁=3. Both points are support vectors and full width is 4.",
+          "Meets both canonical equalities.",
+          "States boundary and full width."
+        ],
+        "formulas": [
+          "svm-margin"
+        ]
+      },
+      {
+        "id": "soft",
+        "name": "Soft margins and multiclass SVM",
+        "source": {
+          "file": "Lecture/Topic5_IE4483-EE6483 Nearest Neighbor Classifiers and Support Vector Machines.pdf",
+          "page": "22–27"
+        },
+        "intuition": "A soft margin can trade some violations for a wider separator.",
+        "formal": "Use slack ξ_i≥0 with y_i(w·x_i+b)≥1−ξ_i. A regularized objective balances a norm term with C times a slack penalty (linear or squared as specified). Larger C penalizes violations more. One-vs-rest fits K models and one-vs-one fits K(K−1)/2.",
+        "cue": "Read the penalty exponent in the question. Relate ξ to the required margin score before interpreting classification.",
+        "pitfall": "A point inside the margin can still be correctly classified when its sign is correct.",
+        "example": "If y_i f(x_i)=.4, minimum slack is .6 and the class is correct, though it lies inside the margin.",
+        "check": [
+          "What does ξ between 0 and 1 usually indicate for minimum feasible slack?",
+          "Correct sign inside the margin",
+          "The example is necessarily misclassified",
+          "The support levels have become class probabilities"
+        ],
+        "apply": [
+          "A point has y_i f(x_i)=−.3. Compute minimum slack and explain the effect of raising C.",
+          "Minimum slack is 1.3. It is misclassified since its signed score is negative. Raising C makes violations more costly in the supplied objective.",
+          "Finds slack and class outcome.",
+          "Explains the C trade-off without promising separability."
+        ],
+        "formulas": [
+          "svm-slack"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "bayes",
+    "name": "Bayesian inference and Naïve Bayes",
+    "short": "Bayesian inference",
+    "icon": "target",
+    "color": "indigo",
+    "difficulty": 4,
+    "prerequisites": [
+      "foundations"
+    ],
+    "sources": [
+      {
+        "file": "Lecture/EE6483_BayesianInference_afterLecture.pdf",
+        "page": "7–40"
+      }
+    ],
+    "revision": true,
+    "summary": "Turn likelihoods and priors into posterior probabilities and classifications.",
+    "concepts": [
+      {
+        "id": "posterior",
+        "name": "Conditional probability, total probability and MAP",
+        "source": {
+          "file": "Lecture/EE6483_BayesianInference_afterLecture.pdf",
+          "page": "7–18, 19–29"
+        },
+        "intuition": "An observation changes how plausible each explanation is.",
+        "formal": "Bayes’ theorem multiplies likelihood by prior, then normalizes over mutually exclusive, exhaustive hypotheses. MAP maximizes posterior; ML maximizes likelihood and agrees with MAP when priors are uniform.",
+        "cue": "Write the event being conditioned on first. Compute every prior-weighted likelihood before normalizing.",
+        "pitfall": "P(data∣hypothesis) and P(hypothesis∣data) generally differ.",
+        "example": "If P(A)=.2, P(E∣A)=.6, P(E∣not A)=.3, then P(A∣E)=.12/(.12+.24)=1/3.",
+        "check": [
+          "Which quantity normalizes the posterior?",
+          "The marginal probability of the evidence",
+          "The prior of the predicted class",
+          "The likelihood of the least common class"
+        ],
+        "apply": [
+          "With priors .3 and .7 and likelihoods .8 and .2, find the posterior for class 1 and MAP class.",
+          "Class scores are .24 and .14, so P(1∣E)=12/19≈.632 and MAP chooses class 1.",
+          "Calculates both weighted scores.",
+          "Normalizes and chooses the larger posterior."
+        ],
+        "formulas": [
+          "bayes-rule"
+        ]
+      },
+      {
+        "id": "naive",
+        "name": "Conditional independence and Naïve Bayes",
+        "source": {
+          "file": "Lecture/EE6483_BayesianInference_afterLecture.pdf",
+          "page": "30–39"
+        },
+        "intuition": "Each feature provides evidence for a class. Naïve Bayes multiplies contributions within each class.",
+        "formal": "Use score(c)=P(c)·∏P(x_j∣c) under conditional feature independence. Estimate categorical probabilities from training data. For comparisons you can omit the common marginal, but a posterior needs normalization. Smoothing avoids zero counts when requested.",
+        "cue": "Include negative feature values if the observed vector includes them. Marginalize or omit features that are unobserved under the model.",
+        "pitfall": "Feature independence is assumed given the class. Features can be dependent in the overall population.",
+        "example": "With uniform priors and likelihoods (.8,.5) vs (.2,.4), the posterior for the first class is .40/(.40+.08)=5/6.",
+        "check": [
+          "Under what condition does Naïve Bayes multiply feature likelihoods?",
+          "Features are modeled as independent conditional on the class",
+          "All classes have equal frequency",
+          "Input features must be independent in the pooled data"
+        ],
+        "apply": [
+          "P(S)=.4. For x₁=1 and x₂=0, class S has likelihoods .8 and .25. Class T has .2 and .5. Compute P(S∣x).",
+          "Scores .4×.8×.25=.08 and .6×.2×.5=.06. Normalized P(S∣x)=4/7; MAP chooses S.",
+          "Uses both observed feature values and priors.",
+          "Normalizes across both classes."
+        ],
+        "formulas": [
+          "naive-score"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "neural",
+    "name": "Neural networks and backpropagation",
+    "short": "Neural networks",
+    "icon": "cpu",
+    "color": "rose",
+    "difficulty": 5,
+    "prerequisites": [
+      "foundations"
+    ],
+    "sources": [
+      {
+        "file": "Lecture/EE4483 - Neural Networks and Backpropagation.pdf",
+        "page": "3–49"
+      }
+    ],
+    "revision": true,
+    "summary": "Compute activations, losses, error signals and weight updates by hand.",
+    "concepts": [
+      {
+        "id": "forward",
+        "name": "Perceptrons, activations and forward inference",
+        "source": {
+          "file": "Lecture/EE4483 - Neural Networks and Backpropagation.pdf",
+          "page": "3–21"
+        },
+        "intuition": "A unit computes a weighted score and transforms it before passing it on.",
+        "formal": "Compute net at each unit as weighted inputs plus bias, then apply its activation, such as threshold, sigmoid, ReLU or linear. Stacking affine layers without nonlinearities leaves an affine map. Perceptrons have a linear boundary; MLPs can compose nonlinear decisions.",
+        "cue": "Keep pre-activation and activation in separate columns, especially at ReLU units.",
+        "pitfall": "For a negative ReLU pre-activation, output is zero. Keep the pre-activation to determine its derivative later.",
+        "example": "With inputs (2,−1), weights (.5,1) and b=.4, net=.4 and ReLU returns .4.",
+        "check": [
+          "Which value is passed to the next layer?",
+          "The activation output",
+          "The target for this sample",
+          "The bias by itself"
+        ],
+        "apply": [
+          "Compute h=ReLU(2x−3) and o=3h+.5 for x=1 and x=2.",
+          "For x=1, net=−1 so h=0 and o=.5. For x=2, net=1 so h=1 and o=3.5.",
+          "Computes both hidden outputs with ReLU.",
+          "Uses both activations to compute outputs."
+        ],
+        "formulas": [
+          "nn-forward"
+        ]
+      },
+      {
+        "id": "backprop",
+        "name": "Loss, chain rule and error signals",
+        "source": {
+          "file": "Lecture/EE4483 - Neural Networks and Backpropagation.pdf",
+          "page": "22–28, 31–47"
+        },
+        "intuition": "The backward pass measures how much each parameter contributed to the error.",
+        "formal": "For E=½Σ(t−o)², the lecture’s δ is the negative derivative with respect to net. Output δ=(t−o)g′(net); hidden δ=g′(net)Σ w_nextδ_next. Then w_new=w+ηδo_prev, b_new=b+ηδ. Compute all deltas with the same forward-pass weights.",
+        "cue": "Trace forward first, then work backwards through all children, then update parameters.",
+        "pitfall": "Mixing the lecture’s target-minus-output signal with a minus update reverses the descent direction.",
+        "example": "If an active ReLU outputs 1.2 for target 1.0, δ=−.2. With input .5 and η=.1, Δw=−.01.",
+        "check": [
+          "Which weights enter the hidden-unit error sum?",
+          "Outgoing weights to units with known deltas",
+          "Only the hidden unit’s incoming weights",
+          "The already-updated weights from the next iteration"
+        ],
+        "apply": [
+          "For h=ReLU(wx) with w=.5, x=2, o=v h, v=2, t=1 and η=.1, find both deltas and updated weights.",
+          "h=1,o=2. δ_o=−1, δ_h=2(−1)=−2. Δv=−.1 and Δw=−.4, so v′=1.9,w′=.1.",
+          "Computes output and hidden deltas using original v.",
+          "Calculates both updates with the correct inputs and signs."
+        ],
+        "formulas": [
+          "nn-backprop",
+          "nn-update"
+        ]
+      },
+      {
+        "id": "training",
+        "name": "Gradient descent, batches and gradient flow",
+        "source": {
+          "file": "Lecture/EE4483 - Neural Networks and Backpropagation.pdf",
+          "page": "23–30, 42–48"
+        },
+        "intuition": "Training updates are only as informative as the gradients reaching each layer.",
+        "formal": "Gradient descent subtracts η times the gradient. Batch uses all examples; mini-batches approximate the gradient with a subset; SGD can use a single example. Repeated small derivatives can cause vanishing gradients in deep sigmoid networks. ReLU helps on active units but may yield zero gradients on inactive ones.",
+        "cue": "Distinguish low learning rate, activation saturation, and averaging noisy gradients.",
+        "pitfall": "Changing batch size changes update noise and frequency. It need not change the target loss definition.",
+        "example": "If four sigmoid derivative factors are .2 and weight factors are 1, the derivative multiplier is .2⁴=.0016.",
+        "check": [
+          "Why can early sigmoid layers learn slowly?",
+          "Several small local derivatives multiply along a path",
+          "Their weights are always frozen",
+          "Their activations are reset every epoch"
+        ],
+        "apply": [
+          "Explain one remedy for small gradients in a deep sigmoid network and one potential drawback.",
+          "Use active ReLU units to avoid repeated sigmoid derivative factors in the positive regime. Inactive ReLU units can have zero derivative; leaky ReLU can retain a small negative-side gradient.",
+          "Connects remedy to gradient flow.",
+          "Names a realistic limitation or condition."
+        ],
+        "formulas": [
+          "gradient-descent"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "cnn",
+    "name": "Convolutional neural networks",
+    "short": "CNNs",
+    "icon": "layers",
+    "color": "blue",
+    "difficulty": 5,
+    "prerequisites": [
+      "neural"
+    ],
+    "sources": [
+      {
+        "file": "Lecture/IE4483 - Convolutional Neural Networks.pdf",
+        "page": "3–50"
+      }
+    ],
+    "revision": true,
+    "summary": "Trace kernels, feature maps, pooling and parameter counts.",
+    "concepts": [
+      {
+        "id": "kernels",
+        "name": "Local receptive fields and convolution kernels",
+        "source": {
+          "file": "Lecture/IE4483 - Convolutional Neural Networks.pdf",
+          "page": "3–19"
+        },
+        "intuition": "Slide a detector across the image and reuse the same weights at every position.",
+        "formal": "The usual CNN forward operation is cross-correlation: elementwise multiply the aligned patch and filter, sum across space and channels, and add one bias per filter. Local connectivity and weight sharing reduce learned parameters. Each filter creates one feature map.",
+        "cue": "Align each patch explicitly. Check whether the problem uses the CNN convention or asks to flip the kernel.",
+        "pitfall": "For multi-channel inputs, one standard filter spans all channels and yields one map.",
+        "example": "Patch [[1,2],[3,4]] with filter [[1,0],[0,−1]] yields 1−4=−3 before bias or activation.",
+        "check": [
+          "What does one standard spatial filter produce on an RGB input?",
+          "One feature map after summing contributions across all three channels",
+          "Three unrelated output maps",
+          "One prediction for each kernel element"
+        ],
+        "apply": [
+          "Apply filter [[1,−1],[0,1]] to patch [[3,2],[1,4]] with bias −1. Report the pre-activation.",
+          "3−2+0+4−1=4. Multiply aligned entries, sum across the patch, then add the bias once.",
+          "Shows aligned products and their sum.",
+          "Adds one bias and gives 4."
+        ],
+        "formulas": []
+      },
+      {
+        "id": "dimensions",
+        "name": "Stride, padding and parameter counts",
+        "source": {
+          "file": "Lecture/IE4483 - Convolutional Neural Networks.pdf",
+          "page": "17–29, 32–34"
+        },
+        "intuition": "Count where a filter fits and separately count what is learned.",
+        "formal": "With dilation 1 and symmetric padding, O=⌊(I+2P−F)/S⌋+1 per axis. For K standard filters with bias and C input channels, parameters=K(F_hF_wC+1). Output depth is K.",
+        "cue": "For multiple layers, carry H×W×C after every layer. Work backward carefully when stride introduces a floor.",
+        "pitfall": "Output positions change compute cost. Sharing keeps parameter count independent of output height and width.",
+        "example": "A 10×10×3 input, six 3×3 filters, stride 2 and padding 1 gives 5×5×6; parameters=6(27+1)=168.",
+        "check": [
+          "What sets the depth of a standard convolution’s output?",
+          "The number of filters",
+          "The number of horizontal windows",
+          "The padding width"
+        ],
+        "apply": [
+          "An input is 12×10×3. Four 3×3 filters use stride 2 and padding 1. Find output and learned parameters.",
+          "H=⌊11/2⌋+1=6, W=⌊9/2⌋+1=5; output 6×5×4. Parameters=4(3·3·3+1)=112.",
+          "Computes separate spatial dimensions and output depth.",
+          "Counts all filter weights and biases."
+        ],
+        "formulas": [
+          "cnn-output",
+          "cnn-parameters"
+        ]
+      },
+      {
+        "id": "pooling",
+        "name": "Pooling, receptive field and architectures",
+        "source": {
+          "file": "Lecture/IE4483 - Convolutional Neural Networks.pdf",
+          "page": "30–50"
+        },
+        "intuition": "Pooling summarizes nearby activations and typically shrinks the map.",
+        "formal": "Max or average pooling operates per channel and standard forms have no trainable weights. Receptive fields grow through stacked local layers. Architecture examples include residual skip connections and inception-style parallel branches. The lecture’s later model survey is context.",
+        "cue": "Distinguish layer output shape, field of view, and learned parameter count.",
+        "pitfall": "Pooling changes spatial resolution. It generally leaves the number of channels unchanged.",
+        "example": "2×2 max pooling with stride 2 on a single [[1,5],[2,3]] patch returns 5; average returns 2.75.",
+        "check": [
+          "How many trainable weights does standard average pooling use?",
+          "Zero",
+          "One per channel",
+          "One per kernel element"
+        ],
+        "apply": [
+          "A 16×16×8 map enters a 2×2 max pool with stride 2 and no padding. Give output size, parameters and one possible information loss.",
+          "Output 8×8×8, zero weights. Exact position of the maximum within its pool and other local values are lost.",
+          "Correct shape and parameter count.",
+          "Explains a loss of spatial or intensity information."
+        ],
+        "formulas": []
+      }
+    ]
+  },
+  {
+    "id": "generalization",
+    "name": "Generalization, regularization and training diagnosis",
+    "short": "Generalization",
+    "icon": "activity",
+    "color": "teal",
+    "difficulty": 4,
+    "prerequisites": [
+      "neural"
+    ],
+    "sources": [
+      {
+        "file": "Lecture/IE4483_regularization_and_optimization.pdf",
+        "page": "6–50, 52–61"
+      }
+    ],
+    "revision": true,
+    "summary": "Read learning curves, diagnose model capacity and choose an intervention.",
+    "concepts": [
+      {
+        "id": "bias-variance",
+        "name": "Bias–variance, underfitting and overfitting",
+        "source": {
+          "file": "Lecture/IE4483_regularization_and_optimization.pdf",
+          "page": "11–29, 33–36"
+        },
+        "intuition": "A model can be wrong because it is too rigid or because it learned quirks of its sample.",
+        "formal": "Under squared error, expected prediction error decomposes into bias², variance and irreducible noise. Training and validation curves provide diagnostic evidence. High losses on both splits suggest underfitting or optimization trouble; low training loss with a large held-out gap suggests overfitting.",
+        "cue": "Compare levels, gaps and axes. Training-set-size curves and epoch curves answer different questions.",
+        "pitfall": "A small gap is only good when the held-out error is also acceptably low.",
+        "example": "Train loss .04 and validation .28 suggest overfitting under matched distributions. Both near .30 call for capacity, feature and optimization checks.",
+        "check": [
+          "Which pattern is a typical sign of overfitting?",
+          "Low training error with much higher validation error",
+          "Both training and validation errors are low",
+          "Training error is the same as an irreducible-noise estimate"
+        ],
+        "apply": [
+          "A model has train error 3% and validation 22%. More data reduces validation to 13%. Explain the evidence and an intervention.",
+          "The large gap and improvement with data suggest variance or overfitting. Add representative data, augment validly, or strengthen regularization, and verify on validation.",
+          "Interprets the observed curves.",
+          "Gives a plausible improvement and validation check."
+        ],
+        "formulas": [
+          "bias-variance"
+        ]
+      },
+      {
+        "id": "splits",
+        "name": "Data splits, leakage and early stopping",
+        "source": {
+          "file": "Lecture/IE4483_regularization_and_optimization.pdf",
+          "page": "30–36, 47–48"
+        },
+        "intuition": "Choose using validation data. Measure once using untouched test data.",
+        "formal": "Fit weights and preprocessing on training data, tune on validation data, and reserve test data for final reporting. Early stopping selects a good validation epoch. For grouped or temporal data, split to match intended future use.",
+        "cue": "Identify which decisions have seen labels or statistics from each split.",
+        "pitfall": "Scaling or PCA before the split can leak held-out distribution information. Fit preprocessing inside each training fold.",
+        "example": "For validation loss .38,.26,.19,.21,.29, the best observed checkpoint is epoch 3.",
+        "check": [
+          "Which split is used for checkpoint selection?",
+          "Validation set",
+          "Final test set",
+          "Any dataset after shuffling once"
+        ],
+        "apply": [
+          "A team fits PCA on all samples before k-fold cross-validation. Explain the problem and correct workflow.",
+          "The transformation uses held-out folds, leaking feature structure. Fit PCA anew inside each training fold, then project and evaluate its validation fold.",
+          "Identifies the leakage path.",
+          "Describes a fold-local fit and held-out transform."
+        ],
+        "formulas": []
+      },
+      {
+        "id": "regularization",
+        "name": "Capacity, penalties, dropout and augmentation",
+        "source": {
+          "file": "Lecture/IE4483_regularization_and_optimization.pdf",
+          "page": "37–48"
+        },
+        "intuition": "Constrain training so that a model learns patterns likely to recur.",
+        "formal": "Smaller models, weight penalties, dropout, valid augmentation and early stopping can reduce overfitting. L1 can encourage exact zeros, L2 shrinks large weights, and dropout adds stochastic masking during training. Ensure augmentations preserve labels.",
+        "cue": "Recommend a method that matches the observed problem and explain its cost to training fit.",
+        "pitfall": "A stronger penalty can increase bias and cause underfitting. Augmentation that changes labels corrupts supervision.",
+        "example": "A modest camera rotation can preserve the label for an object, while a large rotation can change 6 to 9 in digit classification.",
+        "check": [
+          "When is an augmentation suitable for supervised learning?",
+          "When the transformation preserves the target label for the task",
+          "Whenever it changes every input coordinate",
+          "Only when applied to the final test set"
+        ],
+        "apply": [
+          "A deep classifier memorizes 100 training examples. Suggest two distinct remedies and their mechanisms.",
+          "Try label-preserving augmentation to diversify inputs and dropout or weight decay to discourage reliance on brittle feature combinations or large weights. Tune on validation.",
+          "Provides two appropriate remedies.",
+          "Explains each mechanism and how to check it."
+        ],
+        "formulas": []
+      }
+    ]
+  },
+  {
+    "id": "clustering",
+    "name": "Unsupervised learning and clustering",
+    "short": "Clustering",
+    "icon": "blocks",
+    "color": "amber",
+    "difficulty": 4,
+    "prerequisites": [
+      "foundations"
+    ],
+    "sources": [
+      {
+        "file": "Lecture/IE4483_unsupervised learning.pdf",
+        "page": "7–86"
+      }
+    ],
+    "revision": true,
+    "summary": "Compare distance metrics, perform K-means updates and construct hierarchical merges.",
+    "concepts": [
+      {
+        "id": "distance",
+        "name": "Distance metrics and geometry",
+        "source": {
+          "file": "Lecture/IE4483_unsupervised learning.pdf",
+          "page": "14–20"
+        },
+        "intuition": "The scale and distance you choose tell the algorithm what counts as similar.",
+        "formal": "Distance metrics obey nonnegativity, identity, symmetry and triangle inequality. Euclidean measures straight-line distance, Manhattan sums absolute differences, and supremum uses their maximum. Squared Euclidean preserves nearest-point ranking but generally fails the triangle inequality.",
+        "cue": "Check coordinate units and read the named metric, including whether distance is squared.",
+        "pitfall": "A high-range feature can overwhelm the rest without suitable scaling.",
+        "example": "Between (0,0) and (3,4), L1=7, L2=5, L∞=4.",
+        "check": [
+          "Which distance is not generally a metric?",
+          "Squared Euclidean distance",
+          "Manhattan distance",
+          "Euclidean distance"
+        ],
+        "apply": [
+          "Show why squared Euclidean distance fails the triangle inequality using scalar points 0, 1 and 2.",
+          "d²(0,2)=4 while d²(0,1)+d²(1,2)=2, violating the inequality.",
+          "Computes the relevant squared distances.",
+          "States the violated comparison."
+        ],
+        "formulas": []
+      },
+      {
+        "id": "kmeans",
+        "name": "K-means assignments, centroids and convergence",
+        "source": {
+          "file": "Lecture/IE4483_unsupervised learning.pdf",
+          "page": "26–47"
+        },
+        "intuition": "Points choose their nearest prototype, then each prototype moves to its group’s mean.",
+        "formal": "Lloyd’s algorithm alternates nearest-centroid assignment and mean updates to reduce within-cluster squared Euclidean error. Initialization, ties, scaling and empty clusters affect the result. Convergence is to a fixed point or local optimum under suitable tie handling.",
+        "cue": "Use the old centroids for all assignments in one round. Reassign with new centroids to check if assignments changed.",
+        "pitfall": "A changed center after one round alone does not tell you whether the next assignment will change.",
+        "example": "For points 1,3,10,12 and centers 0,9, assign {1,3},{10,12}; update to 2,11.",
+        "check": [
+          "How is a nonempty K-means cluster center updated?",
+          "Take the arithmetic mean of its assigned vectors",
+          "Choose the furthest point from the old center",
+          "Keep the old center after any reassignment"
+        ],
+        "apply": [
+          "For 0,2,5,9 and starting centers 0 and 9, perform one assignment and update, then check the next assignment.",
+          "The initial midpoint is 4.5, so clusters {0,2} and {5,9} update to 1 and 7. New boundary is 4, so assignments stay unchanged.",
+          "Gives both initial clusters and updated centers.",
+          "Checks the next round against the new boundary."
+        ],
+        "formulas": [
+          "kmeans-update"
+        ]
+      },
+      {
+        "id": "hac",
+        "name": "Agglomerative linkage and dendrograms",
+        "source": {
+          "file": "Lecture/IE4483_unsupervised learning.pdf",
+          "page": "48–85"
+        },
+        "intuition": "Start with singletons and repeatedly merge the closest pair of clusters.",
+        "formal": "Single linkage uses minimum cross-cluster distance; complete uses maximum; average linkage averages over all cross-pairs; centroid linkage measures distance between means. A dendrogram records merge sequence and heights; cut to the requested cluster count.",
+        "cue": "Recompute distances under the named linkage after every merge. Note ties and use a declared convention.",
+        "pitfall": "Average linkage weights all point pairs. Equal weighting of unequal-size clusters can give a different algorithm.",
+        "example": "For {0,2} and {6,7}, cross-distances are 6,7,4,5. Single=4, complete=7, average=5.5.",
+        "check": [
+          "Which linkage is most directly prone to chaining via a close pair?",
+          "Single linkage",
+          "Complete linkage",
+          "A fixed class label"
+        ],
+        "apply": [
+          "Find single, complete and average distances between {1,3} and {7,10}.",
+          "Cross distances are 6,9,4,7. Single=4, complete=9, average=26/4=6.5.",
+          "Lists cross-pair distances.",
+          "Uses each aggregation correctly."
+        ],
+        "formulas": [
+          "hac-linkages"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "pca",
+    "name": "Principal component analysis",
+    "short": "PCA",
+    "icon": "map",
+    "color": "indigo",
+    "difficulty": 5,
+    "prerequisites": [
+      "clustering"
+    ],
+    "sources": [
+      {
+        "file": "Lecture/IE4483_PCA_Regression.pdf",
+        "page": "7–32"
+      }
+    ],
+    "revision": true,
+    "summary": "Center, find covariance eigenvectors, project and reconstruct.",
+    "concepts": [
+      {
+        "id": "components",
+        "name": "Centering, covariance and principal directions",
+        "source": {
+          "file": "Lecture/IE4483_PCA_Regression.pdf",
+          "page": "7–25"
+        },
+        "intuition": "Rotate the coordinate system so its first axis captures the greatest spread.",
+        "formal": "Center using the sample mean. A covariance matrix’s orthonormal eigenvectors are principal directions; its eigenvalues are variances in those directions. Sort by descending eigenvalue. Standardize first when relative units warrant equal weighting, and note that this changes the problem.",
+        "cue": "Find the mean before covariance and specify whether the problem uses 1/N or 1/(N−1).",
+        "pitfall": "The feature with the largest variance is not generally itself the leading component. Covariances matter.",
+        "example": "For covariance diag(9,1), the first direction is (1,0) up to sign and explains 90% of variance.",
+        "check": [
+          "Which vector is the first principal direction?",
+          "A unit eigenvector of covariance for its largest eigenvalue",
+          "The mean vector normalized to unit length",
+          "The eigenvector with smallest variance"
+        ],
+        "apply": [
+          "The centered covariance is [[3,1],[1,3]]. Determine the first principal direction and its variance.",
+          "Matrix times (1,1) gives 4(1,1). The orthogonal (1,−1) has eigenvalue 2. PC1 is ±(1,1)/√2 with variance 4.",
+          "Finds both eigenvalue directions or proves ordering.",
+          "Normalizes the leading direction."
+        ],
+        "formulas": [
+          "pca-covariance"
+        ]
+      },
+      {
+        "id": "projection",
+        "name": "Scores, explained variance and reconstruction",
+        "source": {
+          "file": "Lecture/IE4483_PCA_Regression.pdf",
+          "page": "20–32"
+        },
+        "intuition": "Store a point’s coordinates along only the most informative new axes.",
+        "formal": "With centered x−μ and selected directions as columns of U, encode z=Uᵀ(x−μ), decode x̂=μ+Uz. Retained variance ratio is the sum of retained eigenvalues divided by the sum of all. PCA minimizes squared rank-k reconstruction error in the chosen feature scaling.",
+        "cue": "For reconstruction, add the training mean back and check the requested rank.",
+        "pitfall": "PCA preserves variance, which may differ from predictive information for a target.",
+        "example": "If μ=(2,2), u=(1,0), x=(5,4), z=3 and x̂=(5,2).",
+        "check": [
+          "What is added back when reconstructing in the original coordinates?",
+          "The mean used to center the original data",
+          "A copy of the discarded eigenvalues",
+          "The class prediction"
+        ],
+        "apply": [
+          "Mean is (1,0), first direction is (0,1), and x=(4,5). Compute rank-one score, reconstruction and squared error.",
+          "Centered point (3,5) projects to z=5. Reconstruction (1,5). Error vector (3,0), square norm 9.",
+          "Calculates score and mean-restored reconstruction.",
+          "Computes squared reconstruction error."
+        ],
+        "formulas": [
+          "pca-project"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "regression",
+    "name": "Linear regression",
+    "short": "Linear regression",
+    "icon": "chart",
+    "color": "blue",
+    "difficulty": 4,
+    "prerequisites": [
+      "foundations"
+    ],
+    "sources": [
+      {
+        "file": "Lecture/IE4483_PCA_Regression.pdf",
+        "page": "33–49"
+      }
+    ],
+    "revision": true,
+    "summary": "Fit continuous responses and distinguish vertical residuals from PCA projection.",
+    "concepts": [
+      {
+        "id": "least-squares",
+        "name": "Prediction, residuals and least squares",
+        "source": {
+          "file": "Lecture/IE4483_PCA_Regression.pdf",
+          "page": "35–49"
+        },
+        "intuition": "Choose the line that keeps vertical prediction errors small.",
+        "formal": "For univariate OLS with intercept and nonconstant x, slope m=Σ(x−x̄)(y−ȳ)/Σ(x−x̄)², intercept b=ȳ−mx̄. Least squares minimizes vertical residual squares. The full matrix derivation is labeled optional. Linear mappings of features can model nonlinear input shapes through transformed features.",
+        "cue": "Separate fitting y from geometrically reconstructing (x,y). State whether an intercept is specified.",
+        "pitfall": "Do not force the fit through the origin unless specified. Always use the given response coordinate.",
+        "example": "For (0,1),(1,3),(2,5), m=2 and b=1, so prediction at x=3 is 7.",
+        "check": [
+          "Which errors does ordinary y-on-x least squares minimize?",
+          "Squared vertical response residuals",
+          "Squared perpendicular distances to a line",
+          "The largest signed error only"
+        ],
+        "apply": [
+          "Fit an intercept model to (0,2),(1,3),(2,7). Report coefficients and predicted value at x=3.",
+          "x̄=1, ȳ=4. Slope=(2+3)/2=2.5, b=1.5, so ŷ(3)=9.",
+          "Computes the centered slope and intercept.",
+          "Evaluates the model at 3."
+        ],
+        "formulas": [
+          "ols-fit"
+        ]
+      },
+      {
+        "id": "comparison",
+        "name": "PCA versus regression and feature choice",
+        "source": {
+          "file": "Lecture/IE4483_PCA_Regression.pdf",
+          "page": "15–19, 35–47"
+        },
+        "intuition": "A line for compressing a cloud and a line for predicting y generally solve different problems.",
+        "formal": "PCA is unsupervised and optimizes variance or orthogonal reconstruction. Regression is supervised and minimizes response-direction errors. With perfectly collinear data on a nonvertical line and nonzero x variance, their directions agree. Scale and outliers affect both.",
+        "cue": "State each objective and give a condition or counterexample when asked about equivalence.",
+        "pitfall": "PCA’s objective treats feature geometry symmetrically. Swapping predictor and target generally changes OLS.",
+        "example": "Points exactly on y=2x+1 have zero OLS residuals and rank-one PCA reconstruction error, so both lines agree.",
+        "check": [
+          "Which method uses an explicit response variable?",
+          "Ordinary linear regression",
+          "Standard PCA",
+          "Unsupervised clustering"
+        ],
+        "apply": [
+          "Centered points have independent x and y, variances 1 and 4. Compare the PCA and y-on-x regression directions.",
+          "PCA picks the vertical direction (0,1), larger variance 4. OLS slope is Cov(x,y)/Var(x)=0 so the fitted direction is horizontal.",
+          "Uses variance to identify the PC.",
+          "Uses covariance to derive the OLS result."
+        ],
+        "formulas": []
+      }
+    ]
+  }
+]
