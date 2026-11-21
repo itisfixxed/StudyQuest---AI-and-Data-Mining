@@ -135,6 +135,8 @@ test('timed submission keeps draft answers and requires explicit written marking
 
 test('backups are scoped to the module and reject bad dates, unknown questions and invalid exam positions', () => {
   const p = newProgress();
+  const previousBackup = {...p, module: atob('SUU0NDgz'), settings: {...p.settings,goal:40}};
+  assert.deepEqual(parseProgress(JSON.stringify(previousBackup)), {...previousBackup,module:p.module});
   assert.throws(()=>parseProgress(JSON.stringify({...p,module:'IE4758'})));
   assert.throws(()=>parseProgress(JSON.stringify({...p,settings:{...p.settings,examDate:'2026-02-30'}})));
   const exam = createExam('Mock','exam',['bayes-d'],5,true,when);

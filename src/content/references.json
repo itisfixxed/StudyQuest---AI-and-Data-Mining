@@ -175,7 +175,7 @@
       "5"
     ],
     "source": {
-      "file": "Lecture/Topic5_IE4483-EE6483 Nearest Neighbor Classifiers and Support Vector Machines.pdf",
+      "file": "Lecture/Topic5_Nearest Neighbor Classifiers and Support Vector Machines.pdf",
       "page": "4–12"
     }
   },
@@ -195,7 +195,7 @@
       "1/2"
     ],
     "source": {
-      "file": "Lecture/Topic5_IE4483-EE6483 Nearest Neighbor Classifiers and Support Vector Machines.pdf",
+      "file": "Lecture/Topic5_Nearest Neighbor Classifiers and Support Vector Machines.pdf",
       "page": "13–21"
     }
   },
@@ -215,7 +215,7 @@
       "1.25"
     ],
     "source": {
-      "file": "Lecture/Topic5_IE4483-EE6483 Nearest Neighbor Classifiers and Support Vector Machines.pdf",
+      "file": "Lecture/Topic5_Nearest Neighbor Classifiers and Support Vector Machines.pdf",
       "page": "22–27"
     }
   },
@@ -355,7 +355,7 @@
       "4"
     ],
     "source": {
-      "file": "Lecture/IE4483 - Convolutional Neural Networks.pdf",
+      "file": "Lecture/Convolutional Neural Networks.pdf",
       "page": "17–29, 32–34"
     }
   },
@@ -375,7 +375,7 @@
       "76"
     ],
     "source": {
-      "file": "Lecture/IE4483 - Convolutional Neural Networks.pdf",
+      "file": "Lecture/Convolutional Neural Networks.pdf",
       "page": "17–29, 32–34"
     }
   },
@@ -395,7 +395,7 @@
       ".12"
     ],
     "source": {
-      "file": "Lecture/IE4483_regularization_and_optimization.pdf",
+      "file": "Lecture/regularization_and_optimization.pdf",
       "page": "11–29, 33–36"
     }
   },
@@ -415,7 +415,7 @@
       "4"
     ],
     "source": {
-      "file": "Lecture/IE4483_unsupervised learning.pdf",
+      "file": "Lecture/unsupervised learning.pdf",
       "page": "26–47"
     }
   },
@@ -435,7 +435,7 @@
       "5"
     ],
     "source": {
-      "file": "Lecture/IE4483_unsupervised learning.pdf",
+      "file": "Lecture/unsupervised learning.pdf",
       "page": "48–85"
     }
   },
@@ -455,7 +455,7 @@
       "4"
     ],
     "source": {
-      "file": "Lecture/IE4483_PCA_Regression.pdf",
+      "file": "Lecture/PCA_Regression.pdf",
       "page": "7–25"
     }
   },
@@ -475,7 +475,7 @@
       ".9"
     ],
     "source": {
-      "file": "Lecture/IE4483_PCA_Regression.pdf",
+      "file": "Lecture/PCA_Regression.pdf",
       "page": "20–32"
     }
   },
@@ -495,7 +495,7 @@
       "-1"
     ],
     "source": {
-      "file": "Lecture/IE4483_PCA_Regression.pdf",
+      "file": "Lecture/PCA_Regression.pdf",
       "page": "35–49"
     }
   }

@@ -1,5 +1,6 @@
 import { moduleInfo, questionById, referenceById, topicById, topics } from './content/index.ts';
 import { newProgress, storageKey } from './progress.ts';
+import { previousModuleCode } from './legacy-storage.ts';
 import type { Progress } from './types.ts';
 
 const obj = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
@@ -26,7 +27,7 @@ function examBase(value: Record<string, unknown>) {
 
 export function parseProgress(text: string): Progress {
   const p: unknown = JSON.parse(text);
-  if (!obj(p) || p.version !== 1 || p.module !== moduleInfo.code || !obj(p.settings) ||
+  if (!obj(p) || p.version !== 1 || (p.module !== moduleInfo.id && p.module !== previousModuleCode) || !obj(p.settings) ||
     !within(p.settings.goal, 5, 240) || !date(p.settings.examDate) || !enumOf(p.settings.theme, ['light','dark']) ||
     !values(p.attempts, a => obj(a) && validId(a.id) && knownQ(a.question) && a.max === questionById[a.question].marks &&
       within(a.score, 0, a.max) && within(a.assistance, 0, 5) && (a.reviewAssistance === undefined || within(a.reviewAssistance, 1, 5)) && within(a.confidence, 1, 5) &&
@@ -53,12 +54,12 @@ export function parseProgress(text: string): Progress {
   if (!unique(parsed.lessons.map(a => a.id)) || !unique(parsed.attempts.map(a => a.id)) || !unique(parsed.results.map(a => a.id))) {
     throw new Error('The progress file contains duplicate records.');
   }
-  return parsed;
+  return { ...parsed, module: moduleInfo.id };
 }
 
 export function loadProgress() {
   try {
-    const data = localStorage.getItem(storageKey);
+    const data = localStorage.getItem(storageKey) ?? localStorage.getItem('studyquest-' + previousModuleCode.toLowerCase() + '-progress-v1');
     return { progress: data ? parseProgress(data) : newProgress(), error: '' };
   } catch {
     return { progress: newProgress(), error: 'Saved progress could not be read. Import a backup or reset to start a new record.' };

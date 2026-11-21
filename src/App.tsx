@@ -131,7 +131,7 @@ export function App() {
     <div className="main-area">
       <header className="topbar">
         <div className="row"><button className="icon-button menu-button" aria-label="Open navigation" aria-expanded={mobile} onClick={()=>setMobile(!mobile)}><Icon name="menu" /></button>
-          <div className="breadcrumb"><span className="course-id"><Icon name="grad" size={18} /> {moduleInfo.code}</span><Icon name="chevron" size={15}/><strong>{routes[route]}</strong></div></div>
+          <div className="breadcrumb"><span className="course-id"><Icon name="grad" size={18} /> StudyQuest</span><Icon name="chevron" size={15}/><strong>{routes[route]}</strong></div></div>
         <div className="row header-actions">
           {active&&route!=='exam'&&<button className="button secondary small resume-top" onClick={()=>go('exam')}><Icon name="clock" size={17} /> Resume assessment</button>}
           <span className="header-date"><Icon name="calendar" size={17}/> {currentDate}</span>
@@ -142,7 +142,7 @@ export function App() {
       <main id="content" ref={main} tabIndex={-1} className={'content '+(route==='dashboard'?'on-dashboard':'')}>
         {storageError&&<div className="feedback warning" role="status">{storageError}</div>}
         {page}
-        <footer className="footer"><span>StudyQuest · {moduleInfo.code} {moduleInfo.name}</span><span><Icon name="lock" size={14} /> Local study workspace</span></footer>
+        <footer className="footer"><span>StudyQuest · {moduleInfo.name}</span><span><Icon name="lock" size={14} /> Local study workspace</span></footer>
       </main>
     </div>
   </div>;

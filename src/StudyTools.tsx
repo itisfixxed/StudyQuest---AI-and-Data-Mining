@@ -2,7 +2,7 @@ import { StudyPackUpload } from './StudyPackUpload.tsx';
 import { useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { arithmetic, normalizeText } from './answers.ts';
-import { moduleInfo, papers, originLabel, practiceQuestions, references, topicById, topics } from './content/index.ts';
+import { papers, originLabel, practiceQuestions, references, topicById, topics } from './content/index.ts';
 import { dailyMinutes, daysUntil, dueQuestions, localDate, mistakes, newProgress, recommend, reviewDate, weekStart } from './progress.ts';
 import type { Recommendation } from './progress.ts';
 import { personalQuests, studyPlan } from './planning.ts';
@@ -166,7 +166,7 @@ export function SettingsPage({ progress, update, onImport }: { progress:Progress
           const examDate=e.target.value;
           update(p=>({...p,settings:{...p.settings,examDate}, reviews:Object.fromEntries(Object.entries(p.reviews).map(([id,r])=>[id,{...r,due:Math.min(r.due,reviewDate(r.box,examDate,Date.now()))}]))}));
         }} /></label>
-        <p className="muted">Enter your scheduled IE4483 exam date to enable the countdown and deadline-aware review.</p>
+        <p className="muted">Enter your scheduled exam date to enable the countdown and deadline-aware review.</p>
         <form onSubmit={e=>{e.preventDefault();saveGoal();}} className="row wrap setting-goal">
           <label>Daily study goal (minutes)<input value={goal} type="number" min={5} max={240} onChange={e=>setGoal(e.target.value)} required /></label><button className="button primary" type="submit">Save target</button>
         </form>
@@ -181,7 +181,7 @@ export function SettingsPage({ progress, update, onImport }: { progress:Progress
       </section>
       <section className="panel panel-pad">
         <SectionTitle title="Profile and backups" description="Study progress is saved in this browser." />
-        <div className="row wrap"><button className="button secondary" onClick={()=>exportProgress(progress,'studyquest-' + moduleInfo.code.toLowerCase() + '-progress-'+localDate()+'.json')}><Icon name="download" size={18} /> Export progress</button>
+        <div className="row wrap"><button className="button secondary" onClick={()=>exportProgress(progress,'studyquest-progress-'+localDate()+'.json')}><Icon name="download" size={18} /> Export progress</button>
           <button className="button secondary" onClick={()=>file.current?.click()}><Icon name="upload" size={18} /> Import progress</button>
           <input ref={file} className="sr-only" type="file" accept="application/json,.json" aria-label="Choose progress backup" onChange={importFile} tabIndex={-1} /></div>
         <button className="text-button danger" onClick={()=>setReset(true)}><Icon name="reset" size={17} /> Reset progress</button>

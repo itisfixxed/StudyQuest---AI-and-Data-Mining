@@ -2359,7 +2359,7 @@
     "explanation": "It changes that feature’s contribution to the distance.",
     "misconception": "A classification of training points can depend on whether self-neighbours count. State the convention.",
     "source": {
-      "file": "Lecture/Topic5_IE4483-EE6483 Nearest Neighbor Classifiers and Support Vector Machines.pdf",
+      "file": "Lecture/Topic5_Nearest Neighbor Classifiers and Support Vector Machines.pdf",
       "page": "4–12"
     },
     "origin": "generated",
@@ -2428,7 +2428,7 @@
     "explanation": "k-NN is a lazy classifier. Minkowski r=1,2,∞ gives Manhattan, Euclidean and supremum distances. Cosine similarity compares directions when both norms are nonzero. Scale numeric features when units otherwise dominate distance.",
     "misconception": "A classification of training points can depend on whether self-neighbours count. State the convention.",
     "source": {
-      "file": "Lecture/Topic5_IE4483-EE6483 Nearest Neighbor Classifiers and Support Vector Machines.pdf",
+      "file": "Lecture/Topic5_Nearest Neighbor Classifiers and Support Vector Machines.pdf",
       "page": "4–12"
     },
     "origin": "generated",
@@ -2492,7 +2492,7 @@
     "explanation": "The equation w·x+b=0 has exactly the same zero set after positive scaling.",
     "misconception": "Scaling (w,b) by a positive constant preserves the boundary. Width 2/‖w‖ assumes the ±1 convention.",
     "source": {
-      "file": "Lecture/Topic5_IE4483-EE6483 Nearest Neighbor Classifiers and Support Vector Machines.pdf",
+      "file": "Lecture/Topic5_Nearest Neighbor Classifiers and Support Vector Machines.pdf",
       "page": "13–21"
     },
     "origin": "generated",
@@ -2561,7 +2561,7 @@
     "explanation": "Predict sign(w·x+b). With functional support levels ±1, hard-margin constraints are y_i(w·x_i+b)≥1 and the full geometric width is 2/‖w‖. Distance from boundary is abs(w·x+b)/‖w‖. Support vectors touch a margin under the canonical normalization.",
     "misconception": "Scaling (w,b) by a positive constant preserves the boundary. Width 2/‖w‖ assumes the ±1 convention.",
     "source": {
-      "file": "Lecture/Topic5_IE4483-EE6483 Nearest Neighbor Classifiers and Support Vector Machines.pdf",
+      "file": "Lecture/Topic5_Nearest Neighbor Classifiers and Support Vector Machines.pdf",
       "page": "13–21"
     },
     "origin": "generated",
@@ -2624,7 +2624,7 @@
     "explanation": "A signed score between zero and one retains its class while missing the margin.",
     "misconception": "A point inside the margin can still be correctly classified when its sign is correct.",
     "source": {
-      "file": "Lecture/Topic5_IE4483-EE6483 Nearest Neighbor Classifiers and Support Vector Machines.pdf",
+      "file": "Lecture/Topic5_Nearest Neighbor Classifiers and Support Vector Machines.pdf",
       "page": "22–27"
     },
     "origin": "generated",
@@ -2693,7 +2693,7 @@
     "explanation": "Use slack ξ_i≥0 with y_i(w·x_i+b)≥1−ξ_i. A regularized objective balances a norm term with C times a slack penalty (linear or squared as specified). Larger C penalizes violations more. One-vs-rest fits K models and one-vs-one fits K(K−1)/2.",
     "misconception": "A point inside the margin can still be correctly classified when its sign is correct.",
     "source": {
-      "file": "Lecture/Topic5_IE4483-EE6483 Nearest Neighbor Classifiers and Support Vector Machines.pdf",
+      "file": "Lecture/Topic5_Nearest Neighbor Classifiers and Support Vector Machines.pdf",
       "page": "22–27"
     },
     "origin": "generated",
@@ -3418,7 +3418,7 @@
     "explanation": "Its depth spans all channels, and the channel contributions are summed.",
     "misconception": "For multi-channel inputs, one standard filter spans all channels and yields one map.",
     "source": {
-      "file": "Lecture/IE4483 - Convolutional Neural Networks.pdf",
+      "file": "Lecture/Convolutional Neural Networks.pdf",
       "page": "3–19"
     },
     "origin": "generated",
@@ -3485,7 +3485,7 @@
     "explanation": "The usual CNN forward operation is cross-correlation: elementwise multiply the aligned patch and filter, sum across space and channels, and add one bias per filter. Local connectivity and weight sharing reduce learned parameters. Each filter creates one feature map.",
     "misconception": "For multi-channel inputs, one standard filter spans all channels and yields one map.",
     "source": {
-      "file": "Lecture/IE4483 - Convolutional Neural Networks.pdf",
+      "file": "Lecture/Convolutional Neural Networks.pdf",
       "page": "3–19"
     },
     "origin": "generated",
@@ -3549,7 +3549,7 @@
     "explanation": "Fewer regularly spaced starts can fit.",
     "misconception": "Output positions change compute cost. Sharing keeps parameter count independent of output height and width.",
     "source": {
-      "file": "Lecture/IE4483 - Convolutional Neural Networks.pdf",
+      "file": "Lecture/Convolutional Neural Networks.pdf",
       "page": "17–29, 32–34"
     },
     "origin": "generated",
@@ -3619,7 +3619,7 @@
     "explanation": "With dilation 1 and symmetric padding, O=⌊(I+2P−F)/S⌋+1 per axis. For K standard filters with bias and C input channels, parameters=K(F_hF_wC+1). Output depth is K.",
     "misconception": "Output positions change compute cost. Sharing keeps parameter count independent of output height and width.",
     "source": {
-      "file": "Lecture/IE4483 - Convolutional Neural Networks.pdf",
+      "file": "Lecture/Convolutional Neural Networks.pdf",
       "page": "17–29, 32–34"
     },
     "origin": "generated",
@@ -3680,7 +3680,7 @@
     "explanation": "It summarizes each local spatial window independently per channel.",
     "misconception": "Pooling changes spatial resolution. It generally leaves the number of channels unchanged.",
     "source": {
-      "file": "Lecture/IE4483 - Convolutional Neural Networks.pdf",
+      "file": "Lecture/Convolutional Neural Networks.pdf",
       "page": "30–50"
     },
     "origin": "generated",
@@ -3747,7 +3747,7 @@
     "explanation": "Max or average pooling operates per channel and standard forms have no trainable weights. Receptive fields grow through stacked local layers. Architecture examples include residual skip connections and inception-style parallel branches. The lecture’s later model survey is context.",
     "misconception": "Pooling changes spatial resolution. It generally leaves the number of channels unchanged.",
     "source": {
-      "file": "Lecture/IE4483 - Convolutional Neural Networks.pdf",
+      "file": "Lecture/Convolutional Neural Networks.pdf",
       "page": "30–50"
     },
     "origin": "generated",
@@ -3810,7 +3810,7 @@
     "explanation": "The levels matter as well as the gap.",
     "misconception": "A small gap is only good when the held-out error is also acceptably low.",
     "source": {
-      "file": "Lecture/IE4483_regularization_and_optimization.pdf",
+      "file": "Lecture/regularization_and_optimization.pdf",
       "page": "11–29, 33–36"
     },
     "origin": "generated",
@@ -3879,7 +3879,7 @@
     "explanation": "Under squared error, expected prediction error decomposes into bias², variance and irreducible noise. Training and validation curves provide diagnostic evidence. High losses on both splits suggest underfitting or optimization trouble; low training loss with a large held-out gap suggests overfitting.",
     "misconception": "A small gap is only good when the held-out error is also acceptably low.",
     "source": {
-      "file": "Lecture/IE4483_regularization_and_optimization.pdf",
+      "file": "Lecture/regularization_and_optimization.pdf",
       "page": "11–29, 33–36"
     },
     "origin": "generated",
@@ -3940,7 +3940,7 @@
     "explanation": "A held-out fold influences the features used by its training fold.",
     "misconception": "Scaling or PCA before the split can leak held-out distribution information. Fit preprocessing inside each training fold.",
     "source": {
-      "file": "Lecture/IE4483_regularization_and_optimization.pdf",
+      "file": "Lecture/regularization_and_optimization.pdf",
       "page": "30–36, 47–48"
     },
     "origin": "generated",
@@ -4007,7 +4007,7 @@
     "explanation": "Fit weights and preprocessing on training data, tune on validation data, and reserve test data for final reporting. Early stopping selects a good validation epoch. For grouped or temporal data, split to match intended future use.",
     "misconception": "Scaling or PCA before the split can leak held-out distribution information. Fit preprocessing inside each training fold.",
     "source": {
-      "file": "Lecture/IE4483_regularization_and_optimization.pdf",
+      "file": "Lecture/regularization_and_optimization.pdf",
       "page": "30–36, 47–48"
     },
     "origin": "generated",
@@ -4068,7 +4068,7 @@
     "explanation": "The learner cannot rely on the same set of active units for every update.",
     "misconception": "A stronger penalty can increase bias and cause underfitting. Augmentation that changes labels corrupts supervision.",
     "source": {
-      "file": "Lecture/IE4483_regularization_and_optimization.pdf",
+      "file": "Lecture/regularization_and_optimization.pdf",
       "page": "37–48"
     },
     "origin": "generated",
@@ -4135,7 +4135,7 @@
     "explanation": "Smaller models, weight penalties, dropout, valid augmentation and early stopping can reduce overfitting. L1 can encourage exact zeros, L2 shrinks large weights, and dropout adds stochastic masking during training. Ensure augmentations preserve labels.",
     "misconception": "A stronger penalty can increase bias and cause underfitting. Augmentation that changes labels corrupts supervision.",
     "source": {
-      "file": "Lecture/IE4483_regularization_and_optimization.pdf",
+      "file": "Lecture/regularization_and_optimization.pdf",
       "page": "37–48"
     },
     "origin": "generated",
@@ -4197,7 +4197,7 @@
     "explanation": "Both the dot product and corresponding norm scale together.",
     "misconception": "A high-range feature can overwhelm the rest without suitable scaling.",
     "source": {
-      "file": "Lecture/IE4483_unsupervised learning.pdf",
+      "file": "Lecture/unsupervised learning.pdf",
       "page": "14–20"
     },
     "origin": "generated",
@@ -4264,7 +4264,7 @@
     "explanation": "Distance metrics obey nonnegativity, identity, symmetry and triangle inequality. Euclidean measures straight-line distance, Manhattan sums absolute differences, and supremum uses their maximum. Squared Euclidean preserves nearest-point ranking but generally fails the triangle inequality.",
     "misconception": "A high-range feature can overwhelm the rest without suitable scaling.",
     "source": {
-      "file": "Lecture/IE4483_unsupervised learning.pdf",
+      "file": "Lecture/unsupervised learning.pdf",
       "page": "14–20"
     },
     "origin": "generated",
@@ -4327,7 +4327,7 @@
     "explanation": "Lloyd iterations improve a local objective and need not recover a global optimum.",
     "misconception": "A changed center after one round alone does not tell you whether the next assignment will change.",
     "source": {
-      "file": "Lecture/IE4483_unsupervised learning.pdf",
+      "file": "Lecture/unsupervised learning.pdf",
       "page": "26–47"
     },
     "origin": "generated",
@@ -4396,7 +4396,7 @@
     "explanation": "Lloyd’s algorithm alternates nearest-centroid assignment and mean updates to reduce within-cluster squared Euclidean error. Initialization, ties, scaling and empty clusters affect the result. Convergence is to a fixed point or local optimum under suitable tie handling.",
     "misconception": "A changed center after one round alone does not tell you whether the next assignment will change.",
     "source": {
-      "file": "Lecture/IE4483_unsupervised learning.pdf",
+      "file": "Lecture/unsupervised learning.pdf",
       "page": "26–47"
     },
     "origin": "generated",
@@ -4460,7 +4460,7 @@
     "explanation": "The cut excludes merges above the chosen height.",
     "misconception": "Average linkage weights all point pairs. Equal weighting of unequal-size clusters can give a different algorithm.",
     "source": {
-      "file": "Lecture/IE4483_unsupervised learning.pdf",
+      "file": "Lecture/unsupervised learning.pdf",
       "page": "48–85"
     },
     "origin": "generated",
@@ -4529,7 +4529,7 @@
     "explanation": "Single linkage uses minimum cross-cluster distance; complete uses maximum; average linkage averages over all cross-pairs; centroid linkage measures distance between means. A dendrogram records merge sequence and heights; cut to the requested cluster count.",
     "misconception": "Average linkage weights all point pairs. Equal weighting of unequal-size clusters can give a different algorithm.",
     "source": {
-      "file": "Lecture/IE4483_unsupervised learning.pdf",
+      "file": "Lecture/unsupervised learning.pdf",
       "page": "48–85"
     },
     "origin": "generated",
@@ -4594,7 +4594,7 @@
     "explanation": "Rescaling changes its variances and cross-covariances.",
     "misconception": "The feature with the largest variance is not generally itself the leading component. Covariances matter.",
     "source": {
-      "file": "Lecture/IE4483_PCA_Regression.pdf",
+      "file": "Lecture/PCA_Regression.pdf",
       "page": "7–25"
     },
     "origin": "generated",
@@ -4663,7 +4663,7 @@
     "explanation": "Center using the sample mean. A covariance matrix’s orthonormal eigenvectors are principal directions; its eigenvalues are variances in those directions. Sort by descending eigenvalue. Standardize first when relative units warrant equal weighting, and note that this changes the problem.",
     "misconception": "The feature with the largest variance is not generally itself the leading component. Covariances matter.",
     "source": {
-      "file": "Lecture/IE4483_PCA_Regression.pdf",
+      "file": "Lecture/PCA_Regression.pdf",
       "page": "7–25"
     },
     "origin": "generated",
@@ -4728,7 +4728,7 @@
     "explanation": "No component is dropped, so the projection matrix is the identity.",
     "misconception": "PCA preserves variance, which may differ from predictive information for a target.",
     "source": {
-      "file": "Lecture/IE4483_PCA_Regression.pdf",
+      "file": "Lecture/PCA_Regression.pdf",
       "page": "20–32"
     },
     "origin": "generated",
@@ -4797,7 +4797,7 @@
     "explanation": "With centered x−μ and selected directions as columns of U, encode z=Uᵀ(x−μ), decode x̂=μ+Uz. Retained variance ratio is the sum of retained eigenvalues divided by the sum of all. PCA minimizes squared rank-k reconstruction error in the chosen feature scaling.",
     "misconception": "PCA preserves variance, which may differ from predictive information for a target.",
     "source": {
-      "file": "Lecture/IE4483_PCA_Regression.pdf",
+      "file": "Lecture/PCA_Regression.pdf",
       "page": "20–32"
     },
     "origin": "generated",
@@ -4860,7 +4860,7 @@
     "explanation": "The intercept equation enforces that property.",
     "misconception": "Do not force the fit through the origin unless specified. Always use the given response coordinate.",
     "source": {
-      "file": "Lecture/IE4483_PCA_Regression.pdf",
+      "file": "Lecture/PCA_Regression.pdf",
       "page": "35–49"
     },
     "origin": "generated",
@@ -4929,7 +4929,7 @@
     "explanation": "For univariate OLS with intercept and nonconstant x, slope m=Σ(x−x̄)(y−ȳ)/Σ(x−x̄)², intercept b=ȳ−mx̄. Least squares minimizes vertical residual squares. The full matrix derivation is labeled optional. Linear mappings of features can model nonlinear input shapes through transformed features.",
     "misconception": "Do not force the fit through the origin unless specified. Always use the given response coordinate.",
     "source": {
-      "file": "Lecture/IE4483_PCA_Regression.pdf",
+      "file": "Lecture/PCA_Regression.pdf",
       "page": "35–49"
     },
     "origin": "generated",
@@ -4991,7 +4991,7 @@
     "explanation": "Standard PCA finds principal directions from joint feature variance, without a prediction target.",
     "misconception": "PCA’s objective treats feature geometry symmetrically. Swapping predictor and target generally changes OLS.",
     "source": {
-      "file": "Lecture/IE4483_PCA_Regression.pdf",
+      "file": "Lecture/PCA_Regression.pdf",
       "page": "15–19, 35–47"
     },
     "origin": "generated",
@@ -5058,7 +5058,7 @@
     "explanation": "PCA is unsupervised and optimizes variance or orthogonal reconstruction. Regression is supervised and minimizes response-direction errors. With perfectly collinear data on a nonvertical line and nonzero x variance, their directions agree. Scale and outliers affect both.",
     "misconception": "PCA’s objective treats feature geometry symmetrically. Swapping predictor and target generally changes OLS.",
     "source": {
-      "file": "Lecture/IE4483_PCA_Regression.pdf",
+      "file": "Lecture/PCA_Regression.pdf",
       "page": "15–19, 35–47"
     },
     "origin": "generated",
@@ -5777,7 +5777,7 @@
     "explanation": "Differences are 3 and −4, so sum of squares=9+16=25.",
     "misconception": "A classification of training points can depend on whether self-neighbours count. State the convention.",
     "source": {
-      "file": "Lecture/Topic5_IE4483-EE6483 Nearest Neighbor Classifiers and Support Vector Machines.pdf",
+      "file": "Lecture/Topic5_Nearest Neighbor Classifiers and Support Vector Machines.pdf",
       "page": "4–12"
     },
     "origin": "generated",
@@ -5828,7 +5828,7 @@
     "explanation": "A weight=1; B weight=1/2+1/3=5/6. B fraction=(5/6)/(11/6)=5/11. A wins despite B’s majority count.",
     "misconception": "A classification of training points can depend on whether self-neighbours count. State the convention.",
     "source": {
-      "file": "Lecture/Topic5_IE4483-EE6483 Nearest Neighbor Classifiers and Support Vector Machines.pdf",
+      "file": "Lecture/Topic5_Nearest Neighbor Classifiers and Support Vector Machines.pdf",
       "page": "4–12"
     },
     "origin": "generated",
@@ -5879,7 +5879,7 @@
     "explanation": "Its norm is 5, so the full width is 2/5. Boundary-to-plane width is 1/5.",
     "misconception": "Scaling (w,b) by a positive constant preserves the boundary. Width 2/‖w‖ assumes the ±1 convention.",
     "source": {
-      "file": "Lecture/Topic5_IE4483-EE6483 Nearest Neighbor Classifiers and Support Vector Machines.pdf",
+      "file": "Lecture/Topic5_Nearest Neighbor Classifiers and Support Vector Machines.pdf",
       "page": "13–21"
     },
     "origin": "generated",
@@ -5930,7 +5930,7 @@
     "explanation": "Each unordered pair gets one classifier: 6·5/2=15.",
     "misconception": "A point inside the margin can still be correctly classified when its sign is correct.",
     "source": {
-      "file": "Lecture/Topic5_IE4483-EE6483 Nearest Neighbor Classifiers and Support Vector Machines.pdf",
+      "file": "Lecture/Topic5_Nearest Neighbor Classifiers and Support Vector Machines.pdf",
       "page": "22–27"
     },
     "origin": "generated",
@@ -6341,7 +6341,7 @@
     "explanation": "floor((20−5)/2)+1=floor(7.5)+1=8.",
     "misconception": "Output positions change compute cost. Sharing keeps parameter count independent of output height and width.",
     "source": {
-      "file": "Lecture/IE4483 - Convolutional Neural Networks.pdf",
+      "file": "Lecture/Convolutional Neural Networks.pdf",
       "page": "17–29, 32–34"
     },
     "origin": "generated",
@@ -6393,7 +6393,7 @@
     "explanation": "First 12(27+1)=336; second 5(12+1)=65; total 401.",
     "misconception": "Output positions change compute cost. Sharing keeps parameter count independent of output height and width.",
     "source": {
-      "file": "Lecture/IE4483 - Convolutional Neural Networks.pdf",
+      "file": "Lecture/Convolutional Neural Networks.pdf",
       "page": "17–29, 32–34"
     },
     "origin": "generated",
@@ -6442,7 +6442,7 @@
     "explanation": "Dot product 2−5+1−4=−6; add bias 1 to get −5.",
     "misconception": "For multi-channel inputs, one standard filter spans all channels and yields one map.",
     "source": {
-      "file": "Lecture/IE4483 - Convolutional Neural Networks.pdf",
+      "file": "Lecture/Convolutional Neural Networks.pdf",
       "page": "3–19"
     },
     "origin": "generated",
@@ -6491,7 +6491,7 @@
     "explanation": "Sum is 16 with 4 activations, so mean 4.",
     "misconception": "Pooling changes spatial resolution. It generally leaves the number of channels unchanged.",
     "source": {
-      "file": "Lecture/IE4483 - Convolutional Neural Networks.pdf",
+      "file": "Lecture/Convolutional Neural Networks.pdf",
       "page": "30–50"
     },
     "origin": "generated",
@@ -6542,7 +6542,7 @@
     "explanation": "Squared bias=.16. Total squared loss contribution=.16+.05+.09=.30.",
     "misconception": "A small gap is only good when the held-out error is also acceptably low.",
     "source": {
-      "file": "Lecture/IE4483_regularization_and_optimization.pdf",
+      "file": "Lecture/regularization_and_optimization.pdf",
       "page": "11–29, 33–36"
     },
     "origin": "generated",
@@ -6591,7 +6591,7 @@
     "explanation": "Subtract the two rates on the same percentage scale: 19−7=12 points.",
     "misconception": "Scaling or PCA before the split can leak held-out distribution information. Fit preprocessing inside each training fold.",
     "source": {
-      "file": "Lecture/IE4483_regularization_and_optimization.pdf",
+      "file": "Lecture/regularization_and_optimization.pdf",
       "page": "30–36, 47–48"
     },
     "origin": "generated",
@@ -6640,7 +6640,7 @@
     "explanation": "Coordinate differences are 4 and 3, with squared sum 25 and root 5.",
     "misconception": "A high-range feature can overwhelm the rest without suitable scaling.",
     "source": {
-      "file": "Lecture/IE4483_unsupervised learning.pdf",
+      "file": "Lecture/unsupervised learning.pdf",
       "page": "14–20"
     },
     "origin": "generated",
@@ -6691,7 +6691,7 @@
     "explanation": "Initial boundary=4; lower gets 0,3,4 including tied 4. Higher gets 7,11 and mean 9.",
     "misconception": "A changed center after one round alone does not tell you whether the next assignment will change.",
     "source": {
-      "file": "Lecture/IE4483_unsupervised learning.pdf",
+      "file": "Lecture/unsupervised learning.pdf",
       "page": "26–47"
     },
     "origin": "generated",
@@ -6742,7 +6742,7 @@
     "explanation": "Cross-pair distances are 6,10,4,8,2,6; sum 36 over 6 pairs gives 6.",
     "misconception": "Average linkage weights all point pairs. Equal weighting of unequal-size clusters can give a different algorithm.",
     "source": {
-      "file": "Lecture/IE4483_unsupervised learning.pdf",
+      "file": "Lecture/unsupervised learning.pdf",
       "page": "48–85"
     },
     "origin": "generated",
@@ -6793,7 +6793,7 @@
     "explanation": "Matrix trace equals the sum of all eigenvalues regardless of the off-diagonal entries.",
     "misconception": "The feature with the largest variance is not generally itself the leading component. Covariances matter.",
     "source": {
-      "file": "Lecture/IE4483_PCA_Regression.pdf",
+      "file": "Lecture/PCA_Regression.pdf",
       "page": "7–25"
     },
     "origin": "generated",
@@ -6844,7 +6844,7 @@
     "explanation": "Its projection score is 2, and total squared magnitude is 5. Orthogonal residual squared is 5−2²=1.",
     "misconception": "PCA preserves variance, which may differ from predictive information for a target.",
     "source": {
-      "file": "Lecture/IE4483_PCA_Regression.pdf",
+      "file": "Lecture/PCA_Regression.pdf",
       "page": "20–32"
     },
     "origin": "generated",
@@ -6895,7 +6895,7 @@
     "explanation": "Means 2.5 and 6. Sxy=11 and Sxx=5, so m=11/5=2.2.",
     "misconception": "Do not force the fit through the origin unless specified. Always use the given response coordinate.",
     "source": {
-      "file": "Lecture/IE4483_PCA_Regression.pdf",
+      "file": "Lecture/PCA_Regression.pdf",
       "page": "35–49"
     },
     "origin": "generated",
@@ -6946,7 +6946,7 @@
     "explanation": "The least-squares line with intercept passes through the means. b=8−1.4(5)=1.",
     "misconception": "Do not force the fit through the origin unless specified. Always use the given response coordinate.",
     "source": {
-      "file": "Lecture/IE4483_PCA_Regression.pdf",
+      "file": "Lecture/PCA_Regression.pdf",
       "page": "35–49"
     },
     "origin": "generated",
@@ -7409,7 +7409,7 @@
     "explanation": "Predict sign(w·x+b). With functional support levels ±1, hard-margin constraints are y_i(w·x_i+b)≥1 and the full geometric width is 2/‖w‖. Distance from boundary is abs(w·x+b)/‖w‖. Support vectors touch a margin under the canonical normalization.",
     "misconception": "Scaling (w,b) by a positive constant preserves the boundary. Width 2/‖w‖ assumes the ±1 convention.",
     "source": {
-      "file": "Lecture/Topic5_IE4483-EE6483 Nearest Neighbor Classifiers and Support Vector Machines.pdf",
+      "file": "Lecture/Topic5_Nearest Neighbor Classifiers and Support Vector Machines.pdf",
       "page": "13–21"
     },
     "origin": "generated",
@@ -7615,7 +7615,7 @@
     "explanation": "With dilation 1 and symmetric padding, O=⌊(I+2P−F)/S⌋+1 per axis. For K standard filters with bias and C input channels, parameters=K(F_hF_wC+1). Output depth is K.",
     "misconception": "Output positions change compute cost. Sharing keeps parameter count independent of output height and width.",
     "source": {
-      "file": "Lecture/IE4483 - Convolutional Neural Networks.pdf",
+      "file": "Lecture/Convolutional Neural Networks.pdf",
       "page": "17–29, 32–34"
     },
     "origin": "generated",
@@ -7683,7 +7683,7 @@
     "explanation": "Under squared error, expected prediction error decomposes into bias², variance and irreducible noise. Training and validation curves provide diagnostic evidence. High losses on both splits suggest underfitting or optimization trouble; low training loss with a large held-out gap suggests overfitting.",
     "misconception": "A small gap is only good when the held-out error is also acceptably low.",
     "source": {
-      "file": "Lecture/IE4483_regularization_and_optimization.pdf",
+      "file": "Lecture/regularization_and_optimization.pdf",
       "page": "11–29, 33–36"
     },
     "origin": "generated",
@@ -7751,7 +7751,7 @@
     "explanation": "Lloyd’s algorithm alternates nearest-centroid assignment and mean updates to reduce within-cluster squared Euclidean error. Initialization, ties, scaling and empty clusters affect the result. Convergence is to a fixed point or local optimum under suitable tie handling.",
     "misconception": "A changed center after one round alone does not tell you whether the next assignment will change.",
     "source": {
-      "file": "Lecture/IE4483_unsupervised learning.pdf",
+      "file": "Lecture/unsupervised learning.pdf",
       "page": "26–47"
     },
     "origin": "generated",
@@ -7819,7 +7819,7 @@
     "explanation": "With centered x−μ and selected directions as columns of U, encode z=Uᵀ(x−μ), decode x̂=μ+Uz. Retained variance ratio is the sum of retained eigenvalues divided by the sum of all. PCA minimizes squared rank-k reconstruction error in the chosen feature scaling.",
     "misconception": "PCA preserves variance, which may differ from predictive information for a target.",
     "source": {
-      "file": "Lecture/IE4483_PCA_Regression.pdf",
+      "file": "Lecture/PCA_Regression.pdf",
       "page": "20–32"
     },
     "origin": "generated",
@@ -7887,7 +7887,7 @@
     "explanation": "For univariate OLS with intercept and nonconstant x, slope m=Σ(x−x̄)(y−ȳ)/Σ(x−x̄)², intercept b=ȳ−mx̄. Least squares minimizes vertical residual squares. The full matrix derivation is labeled optional. Linear mappings of features can model nonlinear input shapes through transformed features.",
     "misconception": "Do not force the fit through the origin unless specified. Always use the given response coordinate.",
     "source": {
-      "file": "Lecture/IE4483_PCA_Regression.pdf",
+      "file": "Lecture/PCA_Regression.pdf",
       "page": "35–49"
     },
     "origin": "generated",

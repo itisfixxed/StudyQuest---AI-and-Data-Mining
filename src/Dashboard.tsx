@@ -41,8 +41,8 @@ export function Dashboard({ progress, navigate, start, openTopic }: { progress: 
         <span className="orbit-dot dot-a" /><span className="orbit-dot dot-b" /><span className="orbit-dot dot-c" />
       </div>
       <div className="hero-content">
-        <Pill color="hero-label"><Icon name="grad" size={15} /> {moduleInfo.code} · {moduleInfo.name.toUpperCase()}</Pill>
-        <h2 id="hero-title">Prepare for your<br className="hero-break" /> IE4483 exam.</h2>
+        <Pill color="hero-label"><Icon name="grad" size={15} /> {moduleInfo.name.toUpperCase()}</Pill>
+        <h2 id="hero-title">Prepare for your<br className="hero-break" /> exam.</h2>
         <p>Learn the concepts, practise the reasoning, and work through past exam questions.</p>
         <div className="hero-actions"><button className="button hero-primary" onClick={() => start(recommended)}><Icon name="play" size={17} /> Quick start</button>
           <button className="button hero-secondary" onClick={() => navigate('journey')}>View learning journey</button></div>

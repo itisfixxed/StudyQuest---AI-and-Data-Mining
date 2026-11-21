@@ -2,7 +2,7 @@ import type { ActiveExam, Answer, Attempt, ExamResult, Progress, Question, Topic
 import { isManual, moduleInfo, questions, questionById, topicById, topicHistory, topics } from './content/index.ts';
 import { automaticScore, hasAnswer } from './answers.ts';
 
-export const storageKey = 'studyquest-' + moduleInfo.code.toLowerCase() + '-progress-v1';
+export const storageKey = 'studyquest-' + moduleInfo.id.toLowerCase() + '-progress-v1';
 // Mobile browsers restrict randomUUID on HTTP over a local network.
 export function createRecordId() {
   return Array.from(crypto.getRandomValues(new Uint8Array(16)), byte =>
@@ -14,7 +14,7 @@ export const dayMs = 86_400_000;
 const xpByDifficulty = { easy: 10, medium: 20, hard: 35, exam: 50 };
 const masteryWeight = { easy: 15, medium: 23, hard: 32, exam: 39 };
 export const newProgress = (): Progress => ({
-  version: 1, module: moduleInfo.code, settings: { goal: 25, examDate: moduleInfo.examDate, theme: 'light' }, attempts: [], lessons: [],
+  version: 1, module: moduleInfo.id, settings: { goal: 25, examDate: moduleInfo.examDate, theme: 'light' }, attempts: [], lessons: [],
   reviews: {}, bookmarks: [], overrides: [], results: [], activeExam: null
 });
 

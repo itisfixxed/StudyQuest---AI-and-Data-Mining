@@ -619,7 +619,7 @@
     ],
     "sources": [
       {
-        "file": "Lecture/Topic5_IE4483-EE6483 Nearest Neighbor Classifiers and Support Vector Machines.pdf",
+        "file": "Lecture/Topic5_Nearest Neighbor Classifiers and Support Vector Machines.pdf",
         "page": "4–27"
       }
     ],
@@ -630,7 +630,7 @@
         "id": "knn",
         "name": "Distances, neighbour votes and scaling",
         "source": {
-          "file": "Lecture/Topic5_IE4483-EE6483 Nearest Neighbor Classifiers and Support Vector Machines.pdf",
+          "file": "Lecture/Topic5_Nearest Neighbor Classifiers and Support Vector Machines.pdf",
           "page": "4–12"
         },
         "intuition": "Label a point by how its nearest known neighbours vote.",
@@ -658,7 +658,7 @@
         "id": "margin",
         "name": "Hard-margin geometry and support vectors",
         "source": {
-          "file": "Lecture/Topic5_IE4483-EE6483 Nearest Neighbor Classifiers and Support Vector Machines.pdf",
+          "file": "Lecture/Topic5_Nearest Neighbor Classifiers and Support Vector Machines.pdf",
           "page": "13–21"
         },
         "intuition": "Put the boundary at the widest gap supported by the closest training points.",
@@ -686,7 +686,7 @@
         "id": "soft",
         "name": "Soft margins and multiclass SVM",
         "source": {
-          "file": "Lecture/Topic5_IE4483-EE6483 Nearest Neighbor Classifiers and Support Vector Machines.pdf",
+          "file": "Lecture/Topic5_Nearest Neighbor Classifiers and Support Vector Machines.pdf",
           "page": "22–27"
         },
         "intuition": "A soft margin can trade some violations for a wider separator.",
@@ -907,7 +907,7 @@
     ],
     "sources": [
       {
-        "file": "Lecture/IE4483 - Convolutional Neural Networks.pdf",
+        "file": "Lecture/Convolutional Neural Networks.pdf",
         "page": "3–50"
       }
     ],
@@ -918,7 +918,7 @@
         "id": "kernels",
         "name": "Local receptive fields and convolution kernels",
         "source": {
-          "file": "Lecture/IE4483 - Convolutional Neural Networks.pdf",
+          "file": "Lecture/Convolutional Neural Networks.pdf",
           "page": "3–19"
         },
         "intuition": "Slide a detector across the image and reuse the same weights at every position.",
@@ -944,7 +944,7 @@
         "id": "dimensions",
         "name": "Stride, padding and parameter counts",
         "source": {
-          "file": "Lecture/IE4483 - Convolutional Neural Networks.pdf",
+          "file": "Lecture/Convolutional Neural Networks.pdf",
           "page": "17–29, 32–34"
         },
         "intuition": "Count where a filter fits and separately count what is learned.",
@@ -973,7 +973,7 @@
         "id": "pooling",
         "name": "Pooling, receptive field and architectures",
         "source": {
-          "file": "Lecture/IE4483 - Convolutional Neural Networks.pdf",
+          "file": "Lecture/Convolutional Neural Networks.pdf",
           "page": "30–50"
         },
         "intuition": "Pooling summarizes nearby activations and typically shrinks the map.",
@@ -1009,7 +1009,7 @@
     ],
     "sources": [
       {
-        "file": "Lecture/IE4483_regularization_and_optimization.pdf",
+        "file": "Lecture/regularization_and_optimization.pdf",
         "page": "6–50, 52–61"
       }
     ],
@@ -1020,7 +1020,7 @@
         "id": "bias-variance",
         "name": "Bias–variance, underfitting and overfitting",
         "source": {
-          "file": "Lecture/IE4483_regularization_and_optimization.pdf",
+          "file": "Lecture/regularization_and_optimization.pdf",
           "page": "11–29, 33–36"
         },
         "intuition": "A model can be wrong because it is too rigid or because it learned quirks of its sample.",
@@ -1048,7 +1048,7 @@
         "id": "splits",
         "name": "Data splits, leakage and early stopping",
         "source": {
-          "file": "Lecture/IE4483_regularization_and_optimization.pdf",
+          "file": "Lecture/regularization_and_optimization.pdf",
           "page": "30–36, 47–48"
         },
         "intuition": "Choose using validation data. Measure once using untouched test data.",
@@ -1074,7 +1074,7 @@
         "id": "regularization",
         "name": "Capacity, penalties, dropout and augmentation",
         "source": {
-          "file": "Lecture/IE4483_regularization_and_optimization.pdf",
+          "file": "Lecture/regularization_and_optimization.pdf",
           "page": "37–48"
         },
         "intuition": "Constrain training so that a model learns patterns likely to recur.",
@@ -1110,7 +1110,7 @@
     ],
     "sources": [
       {
-        "file": "Lecture/IE4483_unsupervised learning.pdf",
+        "file": "Lecture/unsupervised learning.pdf",
         "page": "7–86"
       }
     ],
@@ -1121,7 +1121,7 @@
         "id": "distance",
         "name": "Distance metrics and geometry",
         "source": {
-          "file": "Lecture/IE4483_unsupervised learning.pdf",
+          "file": "Lecture/unsupervised learning.pdf",
           "page": "14–20"
         },
         "intuition": "The scale and distance you choose tell the algorithm what counts as similar.",
@@ -1147,7 +1147,7 @@
         "id": "kmeans",
         "name": "K-means assignments, centroids and convergence",
         "source": {
-          "file": "Lecture/IE4483_unsupervised learning.pdf",
+          "file": "Lecture/unsupervised learning.pdf",
           "page": "26–47"
         },
         "intuition": "Points choose their nearest prototype, then each prototype moves to its group’s mean.",
@@ -1175,7 +1175,7 @@
         "id": "hac",
         "name": "Agglomerative linkage and dendrograms",
         "source": {
-          "file": "Lecture/IE4483_unsupervised learning.pdf",
+          "file": "Lecture/unsupervised learning.pdf",
           "page": "48–85"
         },
         "intuition": "Start with singletons and repeatedly merge the closest pair of clusters.",
@@ -1213,7 +1213,7 @@
     ],
     "sources": [
       {
-        "file": "Lecture/IE4483_PCA_Regression.pdf",
+        "file": "Lecture/PCA_Regression.pdf",
         "page": "7–32"
       }
     ],
@@ -1224,7 +1224,7 @@
         "id": "components",
         "name": "Centering, covariance and principal directions",
         "source": {
-          "file": "Lecture/IE4483_PCA_Regression.pdf",
+          "file": "Lecture/PCA_Regression.pdf",
           "page": "7–25"
         },
         "intuition": "Rotate the coordinate system so its first axis captures the greatest spread.",
@@ -1252,7 +1252,7 @@
         "id": "projection",
         "name": "Scores, explained variance and reconstruction",
         "source": {
-          "file": "Lecture/IE4483_PCA_Regression.pdf",
+          "file": "Lecture/PCA_Regression.pdf",
           "page": "20–32"
         },
         "intuition": "Store a point’s coordinates along only the most informative new axes.",
@@ -1290,7 +1290,7 @@
     ],
     "sources": [
       {
-        "file": "Lecture/IE4483_PCA_Regression.pdf",
+        "file": "Lecture/PCA_Regression.pdf",
         "page": "33–49"
       }
     ],
@@ -1301,7 +1301,7 @@
         "id": "least-squares",
         "name": "Prediction, residuals and least squares",
         "source": {
-          "file": "Lecture/IE4483_PCA_Regression.pdf",
+          "file": "Lecture/PCA_Regression.pdf",
           "page": "35–49"
         },
         "intuition": "Choose the line that keeps vertical prediction errors small.",
@@ -1329,7 +1329,7 @@
         "id": "comparison",
         "name": "PCA versus regression and feature choice",
         "source": {
-          "file": "Lecture/IE4483_PCA_Regression.pdf",
+          "file": "Lecture/PCA_Regression.pdf",
           "page": "15–19, 35–47"
         },
         "intuition": "A line for compressing a cloud and a line for predicting y generally solve different problems.",

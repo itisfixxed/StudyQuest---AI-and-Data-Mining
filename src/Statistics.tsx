@@ -16,7 +16,7 @@ const groupSort = (labels: string[]) => [...labels.reduce((counts,name)=>counts.
   .sort((a,b) => b[1]-a[1] || a[0].localeCompare(b[0]));
 
 function Intelligence({ openTopic }: { openTopic:(id:string)=>void }) {
-  if (!papers.length) return <Empty icon="clipboard" title="No past papers indexed">Import the IE4483 study pack in Settings to see past-paper statistics.</Empty>;
+  if (!papers.length) return <Empty icon="clipboard" title="No past papers indexed">Import the study pack in Settings to see past-paper statistics.</Empty>;
   const order = [...historical].sort((a,b)=>b.papers-a.papers || b.marks-a.marks);
   const chart = order.map(x=>({ name:topicById[x.topic].short, papers:x.papers }));
   const structures = groupSort(historicalParts.map(part=>part.pattern));
