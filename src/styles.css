@@ -566,3 +566,7 @@ tbody tr:last-child td,tbody tr:last-child th { border:0; }
   .lecture-nav > button { font-size:.875rem; }
   .lecture-table th,.lecture-table td { font-size:.875rem; padding:.43rem .35rem; }
 }
+.lecture-setup { margin:.85rem 0; padding:.65rem .85rem; border-left:3px solid var(--accent); border-radius:.35rem; background:var(--surface-2); }
+.lecture-setup p { margin:.2rem 0 0; }
+.lecture-edge.skipped { opacity:.5; stroke-dasharray:5 5; }
+.lecture-node-skipped { opacity:.6; }

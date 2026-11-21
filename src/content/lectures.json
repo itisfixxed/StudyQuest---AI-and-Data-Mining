@@ -12,26 +12,26 @@
       {
         "concept": "goals",
         "title": "Start with a goal",
-        "content": "Imagine sending someone across campus. A useful answer depends on what you optimize: time, distance, or accessibility. “Act rationally” means selecting an action suited to the objective and evidence.",
+        "content": "Start with one objective: reach the lecture theatre in as little time as possible. A rational planner compares its options against that objective using the information it has. Different constraints may change which routes it can choose.",
         "table": {
           "columns": [
             "Route",
-            "Travel time",
+            "Predicted time",
             "Step-free?"
           ],
           "rows": [
             [
-              "A",
+              "A · Stairway",
               "8 min",
               "No"
             ],
             [
-              "B",
+              "B · Lift route",
               "11 min",
               "Yes"
             ],
             [
-              "C",
+              "C · Ramp route",
               "14 min",
               "Yes"
             ]
@@ -40,54 +40,56 @@
         "check": {
           "prompt": "If travel time is the only objective, which route wins?",
           "options": [
-            "A",
-            "B",
-            "C"
+            "A · Stairway",
+            "B · Lift route",
+            "C · Ramp route"
           ],
           "right": 0,
           "hint": "Choose the smallest number in the travel-time column.",
-          "feedback": "A takes 8 minutes. Changing the objective or the constraints can change the best route."
-        }
+          "feedback": "Route A, the stairway, has the shortest predicted time at 8 minutes."
+        },
+        "setup": "A student wants to get from the library to the lecture theatre. The planner predicts the total travel times below."
       },
       {
         "concept": "goals",
         "title": "Separate a rule from a learned estimate",
-        "content": "An explicit rule can eliminate inaccessible routes. A learned travel model predicts delays from past data. One system can use both: apply the rule first, then compare predicted trip times.",
+        "content": "The accessibility rule removes any route that uses stairs. The travel model estimates the total time from past trips. Once you have applied the rule, compare the estimates for the routes that remain.",
         "table": {
           "columns": [
-            "Operation",
-            "Uses",
-            "Output"
+            "Route",
+            "Predicted time",
+            "Step-free?"
           ],
           "rows": [
             [
-              "Apply accessibility rule",
-              "Stairs and lifts",
-              "B and C remain"
+              "A · Stairway",
+              "8 min",
+              "No"
             ],
             [
-              "Predict delay",
-              "Previous trips",
-              "Estimated time"
+              "B · Lift route",
+              "11 min",
+              "Yes"
             ],
             [
-              "Choose route",
-              "Feasible estimates",
-              "Fastest eligible route"
+              "C · Ramp route",
+              "14 min",
+              "Yes"
             ]
           ]
         },
         "check": {
-          "prompt": "With step-free travel required, which route wins using the displayed times?",
+          "prompt": "Which step-free route has the shortest predicted travel time?",
           "options": [
-            "A",
-            "B",
-            "C"
+            "A · Stairway",
+            "B · Lift route",
+            "C · Ramp route"
           ],
           "right": 1,
           "hint": "Remove routes that violate the constraint before comparing times.",
-          "feedback": "B is the faster of the two feasible routes."
-        }
+          "feedback": "Route B is step-free and takes 11 minutes. Route C is also step-free but takes 14 minutes. Route A takes 8 minutes and requires stairs."
+        },
+        "setup": "The student is travelling from the library to the lecture theatre and needs a step-free route."
       },
       {
         "concept": "goals",
@@ -123,14 +125,15 @@
           "right": 2,
           "hint": "Look for evidence about the actual decision and its objective.",
           "feedback": "Route outcomes check planning performance. Conversational style measures a different skill."
-        }
+        },
+        "setup": "The same campus planner is meant to choose fast routes that meet the traveller’s accessibility needs."
       }
     ]
   },
   "state": {
     "goal": "Trace one small graph before reasoning about a large search space.",
     "explain": "Explain why changing the order of the frontier can change the route returned even though legal moves stay the same.",
-    "model": "A state graph says which moves are possible. The frontier says what to inspect next. BFS picks the oldest frontier item and finds a fewest-edge solution under unit costs. DFS follows a branch first and backtracks at dead ends. Iterative deepening repeats depth-limited DFS.",
+    "model": "The state records the robot’s room and whether it has the key. The goal is to reach the exit. OPEN determines what to inspect next. A BFS queue selects the oldest candidate and finds a fewest-edge solution with unit costs. DFS uses a stack to follow one branch at a time. A record of expanded states helps avoid repeating work and cycling in graph search.",
     "points": [
       "Name the state and goal",
       "Distinguish a queue from a stack",
@@ -140,7 +143,7 @@
       {
         "concept": "representation",
         "title": "Model the room and the key",
-        "content": "Let A be the entrance, B the key room, C a corridor and G the locked exit. A state needs both the room and whether you have the key. Two visits to room C can therefore be different states.",
+        "content": "Room alone does not describe everything the robot can do. Store the room and a yes/no flag for whether the robot has the key. A visit to C before picking it up is therefore a different state from a visit to C afterward.",
         "table": {
           "columns": [
             "State",
@@ -171,12 +174,13 @@
           "right": 0,
           "hint": "Ask whether both states have the same legal actions.",
           "feedback": "Only one state can unlock G, so merging them would lose information."
-        }
+        },
+        "setup": "The robot starts at entrance A. B is the key room, C is the corridor, and G is the exit. The exit door can be opened only if the robot has picked up the key."
       },
       {
         "concept": "bfs-dfs",
         "title": "Compare the frontier after one expansion",
-        "content": "For this abstract search graph, take left children first. Start at A with successors B and C. After expanding B, its children D and E have been generated. Compare the head of OPEN in the table.",
+        "content": "OPEN is the list of generated nodes that are waiting to be expanded. A is expanded first, putting B and C into OPEN. Next, B is taken off OPEN and generates D and E. The two strategies then arrange the remaining nodes differently.",
         "table": {
           "columns": [
             "Strategy",
@@ -206,7 +210,8 @@
           "right": 1,
           "hint": "A queue removes the oldest item first.",
           "feedback": "C was waiting before B generated D and E."
-        }
+        },
+        "setup": "This is a separate search tree. A has children B and C from left to right. B has children D and E. Start at A and use the left child first."
       },
       {
         "concept": "ids",
@@ -246,14 +251,15 @@
           "right": 0,
           "hint": "Each new limit is a fresh pass.",
           "feedback": "Visits near the root are repeated so the algorithm can retain DFS-style space usage."
-        }
+        },
+        "setup": "Start at A. B and C are one edge away. D and E are children of B and therefore two edges from A."
       }
     ]
   },
   "heuristic": {
     "goal": "Compare estimated distance with the cost you already paid.",
     "explain": "Explain why “closest to the goal” can lead to a more expensive overall journey.",
-    "model": "Greedy best-first ranks h alone. A* ranks f = g + h, combining paid cost and estimated future cost. A useful heuristic never overestimates the remaining cost when admissibility is needed, and consistency limits how much the estimate can drop across an edge.",
+    "model": "Greedy best-first ranks candidates by h, the estimated remaining cost. A* adds g, the cost already paid. In our example, A has h = 1 but f = 8, while B has h = 4 but f = 6, so greedy picks A and A* picks B. With nonnegative edge costs, a consistent heuristic and the standard graph-search rules, A* returns an optimal route when it removes a goal from OPEN.",
     "points": [
       "Define g and h",
       "Show one frontier comparison",
@@ -294,7 +300,8 @@
           "right": 1,
           "hint": "Think about the candidates each method remembers.",
           "feedback": "Greedy keeps a frontier. Hill climbing usually commits to a local move."
-        }
+        },
+        "setup": "A search frontier, called OPEN, holds candidate states that have been discovered but not expanded. In the diagram, A and B are alternatives reached from Start."
       },
       {
         "concept": "astar",
@@ -332,7 +339,8 @@
           "right": 2,
           "hint": "Greedy compares the h column. A* compares f.",
           "feedback": "Greedy chooses A because h = 1. A* chooses B because f = 6."
-        }
+        },
+        "setup": "A and B are candidates in OPEN. The table gives the actual cost from Start (g) and the estimated cost still needed to reach Goal (h)."
       },
       {
         "concept": "heuristics",
@@ -372,7 +380,8 @@
           "right": 1,
           "hint": "Compare h(U) with the sum of the other two entries.",
           "feedback": "5 > 4, so this edge violates consistency. That check alone does not establish whether the heuristic is admissible."
-        }
+        },
+        "setup": "This is a separate consistency check. U and V are two neighbouring search states connected by a directed edge U → V."
       }
     ]
   },
@@ -419,7 +428,8 @@
           "right": 1,
           "hint": "Look at what MIN can force in each branch.",
           "feedback": "MIN reduces Left to 3 and Right to 2. MAX selects 3."
-        }
+        },
+        "setup": "In this two-move game, MAX chooses Left or Right. MIN then chooses a final outcome from that branch. Every leaf score is from MAX’s point of view."
       },
       {
         "concept": "pruning",
@@ -459,7 +469,8 @@
           "right": 0,
           "hint": "Think about who chooses the final leaf in Right.",
           "feedback": "MIN has a reply worth 2 or less to MAX, so the 9 cannot make Right attractive."
-        }
+        },
+        "setup": "MAX has two MIN branches: Left has leaves 3 and 5, and Right has leaves 2 and 9. Visit Left first and visit each branch’s leaves in the listed order."
       },
       {
         "concept": "minimax",
@@ -495,14 +506,15 @@
           "right": 1,
           "hint": "At a cutoff we cannot search all the way to a final result.",
           "feedback": "The evaluation function estimates the unresolved position. This may change the move compared with searching to the true end."
-        }
+        },
+        "setup": "Suppose you stop one level below MAX in a game tree. Some of the nodes there are finished games and others still have legal moves."
       }
     ]
   },
   "mining": {
     "goal": "Discover associations in five grocery baskets and separate frequency from usefulness.",
     "explain": "Explain why a rule with high confidence can be uninteresting, then describe one way to reduce the search for frequent patterns.",
-    "model": "Support counts all baskets containing both items. Confidence conditions on the antecedent. Lift compares confidence with the consequent’s usual rate. Apriori rejects supersets of infrequent itemsets, while FP-growth compresses ordered transactions and mines conditional patterns.",
+    "model": "Support divides the co-occurrence count by all baskets. Confidence divides it by the baskets that contain the antecedent. Lift divides confidence by how common the consequent is across all baskets. Neither confidence nor lift establishes causation. Apriori skips supersets of infrequent itemsets, while FP-growth compresses sorted transactions into shared prefixes.",
     "points": [
       "Name the three denominators",
       "Explain why association is not causation",
@@ -512,7 +524,7 @@
       {
         "concept": "kdd",
         "title": "Turn records into a mining task",
-        "content": "For transaction data, each basket is an itemset. Choose a representation, clean inconsistencies, mine patterns, and evaluate whether the rules are useful. Our five baskets are {A,B}, {A,B}, {A}, {B}, {B}.",
+        "content": "Association mining starts by representing each basket as a set of items. Count a basket once for each itemset it contains, even if the shopper bought several copies of the same item.",
         "table": {
           "columns": [
             "Pattern",
@@ -543,7 +555,8 @@
           "right": 2,
           "hint": "Support uses the total number of baskets.",
           "feedback": "Two of all five baskets contain both items."
-        }
+        },
+        "setup": "A and B represent two products. Five baskets contain {A,B}, {A,B}, {A}, {B}, and {B}."
       },
       {
         "concept": "measures",
@@ -583,12 +596,13 @@
           "right": 1,
           "hint": "The numerator is still the count of baskets containing both.",
           "feedback": "The new confidence is 2/4. The joint support stays 2/5."
-        }
+        },
+        "setup": "Among five baskets, three contain A, four contain B, and two contain both."
       },
       {
         "concept": "apriori",
         "title": "Find frequent patterns efficiently",
-        "content": "Set minimum count to 3. A and B pass individually, so Apriori can propose AB. AB fails with count 2, so no larger itemset containing AB can pass. FP-growth takes another route: order frequent items by global frequency and compress shared prefixes. Here the two AB baskets share B→A after ordering.",
+        "content": "Apriori can propose AB because A and B are frequent. AB fails the threshold, so every larger itemset containing AB fails too. FP-growth orders frequent single items by support and compresses shared prefixes. The two AB baskets still share the path B → A in the FP-tree, but its count of 2 is below the mining threshold.",
         "table": {
           "columns": [
             "Approach",
@@ -615,14 +629,15 @@
           "right": 2,
           "hint": "Adding an item can only restrict the set of matching baskets.",
           "feedback": "Support is anti-monotonic under adding items, so ABC has count at most 2."
-        }
+        },
+        "setup": "In five baskets, A occurs three times, B occurs four times, and AB occurs twice. A pattern is frequent if it occurs in at least three baskets."
       }
     ]
   },
   "trees": {
     "goal": "Follow a split from class counts to a predicted label.",
     "explain": "Explain to someone how a tree chooses a useful question and why making every training leaf pure can backfire.",
-    "model": "A split is useful if it reduces weighted impurity. We repeat the process down the tree, then use validation or pruning to avoid learning noise. Evaluation metrics use different denominators, so inspect the confusion matrix alongside accuracy.",
+    "model": "A split is useful if the child nodes are collectively purer. Weight each child’s impurity by how many training examples it receives. Prune a brittle branch or use validation to control overfitting. Recall counts found positives out of all actual positives, including missed positives.",
     "points": [
       "Explain weighted child impurity",
       "Name one overfitting control",
@@ -667,7 +682,7 @@
       {
         "concept": "prune-trees",
         "title": "Weight children and stop growing",
-        "content": "For B, each child has Gini 1 − (0.75² + 0.25²) = 0.375. Its gain in Gini is 0.125. For unequal child sizes, weight each child by its share of samples. Pruning a brittle branch can improve validation results. Random forests combine diverse trees rather than relying on one tree.",
+        "content": "Each child of B has Gini 1 − (0.75² + 0.25²) = 0.375, so weighted child impurity is also 0.375. The gain from the parent’s 0.5 is 0.125. When child sizes differ, weight each child by its share of samples. Pruning and random forests provide different ways to limit the effect of brittle branches.",
         "table": {
           "columns": [
             "Decision",
@@ -698,7 +713,8 @@
           "right": 2,
           "hint": "The weighting is proportional to the sample count.",
           "feedback": "The 6-case child carries 6/8 of the total weight."
-        }
+        },
+        "setup": "The parent contains eight cases: four Yes and four No. For split B, the two children contain (3 Yes, 1 No) and (1 Yes, 3 No)."
       },
       {
         "concept": "metrics",
@@ -733,7 +749,8 @@
           "right": 0,
           "hint": "Look only at cases that truly belong to the positive class.",
           "feedback": "Recall is TP/(TP + FN) = 8/(8 + 2)."
-        }
+        },
+        "setup": "The confusion matrix below is for 30 held-out examples. “Yes” is the positive class."
       }
     ]
   },
@@ -826,7 +843,8 @@
           "right": 0,
           "hint": "Change a point that does not constrain the current margin.",
           "feedback": "Moving the far red point left leaves the closest opposing points at 3 and 6."
-        }
+        },
+        "setup": "On a number line, Red examples are at x = 1 and 3, and Blue examples are at x = 6 and 8. Assume a linear hard-margin SVM."
       },
       {
         "concept": "soft",
@@ -858,7 +876,8 @@
           "right": 1,
           "hint": "C multiplies the slack penalty.",
           "feedback": "A smaller C can make it worthwhile to tolerate the outlier. Assess the choice on validation data."
-        }
+        },
+        "setup": "C is the parameter multiplying the penalty for margin violations in a soft-margin SVM. Keep the data and all other settings fixed."
       }
     ]
   },
@@ -945,12 +964,13 @@
           "right": 2,
           "hint": "Restrict the total to the observed event.",
           "feedback": "Conditioning on alert means every denominator case must have alerted."
-        }
+        },
+        "setup": "In 100 items, 10 are faulty and 90 are good. The alert rate is 80% for faulty items and 10% for good items."
       },
       {
         "concept": "naive",
         "title": "Combine multiple clues",
-        "content": "Suppose instead that an alert and a smell are two features. Take alert likelihoods 0.8 for fault and 0.1 for good. Let smell likelihoods be 0.5 and 0.2, respectively. Under conditional independence, multiply the likelihoods inside each class, then multiply by its prior and normalize.",
+        "content": "Within each class, assume the two clues are independent. The alert and smell likelihoods are 0.8 and 0.5 for faulty items, and 0.1 and 0.2 for good items. Multiply the prior by both likelihoods to get a score. Divide a class score by the sum of the two scores to get its posterior.",
         "table": {
           "columns": [
             "Class",
@@ -980,7 +1000,8 @@
           "right": 1,
           "hint": "Consider how the feature probabilities were conditioned.",
           "feedback": "Naïve Bayes assumes conditional independence given each class, even if features are correlated in the full population."
-        }
+        },
+        "setup": "Faulty items have prior probability 0.10. You observe both a sensor alert and an unusual smell."
       }
     ]
   },
@@ -1077,7 +1098,8 @@
           "right": 2,
           "hint": "Which step is flat for negative inputs?",
           "feedback": "ReLU has zero derivative for strictly negative z, so this path contributes zero gradient to w."
-        }
+        },
+        "setup": "Use x = 2, w = 1, b = −1, h = ReLU(wx + b), output ŷ = 2h, and target y = 1. The current prediction is ŷ = 2."
       },
       {
         "concept": "training",
@@ -1115,7 +1137,8 @@
           "right": 1,
           "hint": "Look at the minus sign in the update rule.",
           "feedback": "Subtracting a positive learning-rate-scaled gradient lowers the parameter."
-        }
+        },
+        "setup": "Start from w = 1 with gradient ∂L/∂w = 4. Use x = 2, b = −1, ŷ = 2ReLU(wx + b), and target y = 1. For this example, update only w."
       }
     ]
   },
@@ -1200,7 +1223,8 @@
           "right": 1,
           "hint": "Each filter produces its own channel.",
           "feedback": "The depth doubles. Height and width come from the spatial parameters."
-        }
+        },
+        "setup": "The image has height and width 5. Each filter has spatial size 3×3, with dilation 1 and no padding. Stride is the same on both axes."
       },
       {
         "concept": "pooling",
@@ -1238,7 +1262,8 @@
           "right": 2,
           "hint": "Add all four cells, then divide by four.",
           "feedback": "(0 + 4 + 8 + 2)/4 = 3.5."
-        }
+        },
+        "setup": "Each row of the table gives a separate 2×2 pooling window in the same channel."
       }
     ]
   },
@@ -1295,7 +1320,8 @@
           "right": 1,
           "hint": "Find the minimum in the validation column.",
           "feedback": "Epoch 3 has 17% validation error, even though epoch 4 fits the training set better."
-        }
+        },
+        "setup": "The plot and table show error rates for the same model at four checkpoints. Lower error is better."
       },
       {
         "concept": "splits",
@@ -1456,7 +1482,8 @@
           "right": 1,
           "hint": "Its distance to the centers is 6 or 1.",
           "feedback": "2 is closer to center 1. These assignments are stable here."
-        }
+        },
+        "setup": "The data are the points 0, 2, 7, and 9 on one number line. Start with centres at 0 and 8 and assign using absolute distance."
       },
       {
         "concept": "hac",
@@ -1496,7 +1523,8 @@
           "right": 2,
           "hint": "Which summary can ignore the farthest pairs?",
           "feedback": "A single short bridge can drive a merge under single linkage."
-        }
+        },
+        "setup": "Compare the two groups A = {0,2} and B = {7,9} using absolute distance on the number line."
       }
     ]
   },
@@ -1584,7 +1612,8 @@
           "right": 2,
           "hint": "The horizontal component would be discarded.",
           "feedback": "The remaining reconstruction is (0,1). The lost component has length 3, giving squared error 9."
-        }
+        },
+        "setup": "The point x = (3,1) is already centered. Compare retaining only the horizontal axis with retaining only the vertical axis."
       },
       {
         "concept": "components",
@@ -1620,14 +1649,15 @@
           "right": 0,
           "hint": "Add the largest eigenvalues first.",
           "feedback": "The first two total 9 out of 10, above the threshold."
-        }
+        },
+        "setup": "Suppose a three-feature dataset has covariance eigenvalues 6, 3, and 1. These are the variances along the three principal directions."
       }
     ]
   },
   "regression": {
     "goal": "Fit a line by measuring how far predictions are from actual outputs.",
     "explain": "Explain why linear regression and PCA can choose different lines for the same scatter plot.",
-    "model": "Regression uses a designated response y and minimizes squared vertical prediction errors. PCA uses geometric variance and projection error without selecting a response. Swapping inputs and outputs changes the regression problem.",
+    "model": "Regression picks a response y and minimizes squared vertical errors between the observed and predicted y at each x. PCA treats both coordinates as features and measures perpendicular reconstruction errors. An outlier with an unusually large x can strongly pull a regression line, and a distant point can also change the PCA direction.",
     "points": [
       "Identify y",
       "Draw a vertical residual",
@@ -1716,7 +1746,8 @@
           "right": 0,
           "hint": "Set 5 = b + 2×2 and solve for b.",
           "feedback": "The intercept is 1."
-        }
+        },
+        "setup": "You want a line ŷ = b + mx through the sample means x̄ = 2 and ȳ = 5. First try slope m = 1.5, then try m = 2."
       },
       {
         "concept": "comparison",
@@ -1751,7 +1782,8 @@
           "right": 1,
           "hint": "Which method was told which column is the response?",
           "feedback": "Regression has a designated output. PCA can provide features before regression, but has a different objective."
-        }
+        },
+        "setup": "Treat the same 2D observations either as input–response pairs (x,y) or as an unlabeled point cloud. The line can solve a different task in each case."
       }
     ]
   }

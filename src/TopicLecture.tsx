@@ -7,6 +7,7 @@ import { Bubble, Icon, PageTitle, ProgressBar, SourceNote } from './ui.tsx';
 type Scene = {
   concept:string;
   title:string;
+  setup?:string;
   content:string;
   table:{ columns:string[]; rows:string[][] };
   check:{ prompt:string; options:string[]; right:number; hint:string; feedback:string };
@@ -92,6 +93,9 @@ export function TopicLecture({ topic, close, openConcept }: { topic:Topic; close
       <article className="panel lesson-panel lecture-main">
         <h2 tabIndex={-1} ref={heading}>{scene?.title ?? 'Explain it back'}</h2>
         {scene ? <>
+          {scene.setup && <section className="lecture-setup" aria-label="Example setup">
+            <strong>Example setup</strong><p>{scene.setup}</p>
+          </section>}
           <p>{scene.content}</p>
           <LectureGraphic topic={topic.id} step={step} />
           <div className="table-scroll lecture-table">

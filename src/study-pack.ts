@@ -9,7 +9,10 @@ interface StudyPack {
   scans: Record<string, string>;
 }
 
-const releaseDigest = 'db56abe9ab62ddb09ee58c42ba4ed6656152b77458539fd395ffc86d9040414d';
+const acceptedDigests = new Set([
+  'db56abe9ab62ddb09ee58c42ba4ed6656152b77458539fd395ffc86d9040414d',
+  'e8286d3c94b6d0fea47594eb0dfdec359e8c678448d015bcf8910e7d213c0ec9',
+]);
 const databaseName = 'studyquest-ie4483-study-packs';
 
 // The supplied ZIP stores one JSON entry without compression. Verify the
@@ -37,7 +40,7 @@ export async function readPack(file: Blob): Promise<StudyPack> {
   const bytes = packPayload(await file.arrayBuffer());
   const hash = await crypto.subtle.digest('SHA-256', bytes);
   const digest = Array.from(new Uint8Array(hash), byte => byte.toString(16).padStart(2, '0')).join('');
-  if (digest !== releaseDigest) {
+  if (!acceptedDigests.has(digest)) {
     throw new Error('Choose the supplied StudyQuest IE4483 study pack ZIP or JSON. The project ZIP and progress backup use different formats.');
   }
   return JSON.parse(new TextDecoder().decode(bytes)) as StudyPack;

@@ -24,6 +24,9 @@ export function QuestionDetails({ question }: { question: Question }) {
 export function QuestionPrompt({ question }: { question: Question }) {
   return <>
     <div className="question-prompt">{question.prompt}</div>
+    {question.origin==='original' && question.figures?.length ? <p className="muted">
+      Read the original question and any supporting figures below. Tap a scan to enlarge it.
+    </p> : null}
     {question.figures?.map(figure => {
       const src = figure.src.startsWith('blob:') ? figure.src : import.meta.env.BASE_URL + figure.src.slice(1);
       return <figure className="source-figure" key={figure.src}>

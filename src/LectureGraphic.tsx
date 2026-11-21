@@ -1,7 +1,7 @@
 type Node = [x:number, y:number, label:string];
 type Edge = [from:number, to:number];
 
-function Graph({ nodes, edges, active, label }: { nodes:Node[]; edges:Edge[]; active:number[]; label:string }) {
+function Graph({ nodes, edges, active, label, skipped }: { nodes:Node[]; edges:Edge[]; active:number[]; label:string; skipped?:number }) {
   return <svg className="lecture-graphic" viewBox="0 0 420 176" role="img" aria-label={label}>
     <defs><marker id="lecture-arrow" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
       <path d="M0 0 L6 3 L0 6" fill="none" stroke="var(--muted)" />
@@ -11,9 +11,9 @@ function Graph({ nodes, edges, active, label }: { nodes:Node[]; edges:Edge[]; ac
       const [x2,y2] = nodes[b];
       const scale = 1 / Math.max(Math.abs(x2-x1)/49, Math.abs(y2-y1)/16);
       return <line key={a+'-'+b} x1={x1+(x2-x1)*scale} y1={y1+(y2-y1)*scale}
-        x2={x2-(x2-x1)*(scale+.025)} y2={y2-(y2-y1)*(scale+.025)} className="lecture-edge" markerEnd="url(#lecture-arrow)" />;
+        x2={x2-(x2-x1)*(scale+.025)} y2={y2-(y2-y1)*(scale+.025)} className={b===skipped ? "lecture-edge skipped" : "lecture-edge"} markerEnd="url(#lecture-arrow)" />;
     })}
-    {nodes.map(([x,y,text],i) => <g key={i}>
+    {nodes.map(([x,y,text],i) => <g key={i} className={i===skipped ? "lecture-node-skipped" : undefined}>
       <rect x={x-48} y={y-15} width="96" height="30" rx="8" className={active.includes(i) ? 'lecture-node active' : 'lecture-node'} />
       <text x={x} y={y+5} textAnchor="middle">{text}</text>
     </g>)}
@@ -72,11 +72,51 @@ const diagrams: Record<string,{nodes:Node[]; edges:Edge[]; focus:number[][]; cap
 };
 
 export function LectureGraphic({ topic, step }: { topic:string; step:number }) {
+  if (topic==='foundations' && step<2) {
+    const caption = step===0
+      ? 'The three routes are options for the same trip from the library to the lecture theatre.'
+      : 'The accessibility rule leaves the lift and ramp routes eligible. Compare their predicted times in the table.';
+    return <figure className="lecture-figure">
+      <Graph nodes={[[72,72,'A: 8 min'],[210,72,'B: 11 min'],[348,72,'C: 14 min']]} edges={[]}
+        active={step===0 ? [0,1,2] : [1,2]} skipped={step===1 ? 0 : undefined} label={caption} />
+      <figcaption>{caption}</figcaption>
+    </figure>;
+  }
+  if (topic==='state' && step===0) {
+    const caption = 'The robot can unlock the exit only from a state where it already holds the key.';
+    return <figure className="lecture-figure">
+      <Graph nodes={[[90,34,'A: no key'],[315,34,'B: pick up key'],[90,123,'C: has key'],[315,123,'G: exit']]}
+        edges={[[0,1],[1,2],[2,3]]} active={[2,3]} label={caption} />
+      <figcaption>{caption}</figcaption>
+    </figure>;
+  }
+  if (topic==='heuristic' && step===2) {
+    const caption='Along U → V, the largest consistent estimate at U is the edge cost 2 plus h(V) = 2.';
+    return <figure className="lecture-figure">
+      <Graph nodes={[[76,86,'U: h = 5'],[344,86,'V: h = 2']]} edges={[[0,1]]} active={[0]} label={caption} />
+      <figcaption>{caption}</figcaption>
+    </figure>;
+  }
+  if (topic==='pca' && step===2) {
+    return <figure className="lecture-figure">
+      <div className="lecture-stacked" aria-hidden="true">
+        {[6,3,1].map(value => <span key={value} style={{flexGrow:value}} />)}
+      </div>
+      <ul className="lecture-legend"><li>PC 1 · 60%</li><li>PC 2 · 30%</li><li>PC 3 · 10%</li></ul>
+      <figcaption>The segment widths show the share of total variance held by each principal component.</figcaption>
+    </figure>;
+  }
+  // These sections use the worked table as their visual so the data stays
+  // aligned with the current question.
+  if ((topic==='games' && step===2) || (topic==='trees' && step>0) ||
+      (topic==='generalization' && step>0) || (topic==='neighbors' && step===2) ||
+      (topic==='regression' && step!==0)) return null;
+
   const diagram = diagrams[topic];
   if (diagram) {
     const edges:Edge[] = topic==='neural' && step===1 ? diagram.edges.map(([a,b])=>[b,a]) : diagram.edges;
     const caption = diagram.captions[step];
-    return <figure className="lecture-figure"><Graph nodes={diagram.nodes} edges={edges} active={diagram.focus[step]} label={caption} /><figcaption>{caption}</figcaption></figure>;
+    return <figure className="lecture-figure"><Graph nodes={diagram.nodes} edges={edges} active={diagram.focus[step]} skipped={topic==="games" && step===1 ? 6 : undefined} label={caption} /><figcaption>{caption}</figcaption></figure>;
   }
   if (topic === 'cnn') {
     const size = step === 1 ? 5 : 2;
@@ -111,7 +151,7 @@ export function LectureGraphic({ topic, step }: { topic:string; step:number }) {
   let caption: string;
   if (topic === 'neighbors') {
     series = [{points:[[1,2],[3,2]],style:'accent'},{points:[[6,2],[8,2]],style:'teal'},{points:[[step===0?4:4.5,2]],style:'ink',guides:0}];
-    caption = step===0 ? 'Positions from left to right: red 1, red 3, query 4, blue 6, blue 8.' : 'The separator at 4.5 bisects the gap between the closest opposing points, 3 and 6.';
+    caption = step===0 ? 'From left to right: Red-class points 1 and 3 (purple), query 4 (dark), and Blue-class points 6 and 8 (teal).' : 'The dashed separator at 4.5 bisects the gap between the closest opposing points, 3 and 6.';
   } else if (topic === 'clustering') {
     series = [{points:[[0,2],[2,2]],style:'accent'},{points:[[7,2],[9,2]],style:'teal'},
       ...(step===1 ? [{points:[[1,2],[8,2]],style:'ink',guides:0} as Series] : [])];
@@ -119,7 +159,7 @@ export function LectureGraphic({ topic, step }: { topic:string; step:number }) {
   } else if (topic === 'generalization') {
     series = [{points:[[1,3],[3,1.8],[5,1],[7,.6]],style:'accent',line:true},
       {points:[[1,3.3],[3,2.2],[5,1.7],[7,2.1]],style:'teal',line:true}];
-    caption = 'Illustrative epoch curves. Training error keeps falling (purple), while validation error (teal) reaches a minimum at the third point.';
+    caption = 'Training error keeps falling (purple). Validation error (teal) reaches a minimum at epoch 3.';
   } else if (topic === 'pca') {
     series = step===1
       ? [{points:[[1,1],[9,1]],style:'accent',line:true},{points:[[3,2]],style:'ink',guides:1},{points:[[3,1]],style:'teal'}]

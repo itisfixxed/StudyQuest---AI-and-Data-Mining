@@ -231,7 +231,7 @@
     "variation": "When choosing MAP, compare the numerators because the denominator is shared.",
     "mistake": "Inverting likelihood without priors and normalization.",
     "recall": [
-      "Equal priors and likelihoods .6 and .2. What is the first hypothesis’s posterior?",
+      "Two exclusive, exhaustive hypotheses are equally likely before the observation. The observation has likelihood 0.6 under the first and 0.2 under the second. What is the posterior probability of the first?",
       "3/4"
     ],
     "source": {
@@ -291,7 +291,7 @@
     "variation": "A sigmoid derivative equals o(1−o). Other losses can change the output formula.",
     "mistake": "Using incoming weights in the hidden error term.",
     "recall": [
-      "Active output o=.6 with target t=.2. What is its delta?",
+      "For E = ½(t−o)² with this course’s convention δ = −∂E/∂net, an active output has o = 0.6, t = 0.2, and local derivative 1. What is δ?",
       "-0.4"
     ],
     "source": {
@@ -351,7 +351,7 @@
     "variation": "Valid padding sets P=0; an odd filter with P=(F−1)/2 preserves size at stride 1.",
     "mistake": "Omitting the floor or final +1.",
     "recall": [
-      "I=9,F=3,P=0,S=2. What is O?",
+      "A one-dimensional input of length I=9 uses a filter of width F=3, padding P=0, stride S=2 and dilation 1. What is output length O?",
       "4"
     ],
     "source": {

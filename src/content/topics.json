@@ -35,7 +35,7 @@
           "Proving that every inference is logically valid"
         ],
         "apply": [
-          "Compare a barcode lookup and an adaptive route planner using the lecture’s distinction between retrieval and problem solving.",
+          "A scanner retrieves a product record matching a barcode. A journey planner recomputes an itinerary when a road closes. What information does each system use, and how does each decide what to return?",
           "A barcode lookup retrieves a matching record. An adaptive route planner reasons over route alternatives and updates a decision as conditions change. Explain the input and decision process of each.",
           "Identifies the lookup mechanism.",
           "Explains how changing conditions alter the planner’s choice."
@@ -108,7 +108,7 @@
           "Whichever state has lowest Euclidean distance"
         ],
         "apply": [
-          "A rule base has thousands of facts but you need to prove one specific eligibility claim. Choose and justify a search direction.",
+          "A rule base has thousands of facts, but you need to prove a single eligibility claim and only a few rules can establish it. Choose forward or backward reasoning and explain what you would inspect first.",
           "Use goal-driven search if few rules conclude the claim. Work backward to those rules’ premises and check the relevant facts.",
           "Selects goal-driven search.",
           "Justifies the choice using selective subgoals and branching."
@@ -134,7 +134,7 @@
           "Every route is restarted at depth zero"
         ],
         "apply": [
-          "A has children B then C. B has child D, a non-goal leaf, and C is the goal. Give the visits and the path returned.",
+          "Start at A and try children left-to-right. A has children B then C. B has one child D, a dead end. C is the goal. List the visit order and the returned path.",
           "Visits A,B,D,C. Backtrack out of D and B before accepting A→C.",
           "Gives the correct visits.",
           "Distinguishes dead ends from the returned path."
@@ -160,7 +160,7 @@
           "Remove the lowest estimated cost to goal"
         ],
         "apply": [
-          "Using A→B,C; B→D; C→E, show OPEN after expanding B in BFS and left-first DFS.",
+          "Start at A. Its children are B then C, B has child D, and C has child E. With the next node at the left of OPEN, show OPEN just after expanding B using BFS and left-first DFS.",
           "BFS OPEN=[C,D]. Left-first DFS OPEN=[D,C]. In each, mark A and B expanded.",
           "Gets BFS ordering right.",
           "Gets DFS ordering and CLOSED right."
@@ -186,7 +186,7 @@
           "Only the last leaf of the previous run"
         ],
         "apply": [
-          "For A→B,C; B→D; C→E, goal E, show IDS runs at bounds 1 and 2 with left-first order.",
+          "Start at A with children B then C. B has child D and C has child E. E is the goal. Trace iterative deepening at depth limits 1 and 2 (root at depth 0). Use depth-first order, visiting left children first.",
           "Bound 1: A,B,C, cutoff. Bound 2: A,B,D,C,E, success with A→C→E.",
           "Lists both traces.",
           "Explains restarts and returned path."
@@ -233,7 +233,7 @@
           "The number of unexplored children"
         ],
         "apply": [
-          "A’s children have (g,h) values B=(9,1) and C=(2,5). Give the greedy choice and the reason a cheaper complete path can be missed.",
+          "Greedy best-first search is choosing its next expansion from OPEN = {B,C}. B has path cost g = 9 and remaining estimate h = 1. C has g = 2 and h = 5. Which is expanded next, and why can this rule miss a cheaper complete path?",
           "Greedy expands B since h(B)=1. It ignores the paid cost g, so an early goal can have higher total path cost.",
           "Chooses B using h.",
           "Explains why the greedy choice may cost more overall."
@@ -259,7 +259,7 @@
           "h(n) only"
         ],
         "apply": [
-          "A→B costs 3, A→C costs 1, C→B costs 1, B→G costs 4; h(B)=3,h(C)=4,h(G)=0. Show the winning path and priority updates.",
+          "Start at A and find a path to G using A*. Directed edges and costs are A→B: 3, A→C: 1, C→B: 1, B→G: 4. The remaining-cost estimates are h(B)=3, h(C)=4 and h(G)=0. Show f scores after expanding A, update B if needed, and report the route and cost when G is removed from OPEN.",
           "Initially f(C)=5,f(B)=6. Expanding C improves B to g=2,f=5 with predecessor C. Expanding B finds G at f=6, giving A→C→B→G of cost 6.",
           "Updates B and its predecessor.",
           "Gives the final path and cost."
@@ -281,7 +281,7 @@
         "pitfall": "A large heuristic is useful only while the required bounds remain valid.",
         "example": "A 1-cost arc from h=5 to h=3 fails consistency since 5>1+3.",
         "check": [
-          "Which property requires checking every edge?",
+          "Which heuristic property is checked locally on every directed edge?",
           "Consistency",
           "Having a finite goal depth",
           "Being goal-directed"
@@ -358,7 +358,7 @@
         "pitfall": "A cutoff bound may be an interval constraint rather than an exact value for the pruned node.",
         "example": "At a MAX root, a completed first branch has value 6. The next MIN node sees leaf 4 first, so β=4≤α=6 and its remaining leaves are pruned.",
         "check": [
-          "Which condition permits a cutoff?",
+          "In alpha–beta search, which relationship between the current bounds permits a cutoff?",
           "α≥β",
           "α=−∞ and β=+∞",
           "α<β"
@@ -428,7 +428,7 @@
           "page": "28–37, 59–67"
         },
         "intuition": "Count the co-occurrence, then ask how surprising it is relative to baseline.",
-        "formal": "Support of X→Y is P(X∪Y) from transaction counts. Confidence is P(Y∣X)=support(X∪Y)/support(X). Lift divides confidence by support(Y). For a fixed frequent union, rules with larger consequents have no higher confidence than corresponding smaller-consequent rules.",
+        "formal": "Support of X→Y is the fraction of transactions that contain every item in X and every item in Y, written support(X∪Y). Confidence is P(Y∣X)=support(X∪Y)/support(X). Lift divides confidence by support(Y). For a fixed frequent union, rules with larger consequents have no higher confidence than corresponding smaller-consequent rules.",
         "cue": "Write all numerators and denominators. Read thresholds as inclusive unless specified.",
         "pitfall": "High confidence can simply reflect a popular consequent. Lift compares with that baseline.",
         "example": "With 10 baskets, n(X)=5,n(Y)=8,n(XY)=4: support=.4, confidence=.8, lift=1.",
@@ -439,7 +439,7 @@
           "Lift of the pair"
         ],
         "apply": [
-          "There are 20 baskets, 8 with A, 10 with B and 6 with both. Compute the metrics for A→B and interpret lift.",
+          "There are 20 baskets. Eight contain A, ten contain B, and six contain both. Find the support, confidence and lift of A→B. Interpret the lift relative to the overall rate of B.",
           "Support 6/20=.30. Confidence 6/8=.75. Lift .75/.50=1.5, so B is 1.5 times as common in A baskets as in the full data.",
           "Uses correct support and confidence denominators.",
           "Computes and interprets lift without a causal claim."
@@ -495,10 +495,10 @@
           "One regardless of how often it occurred"
         ],
         "apply": [
-          "X’s conditional pattern base has (A,B):2 and (A):3. Minimum support count is 3. Give conditional counts and patterns containing X.",
-          "A has 5; B has 2 and is removed. AX has support count 5. X itself also has count 5 given these nonempty paths account for all suffix occurrences.",
+          "All five occurrences of X are represented in its conditional pattern base. Prefix (A,B) occurs twice and prefix (A) occurs three times. With minimum support count 3, compute the conditional counts of A and B and list all frequent itemsets containing X, including {X} if it qualifies.",
+          "A occurs in both weighted prefixes, for count 2 + 3 = 5. B occurs only in the first prefix, for count 2, so remove B. {A,X} and {X} each have support count 5.",
           "Accumulates weighted counts correctly.",
-          "Prunes B and reports AX."
+          "Lists {A,X} and {X}, both with count 5."
         ],
         "formulas": []
       }
@@ -596,7 +596,7 @@
           "All predictions"
         ],
         "apply": [
-          "For TP=20, FN=5, FP=10 and TN=65, calculate recall, precision and FPR.",
+          "On a held-out set there are 20 true positives (TP), 5 false negatives (FN), 10 false positives (FP), and 65 true negatives (TN). Find recall, precision, and the false-positive rate.",
           "Recall=20/25=.80; precision=20/30=2/3; FPR=10/75=2/15.",
           "Computes recall and precision using the right populations.",
           "Computes FPR from actual negatives."
@@ -639,7 +639,7 @@
         "pitfall": "A classification of training points can depend on whether self-neighbours count. State the convention.",
         "example": "For x=(1,1), a=(3,2), b=(2,3), both distances in Euclidean metric are √5; a tie needs a stated policy.",
         "check": [
-          "Which distance is max over coordinate differences?",
+          "Which distance uses the largest absolute difference between corresponding coordinates?",
           "Supremum distance",
           "Manhattan distance",
           "Squared Euclidean distance"
@@ -667,7 +667,7 @@
         "pitfall": "Scaling (w,b) by a positive constant preserves the boundary. Width 2/‖w‖ assumes the ±1 convention.",
         "example": "Classes at x=2 and x=6 have boundary x=4, canonical w=.5,b=−2, full margin 4.",
         "check": [
-          "What points support a canonical hard margin?",
+          "In a separable hard-margin SVM, which training points lie on the canonical margin planes?",
           "Points for which y_i(w·x_i+b)=1",
           "Every point with a positive first coordinate",
           "Points with largest signed distance from the boundary"
@@ -695,13 +695,13 @@
         "pitfall": "A point inside the margin can still be correctly classified when its sign is correct.",
         "example": "If y_i f(x_i)=.4, minimum slack is .6 and the class is correct, though it lies inside the margin.",
         "check": [
-          "What does ξ between 0 and 1 usually indicate for minimum feasible slack?",
+          "For a soft-margin SVM, what does minimum slack strictly between 0 and 1 say about a point?",
           "Correct sign inside the margin",
           "The example is necessarily misclassified",
           "The support levels have become class probabilities"
         ],
         "apply": [
-          "A point has y_i f(x_i)=−.3. Compute minimum slack and explain the effect of raising C.",
+          "A point’s signed score is yᵢf(xᵢ) = −0.3. With the canonical constraint yᵢf(xᵢ) ≥ 1 − ξᵢ and ξᵢ ≥ 0, find the smallest allowed slack. What does raising the penalty multiplier C do to the cost of any fixed slack?",
           "Minimum slack is 1.3. It is misclassified since its signed score is negative. Raising C makes violations more costly in the supplied objective.",
           "Finds slack and class outcome.",
           "Explains the C trade-off without promising separability."
@@ -750,7 +750,7 @@
           "The likelihood of the least common class"
         ],
         "apply": [
-          "With priors .3 and .7 and likelihoods .8 and .2, find the posterior for class 1 and MAP class.",
+          "Classes 1 and 2 are mutually exclusive and exhaustive, with prior probabilities 0.3 and 0.7. An observation E has likelihood 0.8 in class 1 and 0.2 in class 2. Find P(class 1 given E) and the more probable class.",
           "Class scores are .24 and .14, so P(1∣E)=12/19≈.632 and MAP chooses class 1.",
           "Calculates both weighted scores.",
           "Normalizes and chooses the larger posterior."
@@ -778,7 +778,7 @@
           "Input features must be independent in the pooled data"
         ],
         "apply": [
-          "P(S)=.4. For x₁=1 and x₂=0, class S has likelihoods .8 and .25. Class T has .2 and .5. Compute P(S∣x).",
+          "Use a Naïve Bayes model with classes S and T, where P(S)=0.4. The observation is x=(1,0). The probabilities of observing the first and second components as given are 0.8 and 0.25 under S, and 0.2 and 0.5 under T, respectively. Find P(S given x).",
           "Scores .4×.8×.25=.08 and .6×.2×.5=.06. Normalized P(S∣x)=4/7; MAP chooses S.",
           "Uses both observed feature values and priors.",
           "Normalizes across both classes."
@@ -855,7 +855,7 @@
           "The already-updated weights from the next iteration"
         ],
         "apply": [
-          "For h=ReLU(wx) with w=.5, x=2, o=v h, v=2, t=1 and η=.1, find both deltas and updated weights.",
+          "For h = ReLU(wx) and output o = v h, use w = 0.5, x = 2, v = 2, target t = 1, and learning rate η = 0.1. Use E = ½(t−o)² and δ = −∂E/∂net for each unit. Find the output and hidden deltas, then update both weights using the original forward-pass weights.",
           "h=1,o=2. δ_o=−1, δ_h=2(−1)=−2. Δv=−.1 and Δw=−.4, so v′=1.9,w′=.1.",
           "Computes output and hidden deltas using original v.",
           "Calculates both updates with the correct inputs and signs."
@@ -933,7 +933,7 @@
           "One prediction for each kernel element"
         ],
         "apply": [
-          "Apply filter [[1,−1],[0,1]] to patch [[3,2],[1,4]] with bias −1. Report the pre-activation.",
+          "Using cross-correlation (no kernel flip), apply filter [[1,−1],[0,1]] to the aligned image patch [[3,2],[1,4]]. Add bias −1 and give the raw output before any activation.",
           "3−2+0+4−1=4. Multiply aligned entries, sum across the patch, then add the bias once.",
           "Shows aligned products and their sum.",
           "Adds one bias and gives 4."
@@ -959,7 +959,7 @@
           "The padding width"
         ],
         "apply": [
-          "An input is 12×10×3. Four 3×3 filters use stride 2 and padding 1. Find output and learned parameters.",
+          "An input has shape 12×10×3 (height × width × channels). Four standard 3×3 filters span all input channels. Use stride 2, padding 1 on each side, dilation 1, and one bias per filter. Find the output shape and parameter count.",
           "H=⌊11/2⌋+1=6, W=⌊9/2⌋+1=5; output 6×5×4. Parameters=4(3·3·3+1)=112.",
           "Computes separate spatial dimensions and output depth.",
           "Counts all filter weights and biases."
@@ -1162,7 +1162,7 @@
           "Keep the old center after any reassignment"
         ],
         "apply": [
-          "For 0,2,5,9 and starting centers 0 and 9, perform one assignment and update, then check the next assignment.",
+          "Run one K-means assignment and centroid update for the 1D points 0, 2, 5, and 9, starting with centers 0 and 9 and using absolute distance to decide which center is closer. Reassign with the updated centers and say whether anything changes.",
           "The initial midpoint is 4.5, so clusters {0,2} and {5,9} update to 1 and 7. New boundary is 4, so assignments stay unchanged.",
           "Gives both initial clusters and updated centers.",
           "Checks the next round against the new boundary."
@@ -1316,7 +1316,7 @@
           "The largest signed error only"
         ],
         "apply": [
-          "Fit an intercept model to (0,2),(1,3),(2,7). Report coefficients and predicted value at x=3.",
+          "Fit the ordinary least-squares line ŷ = mx + b to the (x,y) observations (0,2), (1,3), and (2,7). Find m, b, and the prediction at x=3.",
           "x̄=1, ȳ=4. Slope=(2+3)/2=2.5, b=1.5, so ŷ(3)=9.",
           "Computes the centered slope and intercept.",
           "Evaluates the model at 3."

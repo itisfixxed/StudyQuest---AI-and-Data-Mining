@@ -19,3 +19,17 @@ test('every topic has three complete guided sections and an explain-it-back exer
     }
   }
 });
+
+test('the route constraint check includes the inputs it needs in its own section', () => {
+  const [fastest, accessible] = lectures.foundations.scenes;
+  const { columns, rows } = accessible.table;
+  assert.ok(accessible.setup.includes('step-free'));
+  assert.deepEqual(accessible.table, fastest.table);
+  assert.deepEqual(accessible.check.options, rows.map(([route]) => route));
+  const time = columns.indexOf('Predicted time');
+  const stepFree = columns.indexOf('Step-free?');
+  const winner = candidates => [...candidates].sort((a, b) => parseInt(a[time], 10) - parseInt(b[time], 10))[0][0];
+  assert.equal(fastest.check.options[fastest.check.right], winner(rows));
+  assert.equal(accessible.check.options[accessible.check.right], winner(rows.filter(row => row[stepFree] === 'Yes')));
+  assert.ok(winner(rows) !== winner(rows.filter(row => row[stepFree] === 'Yes')));
+});
