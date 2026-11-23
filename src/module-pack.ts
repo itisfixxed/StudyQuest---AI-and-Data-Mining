@@ -1,6 +1,6 @@
 import { previousModuleCode } from './legacy-storage.ts';
 import builtinModule from './content/module.json' with { type: 'json' };
-import type { Lecture, ModuleInfo, Paper, Question, Reference, Topic } from './types.ts';
+import type { Lecture, ModuleInfo, Paper, PaperDocument, Question, Reference, Topic } from './types.ts';
 
 export { builtinModule };
 
@@ -15,6 +15,7 @@ export interface ModulePack {
   questions: Question[];
   exercises: Question[];
   scans: Record<string, string>;
+  documents?: Record<string, PaperDocument>;
 }
 
 const record = (value: unknown): value is Record<string, unknown> =>
@@ -159,6 +160,17 @@ export function validateModulePack(value: unknown): ModulePack {
           !text(part.label) || !text(part.pattern) || !positive(part.page) || !Number.isInteger(part.page) ||
           (part.related !== undefined && (!list(part.related, id) || !part.related.every(t => topicIds.has(t))))) return fail('paper part ' + part.label);
       linked.add(part.questionId);
+    }
+  }
+  if (value.documents !== undefined) {
+    if (!record(value.documents)) return fail('paper documents');
+    const paperIds = new Set(value.papers.map(paper => paper.id));
+    const base64 = (data: unknown, prefix: string) => text(data) && data.startsWith(prefix) &&
+      data.length % 4 === 0 && /^[A-Za-z0-9+/]+={0,2}$/.test(data);
+    for (const [paperId, document] of Object.entries(value.documents)) {
+      if (!paperIds.has(paperId) || !record(document) || !base64(document.pdf, 'JVBERi0') ||
+          !Array.isArray(document.pages) || !document.pages.length || !document.pages.every(page => base64(page, 'UklGR')) ||
+          (document.excerpts !== undefined && typeof document.excerpts !== 'boolean')) return fail('paper document ' + paperId);
     }
   }
   if (linked.size !== originals.size) return fail('unlinked paper question');

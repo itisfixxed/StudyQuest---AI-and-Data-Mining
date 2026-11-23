@@ -36,6 +36,7 @@ function PaperReader({ paper, document, initialPage, close }: {
   }, [document]);
   const title = paperName(paper);
   return <Modal title={title} wide onClose={close}>
+    {document.excerpts && <p>Selected question excerpts from this paper.</p>}
     <div className="row wrap paper-view-controls">
       <button type="button" className="button secondary small" disabled={page === 1} onClick={() => setPage(page - 1)}>Previous page</button>
       <label>Page <select aria-label="PDF page" value={page} onChange={event => setPage(Number(event.target.value))}>
@@ -43,7 +44,7 @@ function PaperReader({ paper, document, initialPage, close }: {
       </select></label>
       <button type="button" className="button secondary small" disabled={page === document.pages.length} onClick={() => setPage(page + 1)}>Next page</button>
       <button type="button" className="button secondary small" aria-pressed={zoom} onClick={() => setZoom(!zoom)}>{zoom ? 'Fit to width' : 'Zoom in'}</button>
-      {pdfUrl && <a className="button secondary small" href={pdfUrl + '#page=' + page} target="_blank" rel="noopener">Open original PDF</a>}
+      {pdfUrl && <a className="button secondary small" href={pdfUrl + '#page=' + page} target="_blank" rel="noopener">{document.excerpts ? 'Open excerpt PDF' : 'Open original PDF'}</a>}
     </div>
     <figure key={page} className={'paper-page' + (zoom ? ' zoomed' : '')}>
       <img src={'data:image/webp;base64,' + document.pages[page - 1]} alt={title + ', PDF page ' + page} />
@@ -62,6 +63,6 @@ export function PaperSource({ paper, source }: { paper: Paper; source?: Source }
     {document && <button type="button" className="text-button" onClick={() => setOpen(true)} aria-label={'View paper PDF · ' + label + (part ? ' · ' + part : '')}>
       View paper PDF
     </button>}
-    {open && document && <PaperReader paper={paper} document={document} initialPage={parseInt(String(page), 10) || 1} close={() => setOpen(false)} />}
+    {open && document && <PaperReader paper={paper} document={document} initialPage={source?.documentPage ?? (parseInt(String(page), 10) || 1)} close={() => setOpen(false)} />}
   </div>;
 }

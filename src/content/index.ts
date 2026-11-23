@@ -127,6 +127,7 @@ function refreshIndexes() {
 
 export function activateModule(pack: ModulePack) {
   addScans(pack.scans, [...pack.questions, ...pack.exercises]);
+  replaceIndex(paperDocuments, Object.entries(pack.documents ?? {}));
   Object.assign(moduleInfo, pack.module);
   topics.splice(0, topics.length, ...pack.topics);
   references.splice(0, references.length, ...pack.references);

@@ -103,7 +103,10 @@ async function sha256(bytes: ArrayBuffer) {
   return Array.from(new Uint8Array(hash), byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
-const acceptedModuleZips = new Set(['cedbedd1c7318be4aee783fb5ccd78d7980155f824f0b9c83910f9231a72c428']);
+const acceptedModuleZips = new Set([
+  'cedbedd1c7318be4aee783fb5ccd78d7980155f824f0b9c83910f9231a72c428',
+  '80dc6ee80724ccd0f0035fe26d7eee023d27cd14734230605ec98a529568e0be',
+]);
 const acceptedModuleJson = new Set(['83a243544e75aee1405d60ab6024680579e83940131e4a2511ff35c3f003ba58']);
 const fileMismatch = 'Choose the supplied StudyQuest study pack ZIP or JSON. The project ZIP and progress backup use different formats.';
 

@@ -1,7 +1,7 @@
 export type Difficulty = 'easy' | 'medium' | 'hard' | 'exam';
 export type Kind = 'choice' | 'multi' | 'truefalse' | 'number' | 'expression' | 'blank' | 'short' | 'structured';
 export type Answer = string | string[];
-export interface Source { file: string; page?: number | string; year?: string; semester?: number; question?: string; subparts?: string[] }
+export interface Source { file: string; page?: number | string; year?: string; semester?: number; question?: string; subparts?: string[]; documentPage?: number }
 export interface Concept {
   id: string;
   name: string;
@@ -65,12 +65,12 @@ export interface Question {
   explanation: string; misconception: string; guidance: Guidance;
   rubric?: Criterion[]; solution?: string[];
 }
-export interface PaperDocument { pdf: string; pages: string[] }
+export interface PaperDocument { pdf: string; pages: string[]; excerpts?: boolean }
 export interface PaperPart {
   label: string; marks: number; page: number; topic: string; related?: string[]; pattern: string;
   questionId: string;
 }
-export interface Paper { id: string; year: string; semester: number; file: string; duration: number; parts: PaperPart[] }
+export interface Paper { id: string; year: string; semester: number; file: string; duration: number; parts: PaperPart[]; selection?: boolean }
 export interface Attempt {
   id: string; question: string; answer: Answer; score: number; max: number;
   assistance: number; retries: number; confidence: number; seconds: number; at: number;

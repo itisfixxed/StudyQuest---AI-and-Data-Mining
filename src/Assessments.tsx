@@ -205,7 +205,7 @@ export function ExamArena({ progress, update, resultId, selectResult, setActive,
       ...shuffler(questions.filter(q => q.difficulty === 'hard' && !isManual(q))).slice(0,4)
     ];
     if (!chosen.length) return;
-    const title = mode === 'paper' && paper ? paper.year + ' Semester ' + paper.semester + (originalOnly ? ' · Original questions' : ' · Paper simulation') :
+    const title = mode === 'paper' && paper ? paper.year + ' Semester ' + paper.semester + (originalOnly ? ' · ' + (paper.selection ? 'Selected original questions' : 'Original questions') : ' · Paper simulation') :
       mode === 'topic' ? topicById[topic].short + ' assessment' : 'Randomized mock examination';
     setActive(createExam(title,'exam',chosen.map(q => q.id),timed ? Number(duration) : null,strict));
   };
@@ -230,6 +230,7 @@ export function ExamArena({ progress, update, resultId, selectResult, setActive,
       {mode === 'paper' && paper && <>
         <label className="toggle-row"><input type="checkbox" checked={originalOnly} onChange={e => setOriginalOnly(e.target.checked)} /><span><strong>Original questions only</strong><small>Use the original source scans.</small></span></label>
         <div className="callout"><Icon name="help" size={20} /><div><strong>{paperQuestions.length} parts · {paperMarks} marks · {originalCount} original{!originalOnly && paperQuestions.length > originalCount && ' · ' + (paperQuestions.length-originalCount) + ' adapted'}</strong>
+          {paper.selection && <p className="muted">This assessment covers selected questions from the paper.</p>}
           <PaperSource key={paper.id} paper={paper} />
           <button className="text-button paper-practice" onClick={() => practice({ids:paperQuestions.map(q=>q.id),title:paper.year + ' Semester ' + paper.semester + ' practice',mode:'practice'})}>Practice this paper with hints</button>
         </div></div>
