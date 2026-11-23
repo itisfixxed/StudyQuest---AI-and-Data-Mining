@@ -1,18 +1,21 @@
 import { builtinModule, validateModulePack } from './module-pack.ts';
 import type { ModuleInfo } from './types.ts';
 import { previousModuleCode, sourceLabel } from './legacy-storage.ts';
-import type { Paper, Question } from './types.ts';
+import type { Lecture, Paper, PaperDocument, Question } from './types.ts';
 
 interface StudyPack {
-  version: 1;
+  version: 1 | 2;
   module: string;
   papers: Paper[];
   questions: Question[];
   exercises: Question[];
   scans: Record<string, string>;
+  lectures?: Record<string, Lecture>;
+  documents?: Record<string, PaperDocument>;
 }
 
 const acceptedDigests = new Set([
+  '1bf2e16027ee44f30177cf19c3881cb124829aa78e9bb2c97f92e8914aea9298',
   'ff08d589e1d3dcf837dddc06a3d884b6f43a181f323f991ca2039a534cbd5f6e',
   'db56abe9ab62ddb09ee58c42ba4ed6656152b77458539fd395ffc86d9040414d',
   'e8286d3c94b6d0fea47594eb0dfdec359e8c678448d015bcf8910e7d213c0ec9',
@@ -23,6 +26,7 @@ const acceptedDigests = new Set([
 const databaseName = 'studyquest-' + previousModuleCode.toLowerCase() + '-study-packs';
 
 export const modulePackEntryName = 'StudyQuest-Module-Pack.json';
+const v2EntryName = 'StudyQuest-Study-Pack-v2.json';
 const entryName = 'StudyQuest-Study-Pack.json';
 export const studyPackFilename = 'StudyQuest-Study-Pack.zip';
 const zipType = 'application/zip';
@@ -37,8 +41,8 @@ function crc32(bytes: Uint8Array) {
   return ~crc;
 }
 
-function zipPayload(payload: ArrayBuffer): Blob {
-  const name = new TextEncoder().encode(entryName);
+function zipPayload(payload: ArrayBuffer, filename = entryName): Blob {
+  const name = new TextEncoder().encode(filename);
   const local = new DataView(new ArrayBuffer(30));
   const central = new DataView(new ArrayBuffer(46));
   const end = new DataView(new ArrayBuffer(22));
@@ -88,7 +92,7 @@ function packPayload(bytes: ArrayBuffer, modulePack = false) {
   const name = new TextDecoder().decode(bytes.slice(30, nameEnd));
   const previousEntry = 'StudyQuest-' + previousModuleCode + '-Study-Pack.json';
   if (size !== header.getUint32(22, true) || start + size > bytes.byteLength ||
-      (modulePack ? name !== modulePackEntryName : name !== entryName && name !== previousEntry)) {
+      (modulePack ? name !== modulePackEntryName : name !== entryName && name !== v2EntryName && name !== previousEntry)) {
     throw new Error('This ZIP does not contain the supplied study pack.');
   }
   return bytes.slice(start, start + size);
@@ -104,7 +108,8 @@ const acceptedModuleJson = new Set(['83a243544e75aee1405d60ab6024680579e83940131
 const fileMismatch = 'Choose the supplied StudyQuest study pack ZIP or JSON. The project ZIP and progress backup use different formats.';
 
 async function verifiedPayload(file: Blob, modulePack = false) {
-  if (file.size > 8 * 1024 * 1024) throw new Error('Choose the study pack, which is under 8 MB.');
+  const limit = modulePack ? 8 : 64;
+  if (file.size > limit * 1024 * 1024) throw new Error('Choose a pack under ' + limit + ' MB.');
   const archive = await file.arrayBuffer();
   const payload = packPayload(archive, modulePack);
   const isArchive = payload !== archive;
@@ -124,7 +129,7 @@ export async function readModulePack(file: Blob) {
 export async function readPack(file: Blob): Promise<StudyPack> {
   const bytes = await verifiedPayload(file);
   const pack = JSON.parse(new TextDecoder().decode(bytes)) as StudyPack;
-  if (pack.version !== 1 || (pack.module !== previousModuleCode && pack.module !== builtinModule.id)) {
+  if ((pack.version !== 1 && pack.version !== 2) || (pack.module !== previousModuleCode && pack.module !== builtinModule.id)) {
     throw new Error(fileMismatch);
   }
   if (pack.module === previousModuleCode) {
@@ -138,9 +143,12 @@ export async function createStudyPackZip(file: Blob): Promise<Blob> {
   return zipPayload(await verifiedPayload(file));
 }
 
-export async function downloadStudyPack(): Promise<Blob | undefined> {
-  const file = await packFile();
-  return file ? createStudyPackZip(file) : undefined;
+export async function downloadStudyPack(version: 1 | 2): Promise<Blob | undefined> {
+  const file = await packStore('readonly', store => store.get(studyKey(version))) as Blob | undefined;
+  if (!file) return;
+  const header = await file.slice(0, 4).arrayBuffer();
+  if (header.byteLength === 4 && new DataView(header).getUint32(0, true) === zipSignature) return file.slice(0, file.size, zipType);
+  return zipPayload(await verifiedPayload(file), version === 2 ? v2EntryName : entryName);
 }
 
 function openDatabase(): Promise<IDBDatabase> {
@@ -166,28 +174,38 @@ async function packStore<T>(mode: IDBTransactionMode, operation: (store: IDBObje
   }
 }
 
-async function packFile(file?: Blob): Promise<Blob | undefined> {
-  if (file) {
-    await packStore('readwrite', store => store.put(file, 'current'));
-    return;
-  }
-  return packStore('readonly', store => store.get('current'));
+const studyKey = (version: 1 | 2) => version === 2 ? 'study-pack:v2' : 'current';
+const versionKey = 'active-study-version';
+
+export async function installedStudyVersions(): Promise<(1 | 2)[]> {
+  const keys = await packStore('readonly', store => store.getAllKeys());
+  return ([1, 2] as const).filter(version => keys.includes(studyKey(version)));
+}
+
+export async function setStudyVersion(version: 1 | 2) {
+  const key = await packStore('readonly', store => store.getKey(studyKey(version)));
+  if (key === undefined) throw new Error('Import this study pack version first.');
+  await packStore('readwrite', store => store.put(version, versionKey));
 }
 
 export async function loadStudyPack() {
-  const file = await packFile();
+  const version = await packStore('readonly', store => store.get(versionKey));
+  const file = await packStore('readonly', store => store.get(studyKey(version === 2 ? 2 : 1))) as Blob | undefined;
   return file ? readPack(file) : undefined;
 }
 
 export async function saveStudyPack(file: File) {
-  await readPack(file);
+  const { version } = await readPack(file);
   try {
-    await packFile(file);
+    await packStore('readwrite', store => {
+      store.put(file, studyKey(version));
+      return store.put(version, versionKey);
+    });
   } catch {
     throw new Error('The browser could not save the pack. Check available storage and try again in a regular browser tab.');
   }
+  return version;
 }
-
 
 const activeModuleKey = 'studyquest-active-module';
 const moduleKey = (id: string) => 'module:' + id;

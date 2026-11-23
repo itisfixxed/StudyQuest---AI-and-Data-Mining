@@ -1,10 +1,11 @@
+import { examPart, paperFor, PaperSource } from './PaperSource.tsx';
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { automaticScore, checkStep, displayOrder, hasAnswer, normalizeText } from './answers.ts';
 import { isManual, labels, originLabel, papers, questionById, questions, referenceById, topicById, topics } from './content/index.ts';
 import { createRecordId, dueQuestions, recordAttempt } from './progress.ts';
 import type { Answer, HintStep, Progress, Question, Step } from './types.ts';
-import { Bubble, Empty, Icon, MathBlock, PageTitle, Pill, ProgressBar, SectionTitle, SourceNote } from './ui.tsx';
+import { Bubble, Empty, Icon, MathBlock, MathText, PageTitle, Pill, ProgressBar, SectionTitle, SourceNote } from './ui.tsx';
 
 export type Update = (fn: (progress: Progress) => Progress) => void;
 export interface PracticeSet { ids: string[]; title: string; mode: 'practice' | 'review'; /** Position survives navigation because the set lives in App state. */ index?: number; complete?: boolean; /** Assistance used on the current question, kept across navigation. */ aid?: number }
@@ -15,17 +16,19 @@ export function ScreenMeta({ question }: { question: Question }) {
 export function QuestionDetails({ question }: { question: Question }) {
   const topic = topicById[question.topic];
   return <details className="question-details"><summary>Learning objective and source</summary>
-    <p>{question.objective}</p>
+    <p><MathText text={question.objective} /></p>
     {topic.prerequisites.length > 0 && <p><strong>Prerequisites</strong> {topic.prerequisites.map(id => topicById[id].short).join(', ')}</p>}
     <SourceNote source={question.source} />
   </details>;
 }
 
 export function QuestionPrompt({ question }: { question: Question }) {
+  const paper = paperFor(question.source);
   return <>
-    <div className="question-prompt">{question.prompt}</div>
+    {paper && <PaperSource key={question.id} paper={paper} source={question.source} />}
+    <div className="question-prompt"><MathText text={question.prompt} /></div>
     {question.origin==='original' && question.figures?.length ? <p className="muted">
-      Read the original question and any supporting figures below. Tap a scan to enlarge it.
+      Tap a scan to enlarge it.
     </p> : null}
     {question.figures?.map(figure => {
       const src = figure.src.startsWith('blob:') ? figure.src : import.meta.env.BASE_URL + figure.src.slice(1);
@@ -50,7 +53,7 @@ export function AnswerField({ question, answer, setAnswer, disabled = false, id 
         return <label className={'choice' + (checked ? ' selected' : '')} key={option}>
           <input type={multi ? 'checkbox' : 'radio'} name={id} value={option} checked={checked} onChange={() =>
             setAnswer(multi ? checked ? (answer as string[]).filter(x => x !== option) : [...(Array.isArray(answer) ? answer : []), option] : option)} />
-          <span className="choice-letter" aria-hidden="true">{String.fromCharCode(65 + index)}</span><span>{option}</span>
+          <span className="choice-letter" aria-hidden="true">{String.fromCharCode(65 + index)}</span><span><MathText text={option} /></span>
           {checked && <Icon name="check" size={18} />}
         </label>;
       })}
@@ -60,7 +63,7 @@ export function AnswerField({ question, answer, setAnswer, disabled = false, id 
     <label htmlFor={id}>{isManual(question) ? 'Show your reasoning' : 'Your answer'}</label>
     {isManual(question) ? <textarea id={id} value={String(answer)} onChange={e => setAnswer(e.target.value)} disabled={disabled} rows={5} maxLength={20000} placeholder="State assumptions and show each step…" /> :
       <input id={id} value={String(answer)} onChange={e => setAnswer(e.target.value)} disabled={disabled} autoComplete="off" maxLength={170} placeholder={question.kind === 'expression' ? 'Enter a number or expression' : 'Enter your answer'} />}
-    {question.kind === 'expression' && <small>You can use fractions, powers, sqrt(), log2(), and parentheses.</small>}
+    {question.kind === 'expression' && <small>Use fractions, powers, or scientific notation such as 2.5e−4 or 2.5 × 10⁻⁴.</small>}
   </div>;
 }
 
@@ -68,10 +71,10 @@ function StepCheck({ step, onPass }: { step: Step; onPass: () => void }) {
   const [entry, setEntry] = useState('');
   const [checked, setChecked] = useState<null | boolean>(null);
   return <div className="step-check">
-    <p>{step.prompt}</p>
-    {step.options ? <div className="hint-options">{displayOrder(step).map(i => { const option = step.options![i]; return <button type="button" key={option} aria-pressed={entry === String(i)} className={'button secondary ' + (entry === String(i) ? 'selected' : '')} disabled={checked === true} onClick={() => { setEntry(String(i)); setChecked(null); }}>{option}</button>; })}</div> :
+    <p><MathText text={step.prompt} /></p>
+    {step.options ? <div className="hint-options">{displayOrder(step).map(i => { const option = step.options![i]; return <button type="button" key={option} aria-pressed={entry === String(i)} className={'button secondary ' + (entry === String(i) ? 'selected' : '')} disabled={checked === true} onClick={() => { setEntry(String(i)); setChecked(null); }}><MathText text={option} /></button>; })}</div> :
       <label className="response-field"><span>Step answer</span><input value={entry} onChange={e => { setEntry(e.target.value); setChecked(null); }} disabled={checked === true} maxLength={170} /></label>}
-    {checked !== null && <p className={checked ? 'good-text' : 'bad-text'} role="status">{checked ? step.why : step.retry}</p>}
+    {checked !== null && <p className={checked ? 'good-text' : 'bad-text'} role="status"><MathText text={checked ? step.why : step.retry} /></p>}
     <button type="button" className="button secondary small" disabled={!entry.trim() || checked === true} onClick={() => {
       const passed = checkStep(step, entry);
       setChecked(passed);
@@ -89,11 +92,11 @@ function LadderStep({ step, index, count, raise }: { step: HintStep; index: numb
   useEffect(() => { if (shown) workedRef.current?.focus(); }, [shown]);
   const reveal = () => { setShown(true); raise(step.workedAid ?? 3); };
   return <div className={'ladder-step ' + step.kind}>
-    <div className="row spread wrap ladder-head"><strong>Hint {index+1} of {count} · {kindLabel[step.kind]}</strong>{step.title && <span>{step.title}</span>}</div>
-    <p>{step.text}</p>
+    <div className="row spread wrap ladder-head"><strong>Hint {index+1} of {count} · {kindLabel[step.kind]}</strong>{step.title && <span><MathText text={step.title} /></span>}</div>
+    <p><MathText text={step.text} /></p>
     {step.formulas?.map(id => referenceById[id]?.expression ? <MathBlock key={id} expression={referenceById[id].expression!} /> : null)}
     {step.check && <StepCheck step={step.check} onPass={() => {}} />}
-    {step.worked && (shown ? <p className="ladder-worked" role="status" tabIndex={-1} ref={workedRef}><strong>Worked step</strong> {step.worked}</p> :
+    {step.worked && (shown ? <p className="ladder-worked" role="status" tabIndex={-1} ref={workedRef}><strong>Worked step</strong> <MathText text={step.worked} /></p> :
       <button type="button" className="text-button small" onClick={reveal}>{step.check ? 'Skip check and show this step' : 'Show this step'}</button>)}
   </div>;
 }
@@ -127,8 +130,8 @@ function LegacyHints({ question, level, change }: { question: Question; level: n
   const complete = walkthrough >= g.walkthrough.length;
   return <div className="hint-area">
     {level > 0 && <div className="hint-panel"><div className="row"><Bubble icon="bulb" color="amber" /><strong>Hint {Math.min(level,4)} · {titles[Math.min(level,4)-1]}</strong></div>
-      <p>{g.recall}</p>
-      {level >= 2 && <p>{g.direction}</p>}
+      <p><MathText text={g.recall} /></p>
+      {level >= 2 && <p><MathText text={g.direction} /></p>}
       {level === 2 && question.formulas.length > 0 && question.formulas.map(id => referenceById[id]?.expression ? <MathBlock key={id} expression={referenceById[id].expression!} /> : null)}
       {level === 3 && <StepCheck step={g.scaffold} onPass={() => setScaffold(true)} />}
       {level >= 4 && (complete ? <p className="good-text">Walkthrough complete. Put the steps together in your answer.</p> :
@@ -146,11 +149,11 @@ export function Solution({ question, answer }: { question: Question; answer?: An
   return <div className="solution">
     <h3>Worked solution</h3>
     {answer !== undefined && <p className="answer-review"><strong>Your response</strong><br />{hasAnswer(answer) ? (Array.isArray(answer) ? answer.join(', ') : answer) : 'No response'}</p>}
-    {question.solution && question.solution.length > 1 ? <ol>{question.solution.map(line => <li key={line}>{line}</li>)}</ol> :
-      <p>{question.solution?.[0] ?? question.explanation}</p>}
-    {!isManual(question) && <div><strong>Answer</strong><p>{Array.isArray(question.answer) ? question.answer.join(', ') : question.answer}</p></div>}
-    <div className="callout"><Icon name="bulb" size={18} /><span>{question.misconception}</span></div>
-    {question.optionFeedback && question.options && <details><summary>Why each option fits or fails</summary><ul>{question.options.map((option,i) => <li key={option}><strong>{option}</strong> · {question.optionFeedback![i]}</li>)}</ul></details>}
+    {question.solution && question.solution.length > 1 ? <ol>{question.solution.map(line => <li key={line}><MathText text={line} /></li>)}</ol> :
+      <p><MathText text={question.solution?.[0] ?? question.explanation} /></p>}
+    {!isManual(question) && <div><strong>Answer</strong><p><MathText text={Array.isArray(question.answer) ? question.answer.join(', ') : question.answer} /></p></div>}
+    <div className="callout"><Icon name="bulb" size={18} /><span><MathText text={question.misconception} /></span></div>
+    {question.optionFeedback && question.options && <details><summary>Why each option fits or fails</summary><ul>{question.options.map((option,i) => <li key={option}><strong><MathText text={option} /></strong> · <MathText text={question.optionFeedback![i]} /></li>)}</ul></details>}
     <SourceNote source={question.source} />
   </div>;
 }
@@ -162,7 +165,7 @@ export function Rubric({ question, onSave, initial }: { question: Question; onSa
     <div className="row spread"><strong>Estimated self-assessment rubric</strong><Pill>Estimated marks</Pill></div>
     <p>Tick a criterion when your original response meets it. Use the model answer as a guide.</p>
     {question.rubric?.map((criterion,i) => <label className="rubric-option" key={criterion.text}><input type="checkbox" checked={selected.includes(i)}
-      onChange={() => setSelected(selected.includes(i) ? selected.filter(x => x !== i) : [...selected,i])} /><span>{criterion.text}</span><Pill>{criterion.points} {criterion.points === 1 ? 'mark' : 'marks'}</Pill></label>)}
+      onChange={() => setSelected(selected.includes(i) ? selected.filter(x => x !== i) : [...selected,i])} /><span><MathText text={criterion.text} /></span><Pill>{criterion.points} {criterion.points === 1 ? 'mark' : 'marks'}</Pill></label>)}
     <button className="button primary" type="button" onClick={() => onSave(score)}>Save {score}/{question.marks} marks</button>
     {initial !== undefined && <small> Saved estimate {initial}/{question.marks}</small>}
   </div>;
@@ -268,7 +271,7 @@ export function Practice({ progress, update, session, setSession, openJourney }:
   const pool = questions.filter(q => (topic === 'all' || q.topic === topic) && (subtopic === 'all' || q.subtopic === subtopic) &&
     (difficulty === 'all' || q.difficulty === difficulty) && (source === 'all' || q.origin === source) &&
     (!inPaper || inPaperIds.has(q.id)) &&
-    (!queryText || normalizeText([q.title, q.prompt, q.source.question ? 'Q' + q.source.question : '', q.source.file].join(' ')).includes(queryText)));
+    (!queryText || normalizeText([q.title, q.prompt, q.source.question ? examPart(q.source) : '', q.source.file].join(' ')).includes(queryText)));
   const start = (value: PracticeSet) => setSession({ ...value, index: 0, complete: false });
   if (session && complete) return <><PageTitle title={session.title} description="Practice complete" />
     <Empty icon="trophy" title="Session complete" action={<div className="row wrap center"><button className="button primary" onClick={() => setSession(null)}>More practice</button>
@@ -304,7 +307,7 @@ export function Practice({ progress, update, session, setSession, openJourney }:
     <SectionTitle title="Question library" description="Open a specific question for a focused attempt." />
     {!pool.length ? <Empty icon="search" title="No matching questions">Choose a different combination of filters.</Empty> : <div className="panel compact-list">
       {pool.slice(0,visibleCount).map(q => <button className="question-list-item row spread" key={q.id} onClick={() => start({ ids:[q.id], title: q.title, mode:'practice' })}>
-        <span><strong>{q.prompt.split('\n')[0]}</strong><small>{topicById[q.topic].short} · {originLabel[q.origin]}{q.source.year && " · " + q.source.year + " S" + q.source.semester + " Q" + q.source.question}</small></span><Pill>{labels[q.difficulty]}</Pill><Icon name="chevron" size={17} />
+        <span><strong><MathText text={q.prompt.split('\n')[0]} /></strong><small>{topicById[q.topic].short} · {originLabel[q.origin]}{q.source.year && " · " + q.source.year + " S" + q.source.semester + " · " + examPart(q.source)}</small></span><Pill>{labels[q.difficulty]}</Pill><Icon name="chevron" size={17} />
       </button>)}</div>}
     {pool.length > visibleCount && <button className="button secondary" onClick={() => setVisibleCount(n => n+15)}>Show more questions ({visibleCount} of {pool.length})</button>}
   </>;

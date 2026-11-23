@@ -4,7 +4,7 @@ import { LectureGraphic } from './LectureGraphic.tsx';
 import type { Lecture, LectureScene, Progress, Topic } from './types.ts';
 import type { Update } from './Practice.tsx';
 import { lecturePassed, passLectureCheck } from './progress.ts';
-import { Bubble, Icon, PageTitle, ProgressBar, SourceNote } from './ui.tsx';
+import { Bubble, Icon, MathText, PageTitle, ProgressBar, SourceNote } from './ui.tsx';
 
 function SceneCheck({ check, onPass, alreadyPassed }: { check:LectureScene['check']; onPass:()=>void; alreadyPassed:boolean }) {
   const [choice,setChoice] = useState<number|null>(alreadyPassed ? check.right : null);
@@ -13,10 +13,10 @@ function SceneCheck({ check, onPass, alreadyPassed }: { check:LectureScene['chec
   const correct = checked && choice===check.right;
 
   return <section className="check-panel lecture-check">
-    <h3>{check.prompt}</h3>
+    <h3><MathText text={check.prompt} /></h3>
     <div className="lecture-options">
       {check.options.map((option,i) => <button type="button" className="button secondary lecture-option"
-        aria-pressed={choice===i} key={option} onClick={() => {setChoice(i);setChecked(false);}}>{option}</button>)}
+        aria-pressed={choice===i} key={option} onClick={() => {setChoice(i);setChecked(false);}}><MathText text={option} /></button>)}
     </div>
     <div className="row wrap">
       <button type="button" className="button primary small" disabled={choice===null || checked} onClick={() => {
@@ -27,7 +27,7 @@ function SceneCheck({ check, onPass, alreadyPassed }: { check:LectureScene['chec
         {hint ? 'Hide hint' : 'Show hint'}
       </button>
     </div>
-    {hint && (!checked || correct) && <p>{check.hint}</p>}
+    {hint && (!checked || correct) && <p><MathText text={check.hint} /></p>}
     {checked && <p role="status" className={correct?'good-text':'bad-text'}>
       {correct ? check.feedback : 'Try again. ' + check.hint}
     </p>}
@@ -38,19 +38,19 @@ type Draft = { notes:string; ticked:number[]; visible:boolean };
 function TeachBack({ lecture, draft, setDraft }: { lecture:Lecture; draft:Draft; setDraft:(d:Draft)=>void }) {
   const { notes, ticked, visible } = draft;
   return <div className="lecture-teach">
-    <p>{lecture.explain}</p>
+    <p><MathText text={lecture.explain} /></p>
     <label>Draft your explanation
       <textarea rows={4} value={notes} onChange={event=>setDraft({...draft,notes:event.target.value})}
         placeholder="You can also explain it aloud." />
     </label>
     <h3>Review your explanation</h3>
     <ul className="lecture-checklist">{lecture.points.map((point,i) => <li key={point}><label>
-      <input type="checkbox" checked={ticked.includes(i)} onChange={()=>setDraft({...draft,ticked:ticked.includes(i)?ticked.filter(x=>x!==i):[...ticked,i]})} /> {point}
+      <input type="checkbox" checked={ticked.includes(i)} onChange={()=>setDraft({...draft,ticked:ticked.includes(i)?ticked.filter(x=>x!==i):[...ticked,i]})} /> <MathText text={point} />
     </label></li>)}</ul>
     <button type="button" className="button secondary" aria-expanded={visible} onClick={()=>setDraft({...draft,visible:!visible})}>
       {visible ? 'Hide sample explanation' : 'Compare with a sample'}
     </button>
-    {visible && <p className="lecture-model">{lecture.model}</p>}
+    {visible && <p className="lecture-model"><MathText text={lecture.model} /></p>}
   </div>;
 }
 
@@ -95,15 +95,15 @@ export function TopicLecture({ topic, progress, update, close, openConcept }: {
         <h2 tabIndex={-1} ref={heading}>{scene?.title ?? 'Explain it back'}</h2>
         {scene ? <>
           {scene.setup && <section className="lecture-setup" aria-label="Example setup">
-            <strong>Example setup</strong><p>{scene.setup}</p>
+            <strong>Example setup</strong><p><MathText text={scene.setup} /></p>
           </section>}
-          <p>{scene.content}</p>
+          <p><MathText text={scene.content} /></p>
           {isBuiltinModule() && <LectureGraphic topic={topic.id} step={step} />}
           <div className="table-scroll lecture-table">
             <table aria-label={scene.title+' worked example'}>
-              <thead><tr>{scene.table.columns.map(name=><th key={name} scope="col">{name}</th>)}</tr></thead>
-              <tbody>{scene.table.rows.map(row=><tr key={row[0]}><th scope="row">{row[0]}</th>
-                {row.slice(1).map((cell,i)=><td key={i}>{cell}</td>)}
+              <thead><tr>{scene.table.columns.map(name=><th key={name} scope="col"><MathText text={name} /></th>)}</tr></thead>
+              <tbody>{scene.table.rows.map(row=><tr key={row[0]}><th scope="row"><MathText text={row[0]} /></th>
+                {row.slice(1).map((cell,i)=><td key={i}><MathText text={cell} /></td>)}
               </tr>)}</tbody>
             </table>
           </div>

@@ -55,6 +55,24 @@ export function MathBlock({ expression }: { expression: string }) {
   const math = katex.renderToString(expression, { throwOnError: false, displayMode: true, trust: false, output: 'htmlAndMathml' });
   return <div className="math-block" dangerouslySetInnerHTML={{ __html: math }} />;
 }
+// Delimit authored math with \( … \) or \[ … \]. Unmarked text stays plain.
+export function MathText({ text }: { text?: string }) {
+  if (!text) return null;
+  const parts = text.split(/(\\\([\s\S]+?\\\)|\\\[[\s\S]+?\\\])/g);
+  return <>{parts.map((part, i) => {
+    if (i % 2 === 0) return part;
+    const expression = part.slice(2, -2);
+    const displayMode = part.startsWith('\\[');
+    try {
+      const html = katex.renderToString(expression, {
+        displayMode, trust: false, maxExpand: 100, maxSize: 12, output: 'htmlAndMathml',
+      });
+      return <span key={i} className={displayMode ? 'math-in-text display' : 'math-in-text'} dangerouslySetInnerHTML={{ __html: html }} />;
+    } catch {
+      return expression;
+    }
+  })}</>;
+}
 export function SourceNote({ source }: { source: Source }) {
   return <span className="source-note"><Icon name="book" size={14} />{[source.year && (source.year + (source.semester ? " Semester " + source.semester : "")), source.question && 'Q' + source.question, source.file, source.page && (typeof source.page === "string" && /[–,]/.test(source.page) ? "pp. " : "p. ") + source.page].filter(Boolean).join(' · ')}</span>;
 }
@@ -65,10 +83,10 @@ export function elapsed(seconds: number) {
   const minutes = Math.floor(seconds / 60);
   return [minutes, seconds % 60].map(n => String(n).padStart(2, '0')).join(':');
 }
-export function Modal({ title, children, onClose }: { title: string; children: ReactNode; onClose: () => void }) {
+export function Modal({ title, children, onClose, wide = false }: { title: string; children: ReactNode; onClose: () => void; wide?: boolean }) {
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => { dialog.current?.showModal(); }, []);
-  return <dialog className="modal" ref={dialog} onCancel={event => { event.preventDefault(); onClose(); }} aria-label={title}>
+  return <dialog className={wide ? "modal wide-modal" : "modal"} ref={dialog} onCancel={event => { event.preventDefault(); onClose(); }} aria-label={title}>
     <div className="row spread"><h2>{title}</h2><button className="icon-button" aria-label="Close dialog" onClick={onClose}><Icon name="close" /></button></div>
     {children}
   </dialog>;

@@ -8,7 +8,7 @@ import rawExamQuestions from './exam-questions.json' with { type: 'json' };
 import rawDrills from './drills.json' with { type: 'json' };
 import rawLectures from './lectures.json' with { type: 'json' };
 import rawLadders from './ladders.json' with { type: 'json' };
-import type { Concept, Difficulty, Guidance, HintStep, Lecture, ModuleInfo, Paper, Question, Reference, Topic } from '../types.ts';
+import type { Concept, Difficulty, Guidance, HintStep, Lecture, ModuleInfo, Paper, PaperDocument, Question, Reference, Topic } from '../types.ts';
 
 export const topics = [...rawTopics] as Topic[];
 export const moduleInfo: ModuleInfo = { ...builtinModule };
@@ -22,6 +22,8 @@ export const isBuiltinModule = () => moduleInfo.id === builtinModule.id;
 export const papers = [...rawPapers] as Paper[];
 export const hasBundledPapers = papers.length > 0;
 export let packLoadFailed = false;
+export let studyPackVersion: 1 | 2 | undefined;
+export const paperDocuments: Record<string, PaperDocument> = {};
 export const historicalQuestions = [...rawExamQuestions] as Question[];
 export const topicById = Object.fromEntries(topics.map(topic => [topic.id, topic]));
 export const referenceById = Object.fromEntries(references.map(reference => [reference.id, reference]));
@@ -169,6 +171,12 @@ export async function prepareStudyContent() {
   try {
     const pack = await loadStudyPack();
     if (!pack) return;
+    studyPackVersion = pack.version;
+    if (pack.lectures) {
+      replaceIndex(lectures, Object.entries(pack.lectures));
+      replaceIndex(lectureScenes, Object.entries(lectures).map(([id, lecture]) => [id, lecture.scenes.length]));
+    }
+    Object.assign(paperDocuments, pack.documents);
     addScans(pack.scans, pack.questions);
     papers.push(...pack.papers);
     historicalQuestions.push(...pack.questions);

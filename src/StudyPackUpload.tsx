@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
-import { hasBundledPapers, papers, packLoadFailed } from './content/index.ts';
-import { downloadStudyPack, saveStudyPack, studyPackAccept, studyPackFilename } from './study-pack.ts';
+import { hasBundledPapers, papers, packLoadFailed, studyPackVersion } from './content/index.ts';
+import { downloadStudyPack, installedStudyVersions, saveStudyPack, setStudyVersion, studyPackAccept, studyPackFilename } from './study-pack.ts';
 import { Icon, SectionTitle } from './ui.tsx';
 
 const nameKey = 'studyquest-study-pack-name';
-function savedName() {
-  try { return localStorage.getItem(nameKey) ?? ''; } catch { return ''; }
+function savedName(version: 1 | 2) {
+  try {
+    return localStorage.getItem(nameKey + ':' + version) ?? (version === 1 ? localStorage.getItem(nameKey) ?? '' : '');
+  } catch {
+    return '';
+  }
 }
 
 export function StudyPackUpload() {
@@ -14,15 +18,17 @@ export function StudyPackUpload() {
   const [busy, setBusy] = useState(false);
   const [zipUrl, setZipUrl] = useState('');
   const [chosen, setChosen] = useState('');
+  const [versions, setVersions] = useState<(1 | 2)[]>([]);
   const input = useRef<HTMLInputElement>(null);
   // The page reloads after a successful import, so remember the name of the pack in use.
-  const current = papers.length && !packLoadFailed ? savedName() : '';
-  const canDownload = !hasBundledPapers && papers.length > 0;
+  const current = studyPackVersion && !packLoadFailed ? savedName(studyPackVersion) : '';
+  const canDownload = !hasBundledPapers && studyPackVersion !== undefined;
   useEffect(() => {
-    if (!canDownload) return;
+    if (!canDownload || !studyPackVersion) return;
     let active = true;
+    installedStudyVersions().then(list => { if (active) setVersions(list); }).catch(() => {});
     let url = '';
-    downloadStudyPack().then(zip => {
+    downloadStudyPack(studyPackVersion).then(zip => {
       if (!active || !zip) return;
       url = URL.createObjectURL(zip);
       setZipUrl(url);
@@ -45,8 +51,8 @@ export function StudyPackUpload() {
     setBusy(true);
     setStatus('Checking and saving your study pack…');
     try {
-      await saveStudyPack(file);
-      try { localStorage.setItem(nameKey, file.name); } catch { /* name display is optional */ }
+      const version = await saveStudyPack(file);
+      try { localStorage.setItem(nameKey + ':' + version, file.name); } catch { /* name display is optional */ }
       location.reload();
     } catch (error) {
       setStatus(error instanceof Error ? error.message : 'Could not import the study pack.');
@@ -61,12 +67,26 @@ export function StudyPackUpload() {
     <p>Choose the study pack ZIP or JSON. The file stays on this device.</p>
     <div className="row wrap file-pick">
       <button type="button" className="button primary" disabled={busy} onClick={() => input.current?.click()}>
-        <Icon name="upload" size={18} /> {busy ? 'Importing…' : current ? 'Replace study pack' : 'Choose study pack'}
+        <Icon name="upload" size={18} /> {busy ? 'Importing…' : studyPackVersion ? 'Import study pack' : 'Choose study pack'}
       </button>
-      <span className="file-pick-name" aria-live="polite">{chosen ? 'Selected: ' + chosen : current ? 'Current pack: ' + current : papers.length ? 'Study pack loaded' : 'No file chosen'}</span>
+      <span className="file-pick-name" aria-live="polite">{chosen ? 'Selected: ' + chosen : studyPackVersion ? 'Version ' + studyPackVersion + (current ? ' · ' + current : '') : 'No file chosen'}</span>
       <input ref={input} className="sr-only" type="file" accept={studyPackAccept} onChange={choose} disabled={busy} tabIndex={-1} aria-label="Choose study pack file" />
     </div>
-    {zipUrl && <div><a className="button secondary" href={zipUrl} download={studyPackFilename}>Download study pack ZIP</a></div>}
+    {versions.length > 1 && <label className="narrow-field">Study pack version
+      <select disabled={busy} value={studyPackVersion} onChange={async event => {
+        setBusy(true);
+        try {
+          await setStudyVersion(event.target.value === '2' ? 2 : 1);
+          location.reload();
+        } catch (error) {
+          setStatus(error instanceof Error ? error.message : 'Could not switch versions.');
+          setBusy(false);
+        }
+      }}>
+        {versions.map(version => <option key={version} value={version}>Version {version}</option>)}
+      </select>
+    </label>}
+    {zipUrl && <div><a className="button secondary" href={zipUrl} download={studyPackVersion === 2 ? 'StudyQuest-Study-Pack-v2.zip' : studyPackFilename}>Download study pack ZIP</a></div>}
     {(status || packLoadFailed) && <p role="status">{status || 'The saved pack could not be opened. Select the study pack again.'}</p>}
   </section>;
 }

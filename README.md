@@ -50,3 +50,11 @@ Open **this folder** in VS Code. In **Source Control**, choose **Publish to GitH
 ## Guided lectures
 
 Go to **Learning Journey**, choose a topic, and select **Start lecture**. Each lecture uses a three-section worked example with diagrams or charts, a hint and check per section, and a final explain-it-back exercise. Follow the linked concept lessons for more detail. Lecture checkmarks and draft explanations last for the open lecture session.
+
+## Study pack v2
+
+Import the private `StudyQuest-Study-Pack-v2.zip` under **Settings → Private study pack**. If you have imported both versions, use **Study pack version** to switch between them. The same progress and question IDs apply to both versions. Version 2 includes the revised tutorials, guided lectures, and original papers.
+
+In **Exam Arena**, choose a paper or open a sourced question. **View paper PDF** opens the cited page in the app. Use **Open original PDF** for the full PDF in a browser tab. The app reads these files from the imported pack on this device.
+
+In authored study text, write inline math as `\( ... \)` and display math as `\[ ... \]`. Unicode symbols also work in plain text. JSON strings require doubled backslashes, for example `"The probability is \\( P(A \\mid B) \\)."`.

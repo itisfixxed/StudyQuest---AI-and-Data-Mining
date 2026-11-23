@@ -50,6 +50,11 @@ test('the public package contains generated questions only', () => {
   assert.equal(existsSync(new URL('../public/papers', import.meta.url)), false);
 });
 
+test('numeric answers accept scientific notation with a signed Unicode exponent', () => {
+  assert.equal(arithmetic('2.5 × 10⁻⁴'), arithmetic('2.5e-4'));
+  assert.equal(arithmetic('2 × 10⁺³'), 2000);
+});
+
 test('arithmetic accepts equivalent fractions, roots and log expressions without evaluating code', () => {
   assert.equal(arithmetic('2^3^2'), 512);
   assert.equal(arithmetic('64,000,000'),64_000_000);

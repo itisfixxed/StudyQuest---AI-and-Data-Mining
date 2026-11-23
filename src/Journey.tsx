@@ -4,7 +4,7 @@ import { addLesson, profile, topicLocked } from './progress.ts';
 import type { Progress, Topic } from './types.ts';
 import { AnswerField } from './Practice.tsx';
 import type { PracticeSet, Update } from './Practice.tsx';
-import { Bubble, Icon, MathBlock, PageTitle, Pill, ProgressBar, SectionTitle, SourceNote } from './ui.tsx';
+import { Bubble, Icon, MathBlock, MathText, PageTitle, Pill, ProgressBar, SectionTitle, SourceNote } from './ui.tsx';
 
 import { TopicLecture } from './TopicLecture.tsx';
 import { Demonstration } from './Demonstration.tsx';
@@ -28,15 +28,15 @@ function Lesson({ path, progress, update, openTopic, nextLesson, practice }: {
     <div className="session-cols">
       <article className="panel lesson-panel">
         <div className="row spread"><Pill color="indigo">Concept lesson</Pill>{complete && <Pill color="teal"><Icon name="check" size={15} /> Completed</Pill>}</div>
-        <h2>Build the intuition</h2><p className="lesson-intro">{concept.intuition}</p>
-        <h3>How it works</h3><p>{concept.formal}</p>
+        <h2>Build the intuition</h2><p className="lesson-intro"><MathText text={concept.intuition} /></p>
+        <h3>How it works</h3><p><MathText text={concept.formal} /></p>
         {isBuiltinModule() && <Demonstration topic={topic.id} concept={concept.id} />}
         {references.filter(r => concept.formulas.includes(r.id) && r.expression)
-          .map(r => <div className="lesson-formula" key={r.id}><h3>{r.title}</h3><MathBlock expression={r.expression!} /><p>{r.parameters}</p></div>)}
-        <h3>Worked example</h3><p>{concept.example}</p>
+          .map(r => <div className="lesson-formula" key={r.id}><h3>{r.title}</h3><MathBlock expression={r.expression!} /><p><MathText text={r.parameters} /></p></div>)}
+        <h3>Worked example</h3><p><MathText text={concept.example} /></p>
         <div className="check-panel">
           <Pill color="indigo"><Icon name="target" size={15} /> Knowledge check</Pill>
-          <h3>{check.prompt}</h3>
+          <h3><MathText text={check.prompt} /></h3>
           <AnswerField question={check} answer={value} id="lesson-check" setAnswer={answer => { setValue(String(answer)); setResult(null); }} disabled={result === true} />
           <button className="button primary small" disabled={!value || result === true} onClick={() => {
             const correct = value === check.answer;
@@ -58,8 +58,8 @@ function Lesson({ path, progress, update, openTopic, nextLesson, practice }: {
         </div>
       </article>
       <aside className="panel tutor-panel">
-        <div className="row"><Bubble icon="bulb" color="amber" /><h3>Exam cues</h3></div><p>{concept.cue}</p>
-        <h3>Common mistake</h3><p>{concept.pitfall}</p>
+        <div className="row"><Bubble icon="bulb" color="amber" /><h3>Exam cues</h3></div><p><MathText text={concept.cue} /></p>
+        <h3>Common mistake</h3><p><MathText text={concept.pitfall} /></p>
         {topic.prerequisites.length > 0 && <><h3>Builds on</h3><p>{topic.prerequisites.map(t => topicById[t].name).join(', ')}</p></>}
         <h3>Course source</h3><SourceNote source={concept.source} />
       </aside>

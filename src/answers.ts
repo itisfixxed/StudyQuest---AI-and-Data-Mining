@@ -30,7 +30,7 @@ function combine(left: Quantity, operator: string, right: Quantity): Quantity {
 export function arithmetic(input: string): number | null {
   if (input.length > 170) return null;
   const normalized = input.toLowerCase().replace(/[−–]/g, '-').replace(/[×·]/g, '*').replace(/÷/g, '/').replace(/√\s*(?=\()/g, 'sqrt')
-    .replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]+/gu, digits => '^' + [...digits].map(char => '⁰¹²³⁴⁵⁶⁷⁸⁹'.indexOf(char)).join(''))
+    .replace(/[⁺⁻]?[⁰¹²³⁴⁵⁶⁷⁸⁹]+/gu, digits => '^' + [...digits].map(char => char === '⁻' ? '-' : char === '⁺' ? '+' : '⁰¹²³⁴⁵⁶⁷⁸⁹'.indexOf(char)).join(''))
     .replace(/(?<=\d),(?=\d{3}(?:\D|$))/g, '')
     .trim();
   const tokens = normalized.match(/(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?|(?:sqrt|abs|ln|log2|exp|mod)\b|[()+*/^%\-]|\S/g) ?? [];

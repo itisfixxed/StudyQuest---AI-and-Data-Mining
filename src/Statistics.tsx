@@ -1,10 +1,11 @@
+import { examPart, PaperSource } from './PaperSource.tsx';
 import { useState } from 'react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { historical, historicalParts, originLabel, papers, questionById, referenceById, topicById, topics } from './content/index.ts';
 import { dayOffset, dueQuestions, localDate, mistakes, profile, totals } from './progress.ts';
 import { subtopicRows } from './planning.ts';
 import type { Progress } from './types.ts';
-import { Bubble, Icon, PageTitle, Pill, ProgressBar, SectionTitle, SourceNote, formatDate, Empty } from './ui.tsx';
+import { Bubble, Icon, PageTitle, Pill, ProgressBar, SectionTitle, formatDate, Empty } from './ui.tsx';
 
 const originalCount = historicalParts.filter(part => questionById[part.questionId].origin === 'original').length;
 const paperMarks = historicalParts.reduce((sum,part) => sum+part.marks,0);
@@ -52,8 +53,8 @@ function Intelligence({ openTopic }: { openTopic:(id:string)=>void }) {
     <SectionTitle title="Source coverage" description={papers.length + " distinct supplied papers. Visually identical copies are counted once."} />
     <div className="panel exam-review">{[...papers].reverse().map(paper=><details className="review-part" key={paper.id}>
       <summary><span><strong>{paper.year} Semester {paper.semester}</strong><small>{paper.file.split('/').at(-1)}</small></span><Pill>{paper.parts.length} indexed parts</Pill></summary>
-      <SourceNote source={{file:paper.file,year:paper.year}} /><div className="table-scroll"><table><thead><tr><th>Part</th><th>Topic</th><th>Marks</th><th>App coverage</th></tr></thead><tbody>
-        {paper.parts.map(part=><tr key={part.label}><th>Q{part.label} · p. {part.page}</th><td>{topicById[part.topic].short}</td><td>{part.marks}</td><td>{originLabel[questionById[part.questionId].origin]}</td></tr>)}
+      <PaperSource paper={paper} /><div className="table-scroll"><table><thead><tr><th>Part</th><th>Topic</th><th>Marks</th><th>App coverage</th></tr></thead><tbody>
+        {paper.parts.map(part=><tr key={part.label}><th>{examPart(questionById[part.questionId].source)} · p. {part.page}</th><td>{topicById[part.topic].short}</td><td>{part.marks}</td><td>{originLabel[questionById[part.questionId].origin]}</td></tr>)}
       </tbody></table></div>
     </details>)}</div>
   </>;

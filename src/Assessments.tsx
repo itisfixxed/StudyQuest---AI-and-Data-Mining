@@ -1,11 +1,12 @@
+import { examPart, paperFor, paperName, PaperSource } from './PaperSource.tsx';
 import { useEffect, useState } from 'react';
 import { hasAnswer } from './answers.ts';
 import { bossQuestions, isManual, papers, questionById, questions, topicById, topics } from './content/index.ts';
 import { createExam, finalizeResult, finishExam, markExam, profile } from './progress.ts';
 import { AnswerField, Hints, QuestionDetails, QuestionPrompt, Rubric, ScreenMeta, Solution } from './Practice.tsx';
 import type { PracticeSet, Update } from './Practice.tsx';
-import type { ActiveExam, ExamResult, Progress } from './types.ts';
-import { Bubble, Empty, Icon, Modal, PageTitle, Pill, ProgressBar, SectionTitle, SourceNote, elapsed } from './ui.tsx';
+import type { ActiveExam, ExamResult, Progress, Question } from './types.ts';
+import { Bubble, Empty, Icon, Modal, PageTitle, Pill, ProgressBar, SectionTitle, elapsed } from './ui.tsx';
 
 function shuffler<T,>(items: T[]) {
   const copy = [...items];
@@ -49,6 +50,19 @@ export function ResultHistory({ results, select }: { results: ExamResult[]; sele
   </section>;
 }
 
+function groupParts(items: Question[]) {
+  const groups = new Map<string, { question: Question; index: number }[]>();
+  items.forEach((question, index) => {
+    const paper = paperFor(question.source);
+    const number = /^\d+/.exec(question.source.question ?? '')?.[0];
+    const label = paper && number ? paperName(paper) + ' · Question ' + number : 'Other questions';
+    const parts = groups.get(label) ?? [];
+    parts.push({ question, index });
+    groups.set(label, parts);
+  });
+  return [...groups];
+}
+
 function AssessmentScreen({ active, update, submit }: { active: ActiveExam; update: Update; submit: () => void }) {
   const [confirm, setConfirm] = useState(false);
   const [now, setNow] = useState(Date.now());
@@ -73,20 +87,29 @@ function AssessmentScreen({ active, update, submit }: { active: ActiveExam; upda
           ...old, flags: flag ? old.flags.filter(id => id !== q.id) : [...old.flags,q.id]
         }))}><Icon name="flag" size={16} /> {flag ? 'Flagged for review' : 'Flag for review'}</button></div>
         <ScreenMeta question={q} />
-        <h2>{q.source.year ? 'Q' + q.source.question + ' · ' : ''}{q.title}</h2><QuestionPrompt question={q} />
+        <h2>{q.source.year ? examPart(q.source) + ' · ' : ''}{q.title}</h2><QuestionPrompt question={q} />
         <AnswerField question={q} id={'exam-response-' + q.id} answer={active.answers[q.id] ?? (q.kind === 'multi' ? [] : '')} setAnswer={answer =>
           patch(old => ({ ...old, answers: { ...old.answers,[q.id]:answer } }))} />
-        {q.source.year && <SourceNote source={q.source} />}
         <div className="row spread question-footer"><button className="button secondary" disabled={active.index===0} onClick={() => move(active.index-1)}><Icon name="back" size={18} /> Previous</button>
           {active.index+1 < active.questions.length ? <button className="button primary" onClick={() => move(active.index+1)}>Next question <Icon name="chevron" size={18} /></button> :
             <button className="button primary" onClick={() => setConfirm(true)}>Submit assessment</button>}</div>
       </article>
       <aside className="panel tutor-panel"><h3>Questions</h3><p>{count} of {active.questions.length} answered</p>
-        <div className="exam-nav" aria-label="Question navigation">{active.questions.map((id,i) => <button key={id} onClick={() => move(i)} aria-current={active.index === i ? 'step' : undefined}
-          className={[active.index===i ? 'current' : '', hasAnswer(active.answers[id]) ? 'answered' : ''].join(' ')}
-          aria-label={'Question '+(i+1)+(hasAnswer(active.answers[id]) ? ', answered' : ', unanswered')+(active.flags.includes(id) ? ', flagged' : '')}>
-          {i+1}{active.flags.includes(id) && <Icon name="flag" size={11} />}
-        </button>)}</div>
+        <nav className="exam-nav-groups" aria-label="Question navigation">{groupParts(active.questions.map(id => questionById[id])).map(([label, parts]) =>
+          <div key={label} role="group" aria-label={label}>
+            <strong>{label}</strong>
+            <div className="exam-nav">{parts.map(({question, index}) => {
+              const answered = hasAnswer(active.answers[question.id]);
+              const flagged = active.flags.includes(question.id);
+              const part = examPart(question.source) || 'Question ' + (index + 1);
+              return <button key={question.id} onClick={() => move(index)} aria-current={active.index === index ? 'step' : undefined}
+                className={[active.index===index ? 'current' : '', answered ? 'answered' : ''].join(' ')}
+                aria-label={part + (answered ? ', answered' : ', unanswered') + (flagged ? ', flagged' : '')}>
+                {part}{flagged && <Icon name="flag" size={11} />}
+              </button>;
+            })}</div>
+          </div>
+        )}</nav>
         <button className="button secondary" onClick={() => setConfirm(true)}><Icon name="clipboard" size={17} /> Submit assessment</button>
         {!active.strict && <div className="exam-hints"><h3>Guided hints</h3><Hints key={q.id} question={q} level={active.assistance[q.id] ?? 0}
           change={level => patch(old => ({ ...old, assistance:{ ...old.assistance,[q.id]:level } }))} /></div>}
@@ -132,7 +155,7 @@ function ResultScreen({ result, update, close, review, practice }: { result: Exa
             const points = result.scores[id];
             const marked = result.marked.includes(id);
             return <details className="review-part" key={id}>
-              <summary><span><strong>{q.source.year ? 'Q' + q.source.question + ' · ' : ''}{q.title}</strong><small>{topicById[q.topic].short}</small></span>
+              <summary><span><strong>{q.source.year ? examPart(q.source) + ' · ' : ''}{q.title}</strong><small>{topicById[q.topic].short}</small></span>
                 <Pill color={!marked ? 'amber' : points === q.marks ? 'teal' : ''}>{marked ? points + '/' + q.marks : 'Mark response'}</Pill></summary>
               <ScreenMeta question={q} /><QuestionPrompt question={q} />
               <Solution question={q} answer={result.answers[id] ?? ''} />
@@ -207,7 +230,7 @@ export function ExamArena({ progress, update, resultId, selectResult, setActive,
       {mode === 'paper' && paper && <>
         <label className="toggle-row"><input type="checkbox" checked={originalOnly} onChange={e => setOriginalOnly(e.target.checked)} /><span><strong>Original questions only</strong><small>Use the original source scans.</small></span></label>
         <div className="callout"><Icon name="help" size={20} /><div><strong>{paperQuestions.length} parts · {paperMarks} marks · {originalCount} original{!originalOnly && paperQuestions.length > originalCount && ' · ' + (paperQuestions.length-originalCount) + ' adapted'}</strong>
-          <SourceNote source={{file:paper.file, year:paper.year, semester:paper.semester}} />
+          <PaperSource key={paper.id} paper={paper} />
           <button className="text-button paper-practice" onClick={() => practice({ids:paperQuestions.map(q=>q.id),title:paper.year + ' Semester ' + paper.semester + ' practice',mode:'practice'})}>Practice this paper with hints</button>
         </div></div>
       </>}
