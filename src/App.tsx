@@ -13,6 +13,7 @@ import { createExam, finishExam, localDate, mergeProgress, storageKey, totals } 
 import type { Recommendation } from './progress.ts';
 import { availableProgress, loadPracticeSession, loadProgress, parseProgress, savePracticeSession } from './storage.ts';
 import { Library, Notebook, Planner, SettingsPage } from './StudyTools.tsx';
+import { StudySearch } from './StudySearch.tsx';
 import type { ActiveExam, Progress } from './types.ts';
 import { Icon, Modal, Pill, ProgressBar } from './ui.tsx';
 
@@ -187,6 +188,7 @@ export function App() {
     return true;
   };
   const theme = progress.settings.theme;
+  const currentQuestion = session && !session.complete ? session.ids[session.index ?? 0] : undefined;
   const page = {
     dashboard: <Dashboard progress={progress} navigate={go} start={start} openTopic={openTopic}/>,
     journey: <Journey progress={progress} update={update} activeTopic={activeTopic} openTopic={openTopic} lesson={lesson} openLesson={openLesson} practice={practice} launchBoss={launchBoss} />,
@@ -223,6 +225,11 @@ export function App() {
         <div className="row"><button className="icon-button menu-button" aria-label="Open navigation" aria-expanded={mobile} aria-controls="study-navigation" ref={menuButton} onClick={()=>setMobile(true)}><Icon name="menu" /></button>
           <div className="breadcrumb"><span className="course-id"><Icon name="grad" size={18} /> {moduleInfo.name}</span><Icon name="chevron" size={15}/><strong>{routes[route]}</strong></div></div>
         <div className="row header-actions">
+          <StudySearch openTopic={openTopic} currentQuestion={currentQuestion} hasPracticeSession={currentQuestion !== undefined}
+            openQuestion={question => {
+              if (currentQuestion === question.id) navigate('practice');
+              else practice({ ids: [question.id], title: question.title, mode: 'practice' });
+            }} />
           {active&&route!=='exam'&&<button className="button secondary small resume-top" onClick={()=>go('exam')}><Icon name="clock" size={17} /> Resume assessment</button>}
           <span className="header-date"><Icon name="calendar" size={17}/> {currentDate}</span>
           <button className="icon-button theme" aria-label={theme==='light'?'Switch to dark mode':'Switch to light mode'} onClick={()=>update(p=>({...p,settings:{...p.settings,theme:theme==='light'?'dark':'light'}}))}><Icon name={theme==='light'?'moon':'sun'} size={20}/></button>

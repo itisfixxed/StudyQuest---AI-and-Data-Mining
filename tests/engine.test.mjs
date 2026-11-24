@@ -77,7 +77,8 @@ test('arithmetic accepts equivalent fractions, roots and log expressions without
 const when = new Date(2026,10,20,12,0).getTime();
 const attempt = (q, extra={}) => ({answer:q.answer,score:q.marks,assistance:0,retries:0,confidence:4,seconds:40,mode:'practice',...extra});
 
-test('repeating a solved question gives no additional XP or mastery', () => {
+test('repeating a solved question gives no additional XP or mastery', t => {
+  t.mock.timers.enable({ apis: ['Date'], now: when });
   const q = questionById['check-foundations-goals'];
   const independent = recordAttempt(newProgress(),q,attempt(q),when);
   const replay = recordAttempt(independent,q,attempt(q),when + 10_000);

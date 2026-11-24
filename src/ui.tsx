@@ -83,10 +83,13 @@ export function elapsed(seconds: number) {
   const minutes = Math.floor(seconds / 60);
   return [minutes, seconds % 60].map(n => String(n).padStart(2, '0')).join(':');
 }
-export function Modal({ title, children, onClose, wide = false }: { title: string; children: ReactNode; onClose: () => void; wide?: boolean }) {
+export function Modal({ title, children, onClose, wide = false, className = '' }: {
+  title: string; children: ReactNode; onClose: () => void; wide?: boolean; className?: string;
+}) {
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => { dialog.current?.showModal(); }, []);
-  return <dialog className={wide ? "modal wide-modal" : "modal"} ref={dialog} onCancel={event => { event.preventDefault(); onClose(); }} aria-label={title}>
+  return <dialog className={['modal', wide ? 'wide-modal' : '', className].filter(Boolean).join(' ')} ref={dialog}
+    onCancel={event => { event.preventDefault(); onClose(); }} aria-label={title}>
     <div className="row spread"><h2>{title}</h2><button className="icon-button" aria-label="Close dialog" onClick={onClose}><Icon name="close" /></button></div>
     {children}
   </dialog>;

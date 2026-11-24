@@ -4,6 +4,7 @@ import type { FormEvent } from 'react';
 import { automaticScore, checkStep, displayOrder, hasAnswer, normalizeText } from './answers.ts';
 import { isManual, labels, moduleInfo, originLabel, papers, questionById, questions, referenceById, topicById, topics } from './content/index.ts';
 import { createRecordId, dueQuestions, recordAttempt } from './progress.ts';
+import { matchesQuestionNumber, questionNumber } from './study-search.ts';
 import type { Answer, HintStep, Progress, Question, Step } from './types.ts';
 import { Bubble, Empty, Icon, MathBlock, MathText, PageTitle, Pill, ProgressBar, SectionTitle, SourceNote } from './ui.tsx';
 
@@ -270,17 +271,12 @@ export function Practice({ progress, update, session, setSession, openJourney }:
   const inPaper = papers.find(item => item.id === paper);
   const inPaperIds = new Set(inPaper?.parts.map(part => part.questionId));
   const queryText = normalizeText(query);
-  const queryPart = /^(?:q(?:uestion)?\s*)?(\d+)\s*\(?([a-z])\)?(?:\s*\(([ivx]+)\))?$/.exec(queryText);
-  const matchesPart = (question: Question) => {
-    if (!queryPart || !question.source.question) return false;
-    const label = /^q(\d+)\(([a-z])\)/i.exec(examPart(question.source));
-    return label?.[1] === queryPart[1] && label[2].toLowerCase() === queryPart[2] &&
-      (!queryPart[3] || question.source.subparts?.includes(queryPart[3]));
-  };
+  const queryPart = questionNumber(queryText);
   const pool = questions.filter(q => (topic === 'all' || q.topic === topic) && (subtopic === 'all' || q.subtopic === subtopic) &&
     (difficulty === 'all' || q.difficulty === difficulty) && (source === 'all' || q.origin === source) &&
     (!inPaper || inPaperIds.has(q.id)) &&
-    (!queryText || matchesPart(q) || normalizeText([q.title, q.prompt, q.source.question ? examPart(q.source) : '', q.source.file].join(' ')).includes(queryText)));
+    (!queryText || (queryPart ? matchesQuestionNumber(q.source, queryPart) :
+      normalizeText([q.title, q.prompt, q.source.question ? examPart(q.source) : '', q.source.file].join(' ')).includes(queryText))));
   const start = (value: PracticeSet) => setSession({ ...value, index: 0, complete: false });
   if (session && complete) return <><PageTitle title={session.title} description="Practice complete" />
     <Empty icon="trophy" title="Session complete" action={<div className="row wrap center"><button className="button primary" onClick={() => setSession(null)}>More practice</button>
