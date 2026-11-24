@@ -98,7 +98,15 @@ function StepCheck({ step, onPass }: { step: Step; onPass: () => void }) {
   const [checked, setChecked] = useState<null | boolean>(null);
   return <div className="step-check">
     <p><MathText text={step.prompt} /></p>
-    {step.options ? <div className="hint-options">{displayOrder(step).map(i => { const option = step.options![i]; return <button type="button" key={option} aria-pressed={entry === String(i)} className={'button secondary ' + (entry === String(i) ? 'selected' : '')} disabled={checked === true} onClick={() => { setEntry(String(i)); setChecked(null); }}><MathText text={option} /></button>; })}</div> :
+    {step.options ? <div className="hint-options">{displayOrder(step).map(i => {
+      const option = step.options![i];
+      const selected = entry === String(i);
+      return <button type="button" key={option} aria-pressed={selected}
+        className={'button secondary ' + (selected ? 'selected' : '')} disabled={checked === true}
+        onClick={() => { setEntry(String(i)); setChecked(null); }}>
+        <span><MathText text={option} /></span>
+      </button>;
+    })}</div> :
       <label className="response-field"><span>Step answer</span><input value={entry} onChange={e => { setEntry(e.target.value); setChecked(null); }} disabled={checked === true} maxLength={170} /></label>}
     {checked !== null && <p className={checked ? 'good-text' : 'bad-text'} role="status"><MathText text={checked ? step.why : step.retry} /></p>}
     <button type="button" className="button secondary small" disabled={!entry.trim() || checked === true} onClick={() => {
