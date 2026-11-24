@@ -299,6 +299,11 @@ li + li { margin-top: .35rem; }
 .tutor-panel p { margin:.55rem 0 .8rem; color:var(--muted); font-size:.93rem; }
 .tutor-panel > .text-button { display:flex; margin:.45rem 0; }
 .tutor-panel .source-note { margin-bottom:.55rem; }
+.session-tools {
+  position:sticky; top:1rem; max-block-size:calc(100vh - 2rem); max-block-size:calc(100dvh - 2rem); overflow:auto;
+  overscroll-behavior-y:contain; scrollbar-gutter:stable; scroll-margin-block:1rem;
+}
+.session-tools-jump { display:none; }
 .source-note { display:flex; gap:.35rem; align-items:flex-start; font-size:.8rem; margin-top:.55rem; color:var(--muted); overflow-wrap:anywhere; }
 .source-note svg { margin-top:.18rem; flex-shrink:0; }
 .demo,.check-panel,.solution,.rubric,.hint-panel {
@@ -321,6 +326,13 @@ li + li { margin-top: .35rem; }
 .response-field { margin:.85rem 0; }
 .response-field label { font-size:.9rem; font-weight:680; }
 .response-field input, .response-field textarea { width:100%; }
+.symbol-input { display:grid; grid-template-columns:minmax(0,1fr); gap:.3rem; min-width:0; }
+.symbol-trigger { justify-self:start; min-height:32px; padding:.15rem .35rem; }
+.symbol-menu { border:1px solid var(--border); border-radius:10px; padding:.28rem; background:var(--surface); }
+.symbol-menu ul { max-height:min(11rem, 30dvh); margin:0; padding:0; list-style:none; overflow-y:auto; overscroll-behavior-y:contain; }
+.symbol-menu li { display:grid; grid-template-columns:2.4rem minmax(0,1fr); align-items:center; min-height:38px; padding:.2rem .4rem; cursor:pointer; border-radius:6px; }
+.symbol-menu li:hover,.symbol-menu li[aria-selected="true"] { background:var(--accent-soft); color:var(--accent-text); }
+.symbol-menu li strong { font-size:1.13rem; }
 .question-list-item { width:100%; text-align:left; color:var(--text); }
 .question-list-item > span:not(.bubble,.pill) { flex:1; min-width:0; }
 .question-list-item:hover:not(:disabled) strong { color:var(--accent-text); }
@@ -458,6 +470,8 @@ tbody tr:last-child td,tbody tr:last-child th { border:0; }
   .session-cols { grid-template-columns:minmax(0,1fr); }
   .question-panel,.lesson-panel { order:0; }
   .tutor-panel { order:1; }
+  .session-tools { position:static; max-block-size:min(65vh, 32rem); max-block-size:min(65dvh, 32rem); }
+  .session-tools-jump { display:inline-flex; min-height:36px; }
   .hero-content { max-width:71%; }
   .hero-art { opacity:.72; left:auto; right:-11%; }
   .header-date { display:none; }

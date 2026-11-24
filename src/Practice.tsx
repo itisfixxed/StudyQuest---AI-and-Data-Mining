@@ -1,13 +1,14 @@
 import { examPart, paperFor, PaperSource } from './PaperSource.tsx';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
-import { automaticScore, checkStep, displayOrder, hasAnswer, normalizeText } from './answers.ts';
+import { arithmetic, automaticScore, checkStep, displayOrder, hasAnswer, normalizeText } from './answers.ts';
 import { isManual, labels, moduleInfo, originLabel, papers, questionById, questions, referenceById, topicById, topics } from './content/index.ts';
 import { createRecordId, dueQuestions, recordAttempt } from './progress.ts';
 import { matchesQuestionNumber, questionNumber } from './study-search.ts';
 import { groupWorkings, questionParts, splitResponse } from './question-parts.ts';
+import { SymbolInput } from './SymbolInput.tsx';
 import type { Answer, HintStep, Progress, Question, Step } from './types.ts';
-import { Bubble, Empty, Icon, MathBlock, MathText, PageTitle, Pill, ProgressBar, SectionTitle, SourceNote } from './ui.tsx';
+import { Bubble, Empty, Icon, MathBlock, MathText, PageTitle, Pill, ProgressBar, SectionTitle, SourceNote, focusSection } from './ui.tsx';
 
 export type Update = (fn: (progress: Progress) => Progress) => void;
 export interface PracticeDraft {
@@ -76,24 +77,27 @@ export function AnswerField({ question, answer, setAnswer, disabled = false, id 
     return <fieldset className="multipart-response" disabled={disabled}>
       <legend>Show your reasoning</legend>
       {earlier.trim() && <details className="answer-review"><summary>Earlier combined response</summary><p>{earlier}</p></details>}
-      {labels.map((label, i) => <label key={label} className="response-field" htmlFor={id + '-' + label}>
-        Part ({label})
-        <textarea id={id + '-' + label} value={parts[i]} onChange={event => {
-          const updated = parts.map((part, j) => i === j ? event.target.value : part);
+      {labels.map((label, i) => <div key={label} className="response-field">
+        <label htmlFor={id + '-' + label}>Part ({label})</label>
+        <SymbolInput id={id + '-' + label} value={parts[i]} setValue={value => {
+          const updated = parts.map((part, j) => i === j ? value : part);
           setAnswer(earlier.trim() ? [...updated, earlier] : updated);
-        }} rows={4} maxLength={20000} />
-      </label>)}
+        }} disabled={disabled} rows={4} maxLength={20000} />
+      </div>)}
     </fieldset>;
   }
+  const manual = isManual(question);
   return <div className="response-field">
-    <label htmlFor={id}>{isManual(question) ? 'Show your reasoning' : 'Your answer'}</label>
-    {isManual(question) ? <textarea id={id} value={String(answer)} onChange={e => setAnswer(e.target.value)} disabled={disabled} rows={5} maxLength={20000} placeholder="State assumptions and show each step…" /> :
-      <input id={id} value={String(answer)} onChange={e => setAnswer(e.target.value)} disabled={disabled} autoComplete="off" maxLength={170} placeholder={question.kind === 'expression' ? 'Enter a number or expression' : 'Enter your answer'} />}
+    <label htmlFor={id}>{manual ? 'Show your reasoning' : 'Your answer'}</label>
+    <SymbolInput id={id} value={String(answer)} setValue={setAnswer} disabled={disabled}
+      rows={manual ? 5 : undefined} maxLength={manual ? 20000 : 170} numeric={question.kind === 'number' || question.kind === 'expression'}
+      placeholder={manual ? 'State assumptions and show each step…' : question.kind === 'expression' ? 'Enter a number or expression' : 'Enter your answer'} />
     {question.kind === 'expression' && <small>Use fractions, powers, percentages, or scientific notation such as 2.5e−4 or 2.5 × 10⁻⁴.</small>}
   </div>;
 }
 
 function StepCheck({ step, onPass }: { step: Step; onPass: () => void }) {
+  const inputId = useId();
   const [entry, setEntry] = useState('');
   const [checked, setChecked] = useState<null | boolean>(null);
   return <div className="step-check">
@@ -107,7 +111,10 @@ function StepCheck({ step, onPass }: { step: Step; onPass: () => void }) {
         <span><MathText text={option} /></span>
       </button>;
     })}</div> :
-      <label className="response-field"><span>Step answer</span><input value={entry} onChange={e => { setEntry(e.target.value); setChecked(null); }} disabled={checked === true} maxLength={170} /></label>}
+      <div className="response-field"><label htmlFor={inputId}>Step answer</label>
+        <SymbolInput id={inputId} value={entry} setValue={value => { setEntry(value); setChecked(null); }}
+          numeric={arithmetic(String(step.answer)) !== null} disabled={checked === true} maxLength={170} />
+      </div>}
     {checked !== null && <p className={checked ? 'good-text' : 'bad-text'} role="status"><MathText text={checked ? step.why : step.retry} /></p>}
     <button type="button" className="button secondary small" disabled={!entry.trim() || checked === true} onClick={() => {
       const passed = checkStep(step, entry);
@@ -231,6 +238,7 @@ function QuestionDrill({ question, mode, update, onAdvance, isLast, index, count
   const patch = (changes: Partial<PracticeDraft>) => onDraft({ ...current, ...changes });
   const start = useRef(Date.now());
   const questionTitle = useRef<HTMLHeadingElement>(null);
+  const guidancePanel = useRef<HTMLElement>(null);
   useEffect(() => { questionTitle.current?.focus(); }, []);
   const manual = isManual(question);
   const save = (points: number, assistance = hints, changes: Partial<PracticeDraft> = {}) => {
@@ -260,6 +268,7 @@ function QuestionDrill({ question, mode, update, onAdvance, isLast, index, count
     <article className="panel question-panel">
       <div className="row spread question-count"><strong>Question {index+1} of {count}</strong><span>{Math.round((index+(locked||score!==null?1:0))/count*100)}%</span></div>
       <ProgressBar value={(index+(locked||score!==null?1:0))/count*100} label="Practice session progress" />
+      {!locked && !manualOpen && <button type="button" className="text-button session-tools-jump" onClick={() => focusSection(guidancePanel.current)}>Hints</button>}
       <ScreenMeta question={question} />
       <h2 ref={questionTitle} tabIndex={-1}>{question.title}</h2><QuestionPrompt question={question} />
       <form onSubmit={submit}>
@@ -279,8 +288,11 @@ function QuestionDrill({ question, mode, update, onAdvance, isLast, index, count
       <div className="question-footer"><QuestionDetails question={question} />
         {locked && <button className="button primary" onClick={onAdvance}>{isLast ? 'Finish session' : 'Next question'} <Icon name="chevron" size={18} /></button>}</div>
     </article>
-    <aside className="panel tutor-panel">
-      <div className="row"><Bubble icon="bulb" color="indigo" /><div><h3>Guidance</h3><small>{hints ? 'Assisted attempt' : 'Independent attempt'}</small></div></div>
+    <aside className="panel tutor-panel session-tools" aria-label="Guidance" tabIndex={0} ref={guidancePanel}>
+      <div className="row spread wrap">
+        <div className="row"><Bubble icon="bulb" color="indigo" /><div><h3>Guidance</h3><small>{hints ? 'Assisted attempt' : 'Independent attempt'}</small></div></div>
+        <button type="button" className="text-button session-tools-jump" onClick={() => focusSection(questionTitle.current)}>Back to question</button>
+      </div>
       {!locked && !manualOpen ? <>
         <p>Start with what you know. If you get stuck, work through a hint.</p>
         <Hints question={question} level={hints} change={hints => patch({ hints })} />

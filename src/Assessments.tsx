@@ -1,5 +1,5 @@
 import { examPart, paperFor, paperName, PaperSource } from './PaperSource.tsx';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { hasAnswer } from './answers.ts';
 import { bossQuestions, isManual, papers, questionById, questions, topicById, topics } from './content/index.ts';
 import { assessmentEdit, createExam, finalizeResult, finishExam, markExam, profile } from './progress.ts';
@@ -7,7 +7,7 @@ import { AnswerField, Hints, QuestionDetails, QuestionPrompt, Rubric, ScreenMeta
 import type { PracticeSet, Update } from './Practice.tsx';
 import { responseStatus } from './question-parts.ts';
 import type { ActiveExam, ExamResult, Progress, Question } from './types.ts';
-import { Bubble, Empty, Icon, Modal, PageTitle, Pill, ProgressBar, SectionTitle, elapsed } from './ui.tsx';
+import { Bubble, Empty, Icon, Modal, PageTitle, Pill, ProgressBar, SectionTitle, elapsed, focusSection } from './ui.tsx';
 
 function shuffler<T,>(items: T[]) {
   const copy = [...items];
@@ -67,6 +67,9 @@ function groupParts(items: Question[]) {
 function AssessmentScreen({ active, update, submit }: { active: ActiveExam; update: Update; submit: () => void }) {
   const [confirm, setConfirm] = useState(false);
   const [now, setNow] = useState(Date.now());
+  const questionPanel = useRef<HTMLElement>(null);
+  const toolsPanel = useRef<HTMLElement>(null);
+  const toolsLabel = active.strict ? 'Questions' : 'Questions and hints';
   const q = questionById[active.questions[active.index]];
   const statuses = active.questions.map(id => responseStatus(questionById[id], active.answers[id]));
   const count = statuses.filter(status => status === 'answered').length;
@@ -85,20 +88,24 @@ function AssessmentScreen({ active, update, submit }: { active: ActiveExam; upda
     <PageTitle title={active.title} description={active.strict ? 'Strict simulation · hints disabled' : 'Guided assessment · hints count as assistance'}
       action={seconds !== null ? <span className={'timer ' + (seconds <= 60 ? 'urgent' : '')} aria-label="Time remaining"><Icon name="timer" size={20} /> {elapsed(seconds)}</span> : <Pill>Untimed</Pill>} />
     <div className="session-cols">
-      <article className="panel question-panel">
+      <article className="panel question-panel" ref={questionPanel} tabIndex={-1}>
         <div className="row spread wrap"><strong>Question {active.index+1} of {active.questions.length}</strong><button className={'button secondary small ' + (flag ? 'selected' : '')} aria-pressed={flag} onClick={() => patch(old => ({
           ...old, flags: old.flags.includes(q.id) ? old.flags.filter(id => id !== q.id) : [...old.flags,q.id],
           flagEdits: { ...old.flagEdits, [q.id]: assessmentEdit() }
         }))}><Icon name="flag" size={16} /> {flag ? 'Flagged for review' : 'Flag for review'}</button></div>
+        <button type="button" className="text-button session-tools-jump" onClick={() => focusSection(toolsPanel.current)}>{toolsLabel}</button>
         <ScreenMeta question={q} />
         <h2>{q.source.year ? examPart(q.source) + ' · ' : ''}{q.title}</h2><QuestionPrompt question={q} />
-        <AnswerField question={q} id={'exam-response-' + q.id} answer={active.answers[q.id] ?? (q.kind === 'multi' ? [] : '')} setAnswer={answer =>
+        <AnswerField key={q.id} question={q} id={'exam-response-' + q.id} answer={active.answers[q.id] ?? (q.kind === 'multi' ? [] : '')} setAnswer={answer =>
           patch(old => ({ ...old, answers: { ...old.answers,[q.id]:answer }, answerEdits: { ...old.answerEdits, [q.id]: assessmentEdit() } }))} />
         <div className="row spread question-footer"><button className="button secondary" disabled={active.index===0} onClick={() => move(active.index-1)}><Icon name="back" size={18} /> Previous</button>
           {active.index+1 < active.questions.length ? <button className="button primary" onClick={() => move(active.index+1)}>Next question <Icon name="chevron" size={18} /></button> :
             <button className="button primary" onClick={() => setConfirm(true)}>Submit assessment</button>}</div>
       </article>
-      <aside className="panel tutor-panel"><h3>Questions</h3><p>{count} of {active.questions.length} answered{partial > 0 && ' · ' + partial + ' partial'}</p>
+      <aside className="panel tutor-panel session-tools" aria-label={toolsLabel} tabIndex={0} ref={toolsPanel}>
+        <div className="row spread wrap"><h3>Questions</h3>
+          <button type="button" className="text-button session-tools-jump" onClick={() => focusSection(questionPanel.current)}>Back to question</button></div>
+        <p>{count} of {active.questions.length} answered{partial > 0 && ' · ' + partial + ' partial'}</p>
         <nav className="exam-nav-groups" aria-label="Question navigation">{groupParts(active.questions.map(id => questionById[id])).map(([label, parts]) =>
           <div key={label} role="group" aria-label={label}>
             <strong>{label}</strong>

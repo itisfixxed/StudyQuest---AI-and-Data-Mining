@@ -51,6 +51,10 @@ export function PageTitle({ title, description, action }: { title: string; descr
 export function SectionTitle({ title, description, action }: { title: string; description?: string; action?: ReactNode }) {
   return <div className="section-title"><div><h2>{title}</h2>{description && <p>{description}</p>}</div>{action}</div>;
 }
+export function focusSection(section: HTMLElement | null) {
+  section?.focus({ preventScroll: true });
+  section?.scrollIntoView({ block: 'start' });
+}
 export function MathBlock({ expression }: { expression: string }) {
   const math = katex.renderToString(expression, { throwOnError: false, displayMode: true, trust: false, output: 'htmlAndMathml' });
   return <div className="math-block" dangerouslySetInnerHTML={{ __html: math }} />;

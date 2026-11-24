@@ -30,6 +30,7 @@ function combine(left: Quantity, operator: string, right: Quantity): Quantity {
 export function arithmetic(input: string): number | null {
   if (input.length > 170) return null;
   const normalized = input.toLowerCase().replace(/[−–]/g, '-').replace(/[×·]/g, '*').replace(/÷/g, '/').replace(/√\s*(?=\()/g, 'sqrt')
+    .replace(/π/g, 'pi')
     .replace(/[⁺⁻]?[⁰¹²³⁴⁵⁶⁷⁸⁹]+/gu, digits => '^' + [...digits].map(char => char === '⁻' ? '-' : char === '⁺' ? '+' : '⁰¹²³⁴⁵⁶⁷⁸⁹'.indexOf(char)).join(''))
     .replace(/(?<=\d),(?=\d{3}(?:\D|$))/g, '')
     .trim();
@@ -38,7 +39,7 @@ export function arithmetic(input: string): number | null {
     const value = Number(percent[1]) / 100;
     return Number.isFinite(value) ? value : null;
   }
-  const tokens = normalized.match(/(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?|(?:sqrt|abs|ln|log2|exp|mod)\b|[()+*/^%\-]|\S/g) ?? [];
+  const tokens = normalized.match(/(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?|(?:sqrt|abs|ln|log2|exp|mod|pi)\b|[()+*/^%\-]|\S/g) ?? [];
   let index = 0;
   const rank: Record<string, number> = { '+': 1, '-': 1, '*': 2, '/': 2, '%': 2, mod: 2, '^': 4 };
   function read(minimum: number): Quantity {
@@ -54,6 +55,8 @@ export function arithmetic(input: string): number | null {
     } else if (token === '-' || token === '+') {
       value = read(3);
       if (token === '-') value = -value;
+    } else if (token === 'pi') {
+      value = Math.PI;
     } else {
       if (!token || !/^(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/.test(token)) throw new Error('Expected a number');
       value = /^\d+$/.test(token) ? BigInt(token) : Number(token);
