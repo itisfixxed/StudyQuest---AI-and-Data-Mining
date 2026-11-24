@@ -5,6 +5,7 @@ import { bossQuestions, isManual, papers, questionById, questions, topicById, to
 import { assessmentEdit, createExam, finalizeResult, finishExam, markExam, profile } from './progress.ts';
 import { AnswerField, Hints, QuestionDetails, QuestionPrompt, Rubric, ScreenMeta, Solution } from './Practice.tsx';
 import type { PracticeSet, Update } from './Practice.tsx';
+import { responseStatus } from './question-parts.ts';
 import type { ActiveExam, ExamResult, Progress, Question } from './types.ts';
 import { Bubble, Empty, Icon, Modal, PageTitle, Pill, ProgressBar, SectionTitle, elapsed } from './ui.tsx';
 
@@ -67,7 +68,9 @@ function AssessmentScreen({ active, update, submit }: { active: ActiveExam; upda
   const [confirm, setConfirm] = useState(false);
   const [now, setNow] = useState(Date.now());
   const q = questionById[active.questions[active.index]];
-  const count = active.questions.filter(id => hasAnswer(active.answers[id])).length;
+  const statuses = active.questions.map(id => responseStatus(questionById[id], active.answers[id]));
+  const count = statuses.filter(status => status === 'answered').length;
+  const partial = statuses.filter(status => status === 'partially answered').length;
   const flag = active.flags.includes(q.id);
   const seconds = active.deadline === null ? null : Math.max(0, Math.ceil((active.deadline-now)/1000));
   useEffect(() => {
@@ -95,17 +98,17 @@ function AssessmentScreen({ active, update, submit }: { active: ActiveExam; upda
           {active.index+1 < active.questions.length ? <button className="button primary" onClick={() => move(active.index+1)}>Next question <Icon name="chevron" size={18} /></button> :
             <button className="button primary" onClick={() => setConfirm(true)}>Submit assessment</button>}</div>
       </article>
-      <aside className="panel tutor-panel"><h3>Questions</h3><p>{count} of {active.questions.length} answered</p>
+      <aside className="panel tutor-panel"><h3>Questions</h3><p>{count} of {active.questions.length} answered{partial > 0 && ' · ' + partial + ' partial'}</p>
         <nav className="exam-nav-groups" aria-label="Question navigation">{groupParts(active.questions.map(id => questionById[id])).map(([label, parts]) =>
           <div key={label} role="group" aria-label={label}>
             <strong>{label}</strong>
             <div className="exam-nav">{parts.map(({question, index}) => {
-              const answered = hasAnswer(active.answers[question.id]);
+              const status = statuses[index];
               const flagged = active.flags.includes(question.id);
               const part = examPart(question.source) || 'Question ' + (index + 1);
               return <button key={question.id} onClick={() => move(index)} aria-current={active.index === index ? 'step' : undefined}
-                className={[active.index===index ? 'current' : '', answered ? 'answered' : ''].join(' ')}
-                aria-label={part + (answered ? ', answered' : ', unanswered') + (flagged ? ', flagged' : '')}>
+                className={[active.index===index ? 'current' : '', status === 'answered' ? 'answered' : status === 'partially answered' ? 'partial' : ''].join(' ')}
+                aria-label={part + ', ' + status + (flagged ? ', flagged' : '')}>
                 {part}{flagged && <Icon name="flag" size={11} />}
               </button>;
             })}</div>
@@ -117,7 +120,7 @@ function AssessmentScreen({ active, update, submit }: { active: ActiveExam; upda
       </aside>
     </div>
     {confirm && <Modal title="Submit assessment?" onClose={() => setConfirm(false)}>
-      <p>{count} of {active.questions.length} questions have responses. {active.flags.length ? active.flags.length + ' are flagged for review.' : 'Your responses are saved.'}</p>
+      <p>{count} of {active.questions.length} questions are fully answered.{partial > 0 && ' Partially answered: ' + partial + '.'} {active.flags.length ? active.flags.length + ' are flagged for review.' : 'Your responses are saved.'}</p>
       <div className="row wrap"><button className="button secondary" onClick={() => setConfirm(false)}>Continue working</button><button className="button primary" onClick={submit}>Submit assessment</button></div>
     </Modal>}
   </>;

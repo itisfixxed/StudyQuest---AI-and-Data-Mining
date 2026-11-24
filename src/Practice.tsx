@@ -5,6 +5,7 @@ import { automaticScore, checkStep, displayOrder, hasAnswer, normalizeText } fro
 import { isManual, labels, moduleInfo, originLabel, papers, questionById, questions, referenceById, topicById, topics } from './content/index.ts';
 import { createRecordId, dueQuestions, recordAttempt } from './progress.ts';
 import { matchesQuestionNumber, questionNumber } from './study-search.ts';
+import { groupWorkings, questionParts, splitResponse } from './question-parts.ts';
 import type { Answer, HintStep, Progress, Question, Step } from './types.ts';
 import { Bubble, Empty, Icon, MathBlock, MathText, PageTitle, Pill, ProgressBar, SectionTitle, SourceNote } from './ui.tsx';
 
@@ -67,6 +68,21 @@ export function AnswerField({ question, answer, setAnswer, disabled = false, id 
           {checked && <Icon name="check" size={18} />}
         </label>;
       })}
+    </fieldset>;
+  }
+  const labels = questionParts(question);
+  if (labels.length) {
+    const {parts, earlier} = splitResponse(answer, labels.length);
+    return <fieldset className="multipart-response" disabled={disabled}>
+      <legend>Show your reasoning</legend>
+      {earlier.trim() && <details className="answer-review"><summary>Earlier combined response</summary><p>{earlier}</p></details>}
+      {labels.map((label, i) => <label key={label} className="response-field" htmlFor={id + '-' + label}>
+        Part ({label})
+        <textarea id={id + '-' + label} value={parts[i]} onChange={event => {
+          const updated = parts.map((part, j) => i === j ? event.target.value : part);
+          setAnswer(earlier.trim() ? [...updated, earlier] : updated);
+        }} rows={4} maxLength={20000} />
+      </label>)}
     </fieldset>;
   }
   return <div className="response-field">
@@ -155,12 +171,26 @@ function LegacyHints({ question, level, change }: { question: Question; level: n
   </div>;
 }
 
+function WorkingSteps({ steps }: { steps: string[] }) {
+  return steps.length > 1 ? <ol className="working-steps">{steps.map((line, i) =>
+    <li key={i}><MathText text={line} /></li>)}</ol> : <p><MathText text={steps[0]} /></p>;
+}
+
 export function Solution({ question, answer }: { question: Question; answer?: Answer }) {
+  const labels = questionParts(question);
+  const sections = groupWorkings(question.solution?.length ? question.solution : [question.explanation], labels);
+  const writtenParts = labels.length && Array.isArray(answer) ? splitResponse(answer, labels.length) : null;
   return <div className="solution">
     <h3>Worked solution</h3>
-    {answer !== undefined && <p className="answer-review"><strong>Your response</strong><br />{hasAnswer(answer) ? (Array.isArray(answer) ? answer.join(', ') : answer) : 'No response'}</p>}
-    {question.solution && question.solution.length > 1 ? <ol>{question.solution.map(line => <li key={line}><MathText text={line} /></li>)}</ol> :
-      <p><MathText text={question.solution?.[0] ?? question.explanation} /></p>}
+    {writtenParts ? <div className="answer-review"><strong>Your responses</strong>
+      <dl>{labels.map((label, i) => <div key={label}><dt>Part ({label})</dt><dd>{writtenParts.parts[i].trim() ? writtenParts.parts[i] : 'No response'}</dd></div>)}</dl>
+      {writtenParts.earlier.trim() && <details><summary>Earlier combined response</summary><p>{writtenParts.earlier}</p></details>}
+    </div> : answer !== undefined && <p className="answer-review"><strong>Your response</strong><br />{hasAnswer(answer)
+      ? (Array.isArray(answer) ? answer.join(', ') : answer) : 'No response'}</p>}
+    {sections.map(({label, steps}) => <div key={label} className="worked-part">
+      {label && <h4>{label === 'summary' ? 'Final results' : 'Part (' + label + ')'}</h4>}
+      <WorkingSteps steps={steps} />
+    </div>)}
     {!isManual(question) && <div><strong>Answer</strong><p><MathText text={Array.isArray(question.answer) ? question.answer.join(', ') : question.answer} /></p></div>}
     <div className="callout"><Icon name="bulb" size={18} /><span><MathText text={question.misconception} /></span></div>
     {question.optionFeedback && question.options && <details><summary>Why each option fits or fails</summary><ul>{question.options.map((option,i) => <li key={option}><strong><MathText text={option} /></strong> · <MathText text={question.optionFeedback![i]} /></li>)}</ul></details>}
@@ -236,7 +266,7 @@ function QuestionDrill({ question, mode, update, onAdvance, isLast, index, count
         <p>{score === question.marks ? question.explanation : locked ? (manual ? 'Use the rubric to compare your reasoning.' : 'Review the worked explanation and try a related question.') : incorrectFeedback}</p>
         {!locked && <button type="button" className="button secondary small" onClick={() => { patch({ score: null, retries: retries+1 }); start.current = Date.now(); }}>Try again</button>}
       </div>}
-      {show && <Solution question={question} />}
+      {show && <Solution question={question} answer={manual ? answer : undefined} />}
       {manualOpen && <Rubric question={question} onSave={points => { save(points, hints, { manualOpen: false, locked: true }); }} />}
       <div className="question-footer"><QuestionDetails question={question} />
         {locked && <button className="button primary" onClick={onAdvance}>{isLast ? 'Finish session' : 'Next question'} <Icon name="chevron" size={18} /></button>}</div>

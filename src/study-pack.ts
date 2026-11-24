@@ -21,6 +21,7 @@ const acceptedDigests = new Set([
   'e8286d3c94b6d0fea47594eb0dfdec359e8c678448d015bcf8910e7d213c0ec9',
   // Regenerated pack with step-by-step hint ladders for every past-paper part and exercise.
   'b5dd1efc9ed686d1d0dc8edcef5ecd0db4b1d4ac85eca735ed8d3eb02e7242ef',
+  '911acdde6306992ec5b93b00b6b4378d9945760f39af26db385b8926bfe915a8',
 ]);
 // Keep already imported packs accessible in the existing IndexedDB database.
 const databaseName = 'studyquest-' + previousModuleCode.toLowerCase() + '-study-packs';
@@ -107,6 +108,8 @@ const acceptedModulePayloads = new Set([
   '83a243544e75aee1405d60ab6024680579e83940131e4a2511ff35c3f003ba58',
   '83a243544e75aee1405d60ab6024680579e83940131e4a2511ff35c3f003ba58',
   '91386308023a54cebb12fcb5ccc09b4d15bd5d9cb673e5dcaf2b8bbd5fa125cb',
+  'c7e7de63324a0493886c567fe57c0d9d27af9a134456a029f989e4a2a3d50988',
+  'b7f7fa047206882f794c81a6dbc17bac1f3c746ab1ec85c3fff610e7305680f7',
 ]);
 const fileMismatch = 'Choose the supplied StudyQuest study pack ZIP or JSON. The project ZIP and progress backup use different formats.';
 const moduleMismatch = 'Choose the supplied module pack. StudyQuest could not verify its content. Re-download the original module pack if it was edited or the download was incomplete.';

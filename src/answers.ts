@@ -79,7 +79,7 @@ export function normalizeText(value: string) {
 }
 
 export function hasAnswer(answer: Answer | undefined) {
-  return typeof answer === 'string' ? answer.trim().length > 0 : Boolean(answer?.length);
+  return typeof answer === 'string' ? answer.trim().length > 0 : Boolean(answer?.some(part => part.trim().length > 0));
 }
 
 export function automaticScore(q: Question, answer: Answer | undefined): number {

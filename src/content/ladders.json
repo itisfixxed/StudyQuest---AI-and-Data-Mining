@@ -2286,9 +2286,9 @@
    }
   ],
   "solution": [
-   "Each of the 5 items is either in or out of an itemset: 2⁵ = 32 subsets.",
-   "One of these is the empty set, which is not an itemset to count.",
-   "Answer: 32 − 1 = 31."
+   "Each of the 5 items can be included or excluded independently.",
+   "This gives \\(2^5=32\\) subsets before removing the empty set.",
+   "There are \\(32-1=31\\) nonempty candidates."
   ]
  },
  "astar-drop": {
@@ -2323,9 +2323,9 @@
    }
   ],
   "solution": [
-   "Consistency requires h(A) ≤ c(A,B) + h(B) = 2 + 6 = 8.",
-   "h(A) = 10 exceeds the bound by 10 − 8 = 2, so h is inconsistent on this arc.",
-   "Answer: 2."
+   "Consistency on \\(A\\to B\\) requires \\(h(A)\\le c(A,B)+h(B)\\).",
+   "The upper bound on \\(h(A)\\) is \\(2+6=8\\).",
+   "The excess is \\(10-8=2\\)."
   ]
  },
  "astar-score-d": {
@@ -2358,9 +2358,9 @@
    }
   ],
   "solution": [
-   "The better route lowers g from 14 to 11; h(A)=6 is unchanged.",
-   "f = g + h = 11 + 6 = 17.",
-   "Answer: 17."
+   "Use the A* evaluation \\(f(n)=g(n)+h(n)\\).",
+   "The better route replaces \\(g=14\\) with \\(g=11\\). The estimate remains \\(h=6\\).",
+   "The new score is \\(f=11+6=17\\)."
   ]
  },
  "bayes-d": {
@@ -2396,11 +2396,9 @@
    }
   ],
   "solution": [
-   "P(E∣H)P(H) = 0.7 × 0.1 = 0.07.",
-   "P(E∣¬H)P(¬H) = 0.2 × 0.9 = 0.18.",
-   "P(E) = 0.07 + 0.18 = 0.25.",
-   "P(H∣E) = 0.07 / 0.25 = 0.28.",
-   "Answer: 0.28."
+   "Use \\(P(H\\mid E)=P(E\\mid H)P(H)/P(E)\\).",
+   "The weighted contributions are \\(0.7(0.1)=0.07\\) and \\(0.2(0.9)=0.18\\). Thus \\(P(E)=0.25\\).",
+   "The posterior is \\(0.07/0.25=0.28\\)."
   ]
  },
  "bayes-update": {
@@ -2454,11 +2452,9 @@
    }
   ],
   "solution": [
-   "Prior odds H:¬H = 1:4 = 0.25.",
-   "The observations are conditionally independent, so the likelihood ratios multiply: 3 × 2 = 6.",
-   "Posterior odds = 0.25 × 6 = 1.5 = 3:2.",
-   "P(H∣E₁,E₂) = 1.5 / (1 + 1.5) = 3/5.",
-   "Answer: 0.6."
+   "Conditional independence lets us multiply the two likelihood ratios.",
+   "Posterior odds are \\((1/4)\\cdot3\\cdot2=3/2\\).",
+   "Convert odds \\(r\\) to probability \\(r/(1+r)\\): \\((3/2)/(1+3/2)=3/5=0.6\\)."
   ]
  },
  "bfs-count": {
@@ -2496,9 +2492,9 @@
    }
   ],
   "solution": [
-   "Depth k of a perfect binary tree has 2^k nodes: 1, 2, 4, 8 for depths 0–3.",
-   "The search visits every node: 1 + 2 + 4 + 8.",
-   "Answer: 15."
+   "The number of nodes at depth \\(d\\) is \\(2^d\\), since each node above the last level has 2 children.",
+   "Sum the four levels: \\(2^0+2^1+2^2+2^3=1+2+4+8\\).",
+   "Total visits: \\(15\\)."
   ]
  },
  "bias-calc": {
@@ -2520,7 +2516,7 @@
     "check": {
      "prompt": "What is Bias²?",
      "answer": "0.16",
-     "tolerance": 0.000001,
+     "tolerance": 1e-06,
      "why": "(−0.4)² = 0.16, which is positive.",
      "retry": "Multiply −0.4 by itself. The result cannot be negative."
     },
@@ -2534,9 +2530,9 @@
    }
   ],
   "solution": [
-   "Expected squared error = Bias² + Variance + σ².",
-   "Bias² = (−0.4)² = 0.16.",
-   "Total = 0.16 + 0.05 + 0.09 = 0.30."
+   "Expected squared prediction error is \\(\\mathrm{Bias}^2+\\mathrm{Variance}+\\mathrm{NoiseVariance}\\).",
+   "Square the signed bias: \\((-0.4)^2=0.16\\).",
+   "Add the variances: \\(0.16+0.05+0.09=0.30\\)."
   ]
  },
  "blank-bayes-naive": {
@@ -4331,7 +4327,7 @@
     "check": {
      "prompt": "What is the validation-minus-training gap at epoch 5?",
      "answer": "0.32",
-     "tolerance": 0.000001,
+     "tolerance": 1e-06,
      "why": "0.42 − 0.10 = 0.32, compared with 0.30 − 0.23 = 0.07 at epoch 3.",
      "retry": "Subtract the epoch-5 training loss from the epoch-5 validation loss."
     },
@@ -4768,7 +4764,7 @@
     "check": {
      "prompt": "What is the loss E?",
      "answer": "0.0338",
-     "tolerance": 0.00005,
+     "tolerance": 5e-05,
      "why": "Residual 0.26; 0.26² = 0.0676; ½ × 0.0676 = 0.0338.",
      "retry": "Square 0.26, then halve it."
     },
@@ -4957,7 +4953,7 @@
     "check": {
      "prompt": "What is b?",
      "answer": "0.7",
-     "tolerance": 0.000001,
+     "tolerance": 1e-06,
      "why": "m = 6/5 = 1.2; b = 2.5 − 1.2 × 1.5 = 2.5 − 1.8 = 0.7.",
      "retry": "Find m first, then subtract m·x̄ from ȳ."
     },
@@ -4971,7 +4967,7 @@
     "check": {
      "prompt": "What is ŷ(4)?",
      "answer": "5.5",
-     "tolerance": 0.000001,
+     "tolerance": 1e-06,
      "why": "1.2 × 4 + 0.7 = 4.8 + 0.7 = 5.5.",
      "retry": "Multiply 4 by the slope and add the intercept."
     },
@@ -6097,7 +6093,7 @@
     "check": {
      "prompt": "If four sigmoid derivative factors along a path are each 0.2 (weights 1), what is their product?",
      "answer": "0.0016",
-     "tolerance": 0.00001,
+     "tolerance": 1e-05,
      "why": "0.2⁴ = 0.0016, so the signal reaching the early layer is tiny.",
      "retry": "Multiply 0.2 by itself four times."
     }
@@ -7750,9 +7746,9 @@
    }
   ],
   "solution": [
-   "Line up the filter with the patch without flipping: products 2·1, 5·(−1), 1·1, 4·(−1).",
-   "The sum is 2 − 5 + 1 − 4 = −6.",
-   "Add the bias: −6 + 1 = −5."
+   "Cross-correlation multiplies corresponding cells, then adds the bias. Keep the filter orientation as given.",
+   "The dot product is \\(2(1)+5(-1)+1(1)+4(-1)=2-5+1-4=-6\\).",
+   "Add the bias \\(1\\): the preactivation is \\(-6+1=-5\\)."
   ]
  },
  "cnn-map": {
@@ -7787,9 +7783,9 @@
    }
   ],
   "solution": [
-   "Use O = ⌊(I − F)/S⌋ + 1 with I = 20, F = 5, S = 2.",
-   "(20 − 5)/2 = 7.5, and the floor is 7.",
-   "O = 7 + 1 = 8 full filter positions."
+   "With dilation 1 and no padding, use \\(O=\\lfloor(W-K)/S\\rfloor+1\\).",
+   "Substitute \\(W=20,K=5,S=2\\): \\(\\lfloor(20-5)/2\\rfloor+1=\\lfloor7.5\\rfloor+1\\).",
+   "The output width is \\(7+1=8\\)."
   ]
  },
  "cnn-param": {
@@ -7855,9 +7851,9 @@
    }
   ],
   "solution": [
-   "Layer 1: 12 filters of 3×3×3 plus bias, 12(27 + 1) = 336.",
-   "Layer 2: 5 filters of 1×1×12 plus bias, 5(12 + 1) = 65.",
-   "Total = 336 + 65 = 401."
+   "A standard convolution has \\(C_{\\rm out}(K_hK_w C_{\\rm in}+1)\\) parameters, including one bias per filter.",
+   "The first layer has \\(12(3\\cdot3\\cdot3+1)=336\\). The second has \\(5(1\\cdot1\\cdot12+1)=65\\).",
+   "Total trainable parameters: \\(336+65=401\\)."
   ]
  },
  "distance-root": {
@@ -7889,9 +7885,9 @@
    }
   ],
   "solution": [
-   "Δx = 5 − 1 = 4, Δy = 6 − 3 = 3.",
-   "Sum of squares = 16 + 9 = 25.",
-   "Distance = √25 = 5."
+   "Euclidean distance is the square root of the sum of squared coordinate differences.",
+   "The differences are \\(5-1=4\\) and \\(6-3=3\\).",
+   "The distance is \\(\\sqrt{4^2+3^2}=\\sqrt{25}=5\\)."
   ]
  },
  "forest-votes": {
@@ -7922,9 +7918,9 @@
    }
   ],
   "solution": [
-   "Initially A = 5, B = 4, so B is not the leader.",
-   "One switch gives A = 4, B = 5, C = 2, so B is the unique plurality.",
-   "Answer: 1."
+   "Let \\(s\\) votes switch from A to B. Their new totals are \\(5-s\\) and \\(4+s\\).",
+   "For a unique winner, require \\(4+s>5-s\\) and \\(4+s>2\\). The first gives \\(2s>1\\); the second already holds for \\(s\\ge0\\).",
+   "The smallest integer is \\(s=1\\), giving A:4, B:5, C:2."
   ]
  },
  "fp-branch": {
@@ -7973,10 +7969,9 @@
    }
   ],
   "solution": [
-   "The conditional tree is a single path, and all counts (8, 6, 4) are ≥ 4.",
-   "Every nonempty subset of {A,B,C} combined with X is frequent: 2³ − 1 = 7 itemsets (AX:8, BX:6, CX:4, ABX:6, ACX:4, BCX:4, ABCX:4).",
-   "{X} itself is frequent and also counts.",
-   "Answer: 7 + 1 = 8."
+   "The smallest count on the branch is 4, so every subset of \\(A,B,C\\) meets minimum support when appended to X.",
+   "There are \\(2^3-1=7\\) nonempty subsets. Append X to each.",
+   "The empty prefix gives \\(\\{X\\}\\), so the total is \\(7+1=8\\)."
   ]
  },
  "game-levels": {
@@ -8024,10 +8019,9 @@
    }
   ],
   "solution": [
-   "Bottom MAX nodes: max(2,9)=9, max(3,5)=5, max(6,1)=6, max(4,8)=8.",
-   "MIN nodes: left min(9,5)=5, right min(6,8)=6.",
-   "Root MAX: max(5,6)=6.",
-   "Answer: 6."
+   "Back up each bottom MAX pair: \\(\\max(2,9)=9,\\ \\max(3,5)=5,\\ \\max(6,1)=6,\\ \\max(4,8)=8\\).",
+   "The two MIN values are \\(\\min(9,5)=5\\) and \\(\\min(6,8)=6\\).",
+   "The root is MAX, so it guarantees \\(\\max(5,6)=6\\)."
   ]
  },
  "game-skip": {
@@ -8098,11 +8092,9 @@
    }
   ],
   "solution": [
-   "First child [7,6] returns 6; root α=6.",
-   "Second child: leaf 2 gives β=2 ≤ 6, so 8 and 9 are skipped.",
-   "Third child: β becomes 9, 7, then 4; it only drops to ≤6 at the last leaf, so nothing is skipped. Root value is 6.",
-   "Total skipped: 0+2+0 = 2.",
-   "Answer: 2."
+   "The first MIN node reads 7 and 6 and returns 6. Set the root's lower bound to \\(\\alpha=6\\).",
+   "The second MIN node reads 2, so \\(\\beta=2\\le6\\). Skip its remaining leaves 8 and 9.",
+   "The third MIN node reads 9, then 7, then 4. The bound reaches 6 or lower only at the last leaf, so the total skipped is 2."
   ]
  },
  "general-gap": {
@@ -8133,8 +8125,9 @@
    }
   ],
   "solution": [
-   "Both rates are on the same percentage scale, so take a simple difference.",
-   "Gap = validation − training = 19 − 7 = 12 percentage points."
+   "Use \\(E_{\\mathrm{gap}}=E_{\\mathrm{validation}}-E_{\\mathrm{train}}\\).",
+   "Substitute the reported percentages directly: \\(19\\%-7\\%=12\\%\\).",
+   "The gap is 12 percentage points."
   ]
  },
  "gini-drop": {
@@ -8198,11 +8191,9 @@
    }
   ],
   "solution": [
-   "Parent (6+,4−): G = 1 − (0.6² + 0.4²) = 0.48 = 12/25.",
-   "Left (4+,0−): G = 0. Right (2+,4−): G = 1 − (1/9 + 4/9) = 4/9.",
-   "Weighted children = (4/10)·0 + (6/10)·(4/9) = 4/15.",
-   "Drop = 12/25 − 4/15 = 36/75 − 20/75 = 16/75 ≈ 0.2133.",
-   "Answer: 16/75."
+   "Use \\(G=1-\\sum p_i^2\\). The parent has \\(G=1-(6/10)^2-(4/10)^2=12/25\\).",
+   "The pure child has \\(G_1=0\\). The second child has \\(G_2=1-(2/6)^2-(4/6)^2=4/9\\).",
+   "Weight by child sizes: \\(G_{\\rm split}=(4/10)(0)+(6/10)(4/9)=4/15\\). Gain \\(=12/25-4/15=16/75\\)."
   ]
  },
  "gradient-steps": {
@@ -8231,10 +8222,9 @@
    }
   ],
   "solution": [
-   "70 / 16 = 4.375, so there are 4 full batches (64 examples).",
-   "The remaining 6 examples form a kept, incomplete fifth batch.",
-   "Updates per epoch = ⌈70/16⌉.",
-   "Answer: 5."
+   "Each batch gives one update. Keeping a partial batch gives \\(\\lceil N/B\\rceil\\) updates.",
+   "Four full batches use \\(4(16)=64\\) examples. The remaining \\(70-64=6\\) form one extra batch.",
+   "Updates per epoch: \\(4+1=5\\)."
   ]
  },
  "hac-link-d": {
@@ -8282,9 +8272,9 @@
    }
   ],
   "solution": [
-   "Cross distances: |0−6| = 6, |0−10| = 10, |2−6| = 4, |2−10| = 8, |4−6| = 2, |4−10| = 6.",
-   "Sum = 36 over 3 × 2 = 6 pairs.",
-   "Average linkage = 36/6 = 6."
+   "Average linkage is the mean distance over every cross-group pair. There are \\(3\\cdot2=6\\) pairs.",
+   "Distances from 0 are 6 and 10; from 2 they are 4 and 8; from 4 they are 2 and 6.",
+   "The average is \\((6+10+4+8+2+6)/6=36/6=6\\)."
   ]
  },
  "ids-count": {
@@ -8328,10 +8318,9 @@
    }
   ],
   "solution": [
-   "Each pass restarts at the root, so repeated visits count again.",
-   "A pass with limit L visits 2^(L+1) − 1 nodes: 1, 3, 7, 15 for L = 0, 1, 2, 3.",
-   "Total = 1 + 3 + 7 + 15.",
-   "Answer: 26."
+   "A depth limit of \\(L\\) visits \\(\\sum_{d=0}^{L}2^d=2^{L+1}-1\\) nodes.",
+   "For limits 0, 1, 2 and 3 the visit counts are \\(1,3,7,15\\), respectively. Each new pass counts earlier nodes again.",
+   "Total visits: \\(1+3+7+15=26\\)."
   ]
  },
  "kmeans-update-d": {
@@ -8384,9 +8373,9 @@
    }
   ],
   "solution": [
-   "Boundary between centers 0 and 8 is 4.",
-   "0 and 3 go to center 0; 4 is tied and goes to the smaller center 0; 7 and 11 go to center 8.",
-   "Updated larger center = (7 + 11)/2 = 9."
+   "The midpoint between 0 and 8 is 4. Points below it go to center 0, points above it go to center 8, and the tie at 4 goes to center 0.",
+   "The clusters are \\(\\{0,3,4\\}\\) and \\(\\{7,11\\}\\). Recompute each centroid as its cluster mean.",
+   "The larger updated centroid is \\((7+11)/2=9\\)."
   ]
  },
  "knn-dist": {
@@ -8415,9 +8404,9 @@
    }
   ],
   "solution": [
-   "Differences: 2 − (−1) = 3 and −1 − 3 = −4.",
-   "Squared distance = 3² + (−4)² = 9 + 16 = 25.",
-   "Answer: 25."
+   "Squared Euclidean distance is \\((x_1-y_1)^2+(x_2-y_2)^2\\).",
+   "The coordinate differences are \\(2-(-1)=3\\) and \\(-1-3=-4\\).",
+   "The squared distance is \\(3^2+(-4)^2=9+16=25\\)."
   ]
  },
  "knn-weight": {
@@ -8475,10 +8464,9 @@
    }
   ],
   "solution": [
-   "Weights 1/d: A gets 1/1 = 1; B gets 1/2 + 1/3 = 5/6.",
-   "Total weight = 1 + 5/6 = 11/6.",
-   "B's fraction = (5/6)/(11/6) = 5/11 ≈ 0.4545, so A wins the weighted vote despite B's majority count.",
-   "Answer: 5/11."
+   "Each neighbour contributes \\(1/d\\). The B weight is \\(1/2+1/3=5/6\\).",
+   "The overall weight is \\(1+5/6=11/6\\).",
+   "B's fraction is \\((5/6)/(11/6)=5/11\\)."
   ]
  },
  "multi-nb-evidence": {
@@ -8583,11 +8571,9 @@
    }
   ],
   "solution": [
-   "Equal priors: P(S) = P(T) = 0.5.",
-   "s_S = 0.5 × 0.6 × 0.2 × 0.5 = 0.03.",
-   "s_T = 0.5 × 0.4 × 0.5 × 0.2 = 0.02.",
-   "P(S∣x) = 0.03 / (0.03 + 0.02) = 0.03 / 0.05 = 0.6.",
-   "Answer: 0.6."
+   "For each class, multiply its prior by the observed-value likelihoods.",
+   "The score for S is \\(0.5(0.6)(0.2)(0.5)=0.03\\). For T it is \\(0.5(0.4)(0.5)(0.2)=0.02\\).",
+   "Normalize: \\(P(S\\mid x)=0.03/(0.03+0.02)=0.6\\)."
   ]
  },
  "neural-forward": {
@@ -8617,9 +8603,9 @@
    }
   ],
   "solution": [
-   "net = 0.5(3) − 1 = 0.5, so h = ReLU(0.5) = 0.5.",
-   "o = 2(0.5) + 0.2(3) − 0.4 = 1 + 0.6 − 0.4.",
-   "Answer: 1.2."
+   "The hidden preactivation is \\(0.5(3)-1=0.5\\).",
+   "ReLU gives \\(h=\\max(0,0.5)=0.5\\). The skip term is \\(0.2(3)=0.6\\).",
+   "The output is \\(o=2(0.5)+0.6-0.4=1.2\\)."
   ]
  },
  "neural-loss": {
@@ -8655,10 +8641,9 @@
    }
   ],
   "solution": [
-   "Residuals: 0.4 − 0.1 = 0.3 and 0.3 − 0.7 = −0.4.",
-   "Squares: 0.09 and 0.16, sum 0.25.",
-   "E = ½ × 0.25.",
-   "Answer: 0.125."
+   "Use \\(E=\\tfrac12\\sum_i(t_i-o_i)^2\\).",
+   "The residuals are \\(0.4-0.1=0.3\\) and \\(0.3-0.7=-0.4\\). Their squares are \\(0.09\\) and \\(0.16\\).",
+   "The loss is \\(E=(0.09+0.16)/2=0.125\\)."
   ]
  },
  "neural-relu": {
@@ -8723,11 +8708,9 @@
    }
   ],
   "solution": [
-   "Forward: net_h = 0.6(2) + 0.1 = 1.3, h = 1.3, o = 0.5(1.3) + 0.1 = 0.75.",
-   "δ_o = t − o = 0.25 − 0.75 = −0.5.",
-   "δ_h = ReLU'(1.3) × 0.5 × δ_o = 1 × 0.5 × (−0.5) = −0.25.",
-   "b_new = 0.1 + 0.2 × (−0.25) = 0.1 − 0.05.",
-   "Answer: 0.05."
+   "Compute the forward pass: \\(z=0.6(2)+0.1=1.3,\\ h=1.3,\\ o=0.5(1.3)+0.1=0.75\\). ReLU is active, so its derivative is 1.",
+   "By the chain rule, \\(\\partial E/\\partial b=(o-t)(\\partial o/\\partial h)(\\partial h/\\partial z)(\\partial z/\\partial b)=(0.75-0.25)(0.5)(1)(1)=0.25\\).",
+   "Apply gradient descent: \\(b_{\\rm new}=0.1-0.2(0.25)=0.05\\)."
   ]
  },
  "ols-intercept-d": {
@@ -8762,8 +8745,9 @@
    }
   ],
   "solution": [
-   "The OLS line passes through (x̄, ȳ) = (5, 8), so b = ȳ − m·x̄.",
-   "b = 8 − 1.4 × 5 = 8 − 7 = 1."
+   "A least-squares line with an intercept passes through \\((\\bar x,\\bar y)\\). Thus \\(\\hat\\beta_0=\\bar y-\\hat\\beta_1\\bar x\\).",
+   "Substitute \\(\\bar y=8,\\ \\hat\\beta_1=1.4,\\ \\bar x=5\\): \\(\\hat\\beta_0=8-(1.4)(5)\\).",
+   "The intercept is \\(8-7=1\\)."
   ]
  },
  "ols-slope-d": {
@@ -8824,10 +8808,9 @@
    }
   ],
   "solution": [
-   "x̄ = 2.5, ȳ = 6.",
-   "Sxy = (−1.5)(−3) + (−0.5)(−2) + (0.5)(2) + (1.5)(3) = 11.",
-   "Sxx = 2.25 + 0.25 + 0.25 + 2.25 = 5.",
-   "m = 11/5 = 2.2."
+   "Use \\(\\hat\\beta_1=\\sum(x_i-\\bar x)(y_i-\\bar y)/\\sum(x_i-\\bar x)^2\\). The means are \\(\\bar x=2.5,\\ \\bar y=6\\).",
+   "The four centered products are \\(4.5,1,1,4.5\\), so \\(S_{xy}=11\\). The squared \\(x\\)-deviations sum to \\(2.25+0.25+0.25+2.25=5\\).",
+   "The least-squares slope is \\(11/5=2.2\\)."
   ]
  },
  "pca-proj-d": {
@@ -8875,10 +8858,9 @@
    }
   ],
   "solution": [
-   "u = (3/5, 4/5) has length 1.",
-   "Score z = (3/5)(2) + (4/5)(1) = 2; reconstruction z·u = (6/5, 8/5).",
-   "||x||² = 5, so squared error = 5 − 2² = 1 (equivalently residual (4/5, −3/5) has squared norm 16/25 + 9/25 = 1).",
-   "Answer: 1."
+   "The retained direction has unit norm. Its projection score is \\(x^\\top u=2(3/5)+1(4/5)=2\\).",
+   "The reconstruction is \\(2u=(6/5,8/5)\\), leaving residual \\((2-6/5,\\ 1-8/5)=(4/5,-3/5)\\).",
+   "Squared reconstruction error is \\((4/5)^2+(-3/5)^2=16/25+9/25=1\\)."
   ]
  },
  "pca-trace": {
@@ -8911,9 +8893,9 @@
    }
   ],
   "solution": [
-   "The sum of a matrix's eigenvalues equals its trace.",
-   "Trace = 5 + 3 = 8, regardless of the off-diagonal entries.",
-   "Answer: 8."
+   "The sum of the covariance eigenvalues equals the trace.",
+   "Use the diagonal entries \\(5\\) and \\(3\\).",
+   "Their sum, and thus the eigenvalue sum, is \\(5+3=8\\)."
   ]
  },
  "pool-average": {
@@ -8939,9 +8921,9 @@
    }
   ],
   "solution": [
-   "Sum of the window: 1 + 7 + 5 + 3 = 16.",
-   "There are 4 activations, so the mean is 16/4 = 4.",
-   "Answer: 4."
+   "Average pooling sums a window and divides by its number of entries.",
+   "The sum is \\(1+7+5+3=16\\) across four entries.",
+   "The pooled value is \\(16/4=4\\)."
   ]
  },
  "precision-f1": {
@@ -9005,11 +8987,9 @@
    }
   ],
   "solution": [
-   "Precision = 24/(24+16) = 0.6; recall = 24/(24+6) = 0.8.",
-   "F1 = 2·0.6·0.8/(0.6+0.8) = 0.96/1.4.",
-   "Check: 2TP/(2TP+FP+FN) = 48/70.",
-   "Both reduce to 24/35 ≈ 0.6857.",
-   "Answer: 24/35."
+   "Use \\(F_1=2TP/(2TP+FP+FN)\\), the harmonic mean of precision and recall.",
+   "Substitute \\(TP=24,\\ FP=16,\\ FN=6\\): \\(F_1=48/(48+16+6)\\).",
+   "Therefore \\(F_1=48/70=24/35\\approx0.6857\\)."
   ]
  },
  "rule-conf": {
@@ -9061,10 +9041,9 @@
    }
   ],
   "solution": [
-   "All 120 baskets contain A or B, so the number of baskets with A or B is 120.",
-   "Inclusion–exclusion: 120 = 70 + 60 − n(A∩B), so n(A∩B) = 10.",
-   "conf(A→B) = n(A∩B)/n(A) = 10/70.",
-   "Answer: 1/7 ≈ 0.1429."
+   "Count the baskets containing both items by inclusion–exclusion: \\(n(A\\cap B)=n(A)+n(B)-n(A\\cup B)\\).",
+   "Using \\(n(A\\cup B)=120\\), the overlap is \\(70+60-120=10\\).",
+   "Confidence conditions on A, so \\(\\operatorname{conf}(A\\to B)=10/70=1/7\\)."
   ]
  },
  "rule-lift": {
@@ -9100,10 +9079,9 @@
    }
   ],
   "solution": [
-   "conf(X→Y) = 15/20 = 0.75.",
-   "supp(Y) = 25/50 = 0.5.",
-   "lift = 0.75/0.5.",
-   "Answer: 1.5."
+   "Lift is \\(\\operatorname{conf}(X\\to Y)/\\operatorname{supp}(Y)\\).",
+   "Confidence is \\(15/20=0.75\\), and \\(Y\\)'s support is \\(25/50=0.50\\).",
+   "Lift is \\(0.75/0.50=1.5\\)."
   ]
  },
  "svm-multi": {
@@ -9128,9 +9106,9 @@
    }
   ],
   "solution": [
-   "One-vs-one trains one classifier per unordered pair of labels: K(K−1)/2.",
-   "With K = 6: 6·5/2 = 15.",
-   "Answer: 15."
+   "One-versus-one fits one model per unordered pair of labels.",
+   "With 6 labels, there are \\(6\\cdot5\\) ordered pairs, with each pair counted twice.",
+   "Number of models: \\(\\binom62=6\\cdot5/2=15\\)."
   ]
  },
  "svm-width": {
@@ -9165,9 +9143,9 @@
    }
   ],
   "solution": [
-   "‖w‖ = √(3² + 4²) = 5.",
-   "Full width = 2/‖w‖ = 2/5; each plane is 1/5 from the boundary.",
-   "Answer: 0.4."
+   "For support planes with scores \\(+1\\) and \\(-1\\), width is \\(2/\\lVert w\\rVert\\).",
+   "The norm is \\(\\sqrt{3^2+4^2}=\\sqrt{25}=5\\).",
+   "Full width is \\(2/5=0.4\\)."
   ]
  }
 }

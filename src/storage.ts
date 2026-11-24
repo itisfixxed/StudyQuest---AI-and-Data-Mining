@@ -1,5 +1,5 @@
 import type { PracticeSet } from './Practice.tsx';
-import { isBuiltinModule, lectureScenes, moduleInfo, questionById, referenceById, topicById } from './content/index.ts';
+import { isBuiltinModule, isManual, lectureScenes, moduleInfo, questionById, referenceById, topicById } from './content/index.ts';
 import { backfillLessons, newProgress, storageKey } from './progress.ts';
 import { previousModuleCode } from './legacy-storage.ts';
 import type { Progress } from './types.ts';
@@ -10,7 +10,12 @@ const validId = (value: unknown): value is string => typeof value === 'string';
 const values = (value: unknown, key: (element: unknown) => boolean) => Array.isArray(value) && value.every(key);
 const knownQ = (value: unknown): value is string => validId(value) && Object.hasOwn(questionById, value);
 const knownTopic = (value: unknown) => validId(value) && Object.hasOwn(topicById, value);
-const validAnswer = (value: unknown) => (validId(value) && value.length <= 30_000) || values(value, v => validId(v) && v.length < 1000);
+function validAnswer(value: unknown, questionId: string) {
+  if (validId(value)) return value.length <= 30_000;
+  const question = questionById[questionId];
+  const maxPart = !knownQ(questionId) || isManual(question) ? 30_000 : 999;
+  return Array.isArray(value) && value.length <= 30 && value.every(part => validId(part) && part.length <= maxPart);
+}
 const enumOf = (value: unknown, choices: string[]) => validId(value) && choices.includes(value);
 const within = (value: unknown, min: number, max: number) => finite(value) && value >= min && value <= max;
 const date = (value: unknown) => validId(value) && (!value || (/^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0,10) === value));
@@ -40,7 +45,7 @@ export function parseProgress(text: string, allowUnavailableQuestions = false): 
       finite(a.max) && within(a.max, Number.MIN_VALUE, 1e6) && (!knownQ(a.question) || a.max === questionById[a.question].marks) &&
       within(a.score, 0, a.max) && within(a.assistance, 0, 5) && (a.reviewAssistance === undefined || within(a.reviewAssistance, 1, 5)) && within(a.confidence, 1, 5) &&
       within(a.retries, 0, 10000) && finite(a.at) && within(a.seconds, 0, 1e7) && within(a.xp, 0, 50) &&
-      enumOf(a.mode, ['practice','review','boss','exam']) && enumOf(a.graded, ['auto','self']) && validAnswer(a.answer)) ||
+      enumOf(a.mode, ['practice','review','boss','exam']) && enumOf(a.graded, ['auto','self']) && validAnswer(a.answer, a.question)) ||
     !values(p.lessons, a => obj(a) && validId(a.id) && knownLesson(a.id) && finite(a.at) && within(a.minutes, 0, 30)) ||
     !map(p.reviews, a => obj(a) && finite(a.last) && finite(a.due) && within(a.box, 0, 5) && Number.isInteger(a.box)) ||
     !values(p.bookmarks, a => validId(a) && (Object.hasOwn(referenceById,a) || a.startsWith('concept/') && knownLesson(a.slice(8)))) ||
