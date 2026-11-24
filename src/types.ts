@@ -87,10 +87,13 @@ export interface ExamResult {
 export interface ActiveExam {
   id: string; title: string; mode: 'boss' | 'exam'; questions: string[]; strict: boolean;
   started: number; deadline: number | null; index: number; answers: Record<string, Answer>;
+  answerEdits?: Record<string, string>;
+  flagEdits?: Record<string, string>;
+  navigationEdit?: string;
   flags: string[]; assistance: Record<string, number>;
 }
 export interface Progress {
-  version: 1; module: string; settings: { goal: number; examDate: string; theme: 'light' | 'dark' };
+  version: 1; module: string; profileRevision?: number; settings: { goal: number; examDate: string; theme: 'light' | 'dark' };
   attempts: Attempt[]; lessons: LessonRecord[]; reviews: Record<string, Review>;
   bookmarks: string[]; overrides: string[]; results: ExamResult[]; activeExam: ActiveExam | null;
   /** Guided-lecture scene checks passed, keyed by topic id. Optional so older backups still load. */

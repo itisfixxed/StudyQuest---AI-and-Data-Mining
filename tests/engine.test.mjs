@@ -4,9 +4,9 @@ import { existsSync } from 'node:fs';
 import katex from 'katex';
 import { automaticScore, arithmetic, checkStep } from '../src/answers.ts';
 import { bossQuestions, historical, historicalParts, isManual, knowledgeQuestions, papers, questionById, questions, referenceById, references, topics } from '../src/content/index.ts';
-import { createExam, daysUntil, finishExam, finalizeResult, markExam, mistakes, newProgress, profile, recordAttempt, recommend, reviewDate, totals } from '../src/progress.ts';
+import { mergeProgress, createExam, daysUntil, finishExam, finalizeResult, markExam, mistakes, newProgress, profile, recordAttempt, recommend, reviewDate, totals } from '../src/progress.ts';
 import { studyPlan } from '../src/planning.ts';
-import { parseProgress } from '../src/storage.ts';
+import { availableProgress, parseProgress } from '../src/storage.ts';
 
 test('every lesson, question, marking rubric and prerequisite has valid content and sources', () => {
   assert.equal(questions.length, new Set(questions.map(q => q.id)).size);
@@ -232,4 +232,51 @@ test('hint option shuffle is unbiased across authored checks and keeps original 
   }
   // Authored answers are mostly first; after shuffling, no display position should dominate or be empty.
   assert.ok(positions[0] > checks.length * 0.2 && positions[1] > checks.length * 0.2, positions.join(','));
+});
+
+test('newer reset revisions suppress older profiles in both merge directions', () => {
+  const old = {...newProgress(), profileRevision: 1, bookmarks: ['bayes']};
+  const reset = {...newProgress(), profileRevision: 2};
+  assert.deepEqual(mergeProgress(old, reset), reset);
+  assert.deepEqual(mergeProgress(reset, old), reset);
+});
+
+test('concurrent exam edits keep separate answers and preserve an intentional clear', () => {
+  const p = newProgress();
+  const exam = createExam('Mock', 'exam', ['bfs-count','astar-score-d'], null, true);
+  const a = {...exam, answers: {'bfs-count':'15'}, answerEdits: {'bfs-count':'001:a'}};
+  const b = {...exam, answers: {'astar-score-d':'17'}, answerEdits: {'astar-score-d':'002:b'}};
+  const merged = mergeProgress({...p, activeExam:a}, {...p, activeExam:b});
+  assert.deepEqual(merged.activeExam.answers, {'astar-score-d':'17','bfs-count':'15'});
+  const cleared = {...a, answers: {'bfs-count':''}, answerEdits: {'bfs-count':'003:a'}};
+  const after = mergeProgress({...p, activeExam:cleared}, merged);
+  assert.deepEqual(after.activeExam.answers, {'astar-score-d':'17','bfs-count':''});
+  assert.deepEqual(mergeProgress(merged, {...p, activeExam:cleared}).activeExam, after.activeExam);
+});
+
+test('the same exam finalized in two tabs grants its points once', () => {
+  const p = newProgress();
+  const exam = createExam('Mock', 'exam', ['bfs-count'], null, true, 1000);
+  const draft = {...p, activeExam:{...exam, answers:{'bfs-count':'15'}}};
+  const first = finishExam(draft, 2500);
+  const second = finishExam(draft, 2600);
+  const merged = mergeProgress(first, second);
+  assert.equal(merged.results.length, 1);
+  assert.equal(merged.attempts.length, 1);
+  assert.equal(merged.attempts[0].xp, first.attempts[0].xp);
+});
+
+test('a missing private question does not block available progress', () => {
+  const p = newProgress();
+  const question = questionById['bfs-count'];
+  const known = recordAttempt(p, question, {answer:'15',score:1,assistance:0,retries:0,confidence:3,seconds:15,mode:'practice'});
+  const missing = {...known.attempts[0], id:'private', question:'py-test-1a'};
+  const saved = parseProgress(JSON.stringify({...known, attempts:[...known.attempts, missing]}), true);
+  assert.equal(saved.attempts.length, 2);
+  assert.deepEqual(availableProgress(saved).attempts, known.attempts);
+});
+
+test('percentage answers and binary modulo remain distinct', () => {
+  assert.ok(Math.abs(arithmetic('80.09%') - 0.8009) < 1e-12);
+  assert.equal(arithmetic('11 % 3'), 2);
 });

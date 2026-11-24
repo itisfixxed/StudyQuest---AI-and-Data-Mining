@@ -603,3 +603,5 @@ tbody tr:last-child td,tbody tr:last-child th { border:0; }
 .exam-nav-groups { display:grid; gap:.65rem; margin:0 0 1rem; }
 .exam-nav-groups .exam-nav { margin:.3rem 0 0; grid-template-columns:repeat(auto-fit,minmax(5rem,1fr)); }
 .paper-source { margin:.5rem 0; }
+
+.mobile-close { align-self:flex-end; margin:.4rem .55rem -.5rem; }

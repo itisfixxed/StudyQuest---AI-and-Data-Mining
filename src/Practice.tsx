@@ -2,13 +2,19 @@ import { examPart, paperFor, PaperSource } from './PaperSource.tsx';
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { automaticScore, checkStep, displayOrder, hasAnswer, normalizeText } from './answers.ts';
-import { isManual, labels, originLabel, papers, questionById, questions, referenceById, topicById, topics } from './content/index.ts';
+import { isManual, labels, moduleInfo, originLabel, papers, questionById, questions, referenceById, topicById, topics } from './content/index.ts';
 import { createRecordId, dueQuestions, recordAttempt } from './progress.ts';
 import type { Answer, HintStep, Progress, Question, Step } from './types.ts';
 import { Bubble, Empty, Icon, MathBlock, MathText, PageTitle, Pill, ProgressBar, SectionTitle, SourceNote } from './ui.tsx';
 
 export type Update = (fn: (progress: Progress) => Progress) => void;
-export interface PracticeSet { ids: string[]; title: string; mode: 'practice' | 'review'; /** Position survives navigation because the set lives in App state. */ index?: number; complete?: boolean; /** Assistance used on the current question, kept across navigation. */ aid?: number }
+export interface PracticeDraft {
+  answer: Answer; hints: number; confidence: number; score: number | null; retries: number;
+  show: boolean; manualOpen: boolean; locked: boolean; recentAttempt: string;
+}
+export interface PracticeSet {
+  ids: string[]; title: string; mode: 'practice' | 'review'; index?: number; complete?: boolean; draft?: PracticeDraft;
+}
 export function ScreenMeta({ question }: { question: Question }) {
   return <div className="row wrap chips"><Pill color={question.origin === 'original' ? 'teal' : ['adapted', 'exercise'].includes(question.origin) ? 'amber' : 'indigo'}>{originLabel[question.origin]}</Pill>
     <Pill>{labels[question.difficulty]}</Pill><Pill><Icon name="clock" size={14} /> {question.minutes} min</Pill><Pill>{question.marks} {question.marks === 1 ? 'mark' : 'marks'}</Pill></div>;
@@ -47,8 +53,11 @@ export function AnswerField({ question, answer, setAnswer, disabled = false, id 
 }) {
   if (question.options) {
     const multi = question.kind === 'multi';
+    const order = moduleInfo.id === 'information-security' && question.origin !== 'original'
+      ? displayOrder({ prompt: question.id, options: question.options }) : question.options.map((_, i) => i);
     return <fieldset className="choices" disabled={disabled}><legend className="sr-only">{multi ? 'Select all that apply' : 'Select one answer'}</legend>
-      {question.options.map((option,index) => {
+      {order.map((i,index) => {
+        const option = question.options![i];
         const checked = multi ? Array.isArray(answer) && answer.includes(option) : answer === option;
         return <label className={'choice' + (checked ? ' selected' : '')} key={option}>
           <input type={multi ? 'checkbox' : 'radio'} name={id} value={option} checked={checked} onChange={() =>
@@ -63,7 +72,7 @@ export function AnswerField({ question, answer, setAnswer, disabled = false, id 
     <label htmlFor={id}>{isManual(question) ? 'Show your reasoning' : 'Your answer'}</label>
     {isManual(question) ? <textarea id={id} value={String(answer)} onChange={e => setAnswer(e.target.value)} disabled={disabled} rows={5} maxLength={20000} placeholder="State assumptions and show each step…" /> :
       <input id={id} value={String(answer)} onChange={e => setAnswer(e.target.value)} disabled={disabled} autoComplete="off" maxLength={170} placeholder={question.kind === 'expression' ? 'Enter a number or expression' : 'Enter your answer'} />}
-    {question.kind === 'expression' && <small>Use fractions, powers, or scientific notation such as 2.5e−4 or 2.5 × 10⁻⁴.</small>}
+    {question.kind === 'expression' && <small>Use fractions, powers, percentages, or scientific notation such as 2.5e−4 or 2.5 × 10⁻⁴.</small>}
   </div>;
 }
 
@@ -171,47 +180,40 @@ export function Rubric({ question, onSave, initial }: { question: Question; onSa
   </div>;
 }
 
-function QuestionDrill({ question, mode, update, onAdvance, isLast, index, count, initialAid = 0, onAid }: {
+function QuestionDrill({ question, mode, update, onAdvance, isLast, index, count, draft, onDraft }: {
   question: Question; mode: PracticeSet['mode']; update: Update; onAdvance: () => void; isLast: boolean; index: number; count: number;
-  initialAid?: number; onAid?: (aid: number) => void;
+  draft?: PracticeDraft; onDraft: (draft: PracticeDraft) => void;
 }) {
-  const [answer, setAnswer] = useState<Answer>(question.kind === 'multi' ? [] : '');
-  const [hints, setHintsState] = useState(initialAid);
-  const setHints = (aid: number) => { setHintsState(aid); onAid?.(aid); };
-  const [confidence, setConfidence] = useState(3);
-  const [score, setScore] = useState<number | null>(null);
-  const [retries, setRetries] = useState(0);
-  const [show, setShow] = useState(false);
-  const [manualOpen, setManualOpen] = useState(false);
-  const [locked, setLocked] = useState(false);
+  const current: PracticeDraft = draft ?? {
+    answer: question.kind === 'multi' ? [] : '', hints: 0, confidence: 3, score: null,
+    retries: 0, show: false, manualOpen: false, locked: false, recentAttempt: ''
+  };
+  const { answer, hints, confidence, score, retries, show, manualOpen, locked, recentAttempt } = current;
+  const patch = (changes: Partial<PracticeDraft>) => onDraft({ ...current, ...changes });
   const start = useRef(Date.now());
-  const recentAttempt = useRef('');
   const questionTitle = useRef<HTMLHeadingElement>(null);
   useEffect(() => { questionTitle.current?.focus(); }, []);
   const manual = isManual(question);
-  const save = (points: number, assistance = hints, submission = answer) => {
-    const data = { answer: submission, score: points, assistance, retries, confidence, seconds: Math.max(1, Math.round((Date.now()-start.current)/1000)), mode };
+  const save = (points: number, assistance = hints, changes: Partial<PracticeDraft> = {}) => {
+    const data = { answer, score: points, assistance, retries, confidence, seconds: Math.max(1, Math.round((Date.now()-start.current)/1000)), mode };
     const id = createRecordId();
-    recentAttempt.current = id;
     update(progress => recordAttempt(progress, question, data, Date.now(), id));
     start.current = Date.now();
-    setScore(points);
+    patch({ ...changes, score: points, recentAttempt: id });
   };
   const submit = (event: FormEvent) => {
     event.preventDefault();
     if (!hasAnswer(answer) || locked || score !== null || manualOpen) return;
-    if (manual) { setManualOpen(true); setShow(true); return; }
+    if (manual) { patch({ manualOpen: true, show: true }); return; }
     const points = automaticScore(question, answer);
-    save(points);
-    if (points === question.marks) { setLocked(true); setShow(true); }
+    save(points, hints, points === question.marks ? { locked: true, show: true } : {});
   };
   const reveal = () => {
-    if (!locked && score === null) save(0,5);
-    if (!locked && score !== null) {
-      const id = recentAttempt.current;
-      update(progress => ({ ...progress, attempts: progress.attempts.map(attempt => attempt.id === id ? { ...attempt, reviewAssistance: 5 } : attempt) }));
-    }
-    setHints(5); setLocked(true); setShow(true); setManualOpen(false);
+    const changes = { hints: 5, locked: true, show: true, manualOpen: false };
+    if (!locked && score === null) { save(0, 5, changes); return; }
+    if (!locked) update(progress => ({ ...progress, attempts: progress.attempts.map(attempt =>
+      attempt.id === recentAttempt ? { ...attempt, reviewAssistance: 5 } : attempt) }));
+    patch(changes);
   };
   const chosen = !Array.isArray(answer) ? question.options?.indexOf(answer) ?? -1 : -1;
   const incorrectFeedback = chosen >= 0 ? question.optionFeedback?.[chosen] ?? question.misconception : question.misconception;
@@ -222,19 +224,19 @@ function QuestionDrill({ question, mode, update, onAdvance, isLast, index, count
       <ScreenMeta question={question} />
       <h2 ref={questionTitle} tabIndex={-1}>{question.title}</h2><QuestionPrompt question={question} />
       <form onSubmit={submit}>
-        <AnswerField question={question} answer={answer} setAnswer={setAnswer} disabled={locked || score !== null || manualOpen} />
+        <AnswerField question={question} answer={answer} setAnswer={answer => patch({ answer })} disabled={locked || score !== null || manualOpen} />
         {!locked && score === null && !manualOpen && <div className="row wrap form-actions"><button className="button primary" disabled={!hasAnswer(answer)}>{manual ? 'Compare with model answer' : 'Check answer'}</button>
-          <label className="row"><small>Confidence</small><select aria-label="Confidence rating" value={confidence} onChange={e => setConfidence(Number(e.target.value))}>
+          <label className="row"><small>Confidence</small><select aria-label="Confidence rating" value={confidence} onChange={e => patch({ confidence: Number(e.target.value) })}>
             <option value={1}>1 · Guessing</option><option value={2}>2 · Unsure</option><option value={3}>3 · Somewhat sure</option><option value={4}>4 · Confident</option><option value={5}>5 · Very confident</option>
           </select></label></div>}
       </form>
       {score !== null && <div className={'feedback ' + (score === question.marks ? 'success' : 'warning')} role="status">
         <strong>{score === question.marks ? manual ? 'Self-assessment saved' : 'Correct' : score > 0 ? 'Partially correct' : 'Review this one'} · {score}/{question.marks}</strong>
         <p>{score === question.marks ? question.explanation : locked ? (manual ? 'Use the rubric to compare your reasoning.' : 'Review the worked explanation and try a related question.') : incorrectFeedback}</p>
-        {!locked && <button type="button" className="button secondary small" onClick={() => { setScore(null); setRetries(retries+1); start.current = Date.now(); }}>Try again</button>}
+        {!locked && <button type="button" className="button secondary small" onClick={() => { patch({ score: null, retries: retries+1 }); start.current = Date.now(); }}>Try again</button>}
       </div>}
       {show && <Solution question={question} />}
-      {manualOpen && <Rubric question={question} onSave={points => { save(points); setManualOpen(false); setLocked(true); }} />}
+      {manualOpen && <Rubric question={question} onSave={points => { save(points, hints, { manualOpen: false, locked: true }); }} />}
       <div className="question-footer"><QuestionDetails question={question} />
         {locked && <button className="button primary" onClick={onAdvance}>{isLast ? 'Finish session' : 'Next question'} <Icon name="chevron" size={18} /></button>}</div>
     </article>
@@ -242,7 +244,7 @@ function QuestionDrill({ question, mode, update, onAdvance, isLast, index, count
       <div className="row"><Bubble icon="bulb" color="indigo" /><div><h3>Guidance</h3><small>{hints ? 'Assisted attempt' : 'Independent attempt'}</small></div></div>
       {!locked && !manualOpen ? <>
         <p>Start with what you know. If you get stuck, work through a hint.</p>
-        <Hints question={question} level={hints} change={setHints} />
+        <Hints question={question} level={hints} change={hints => patch({ hints })} />
         <button className="text-button reveal" onClick={reveal}>Reveal full solution</button>
       </> : <p>{hints ? 'This attempt will count as assisted.' : manual ? 'Your marks come from the rubric you apply.' : 'This attempt was recorded without hints.'}</p>}
     </aside>
@@ -261,26 +263,39 @@ export function Practice({ progress, update, session, setSession, openJourney }:
   const [subtopic, setSubtopic] = useState('all');
   const index = session?.index ?? 0;
   const complete = session?.complete ?? false;
-  const setIndex = (next: number) => session && setSession({ ...session, index: next, aid: 0 });
+  const setIndex = (next: number) => session && setSession({ ...session, index: next, draft: undefined });
   const setComplete = () => session && setSession({ ...session, complete: true });
   const [length, setLength] = useState(5);
   const due = dueQuestions(progress);
   const inPaper = papers.find(item => item.id === paper);
   const inPaperIds = new Set(inPaper?.parts.map(part => part.questionId));
   const queryText = normalizeText(query);
+  const queryPart = /^(?:q(?:uestion)?\s*)?(\d+)\s*\(?([a-z])\)?(?:\s*\(([ivx]+)\))?$/.exec(queryText);
+  const matchesPart = (question: Question) => {
+    if (!queryPart || !question.source.question) return false;
+    const label = /^q(\d+)\(([a-z])\)/i.exec(examPart(question.source));
+    return label?.[1] === queryPart[1] && label[2].toLowerCase() === queryPart[2] &&
+      (!queryPart[3] || question.source.subparts?.includes(queryPart[3]));
+  };
   const pool = questions.filter(q => (topic === 'all' || q.topic === topic) && (subtopic === 'all' || q.subtopic === subtopic) &&
     (difficulty === 'all' || q.difficulty === difficulty) && (source === 'all' || q.origin === source) &&
     (!inPaper || inPaperIds.has(q.id)) &&
-    (!queryText || normalizeText([q.title, q.prompt, q.source.question ? examPart(q.source) : '', q.source.file].join(' ')).includes(queryText)));
+    (!queryText || matchesPart(q) || normalizeText([q.title, q.prompt, q.source.question ? examPart(q.source) : '', q.source.file].join(' ')).includes(queryText)));
   const start = (value: PracticeSet) => setSession({ ...value, index: 0, complete: false });
   if (session && complete) return <><PageTitle title={session.title} description="Practice complete" />
     <Empty icon="trophy" title="Session complete" action={<div className="row wrap center"><button className="button primary" onClick={() => setSession(null)}>More practice</button>
       <button className="button secondary" onClick={openJourney}>Learning journey</button></div>}>You worked through {session.ids.length} questions. Results and review dates are saved.</Empty></>;
+  if (session && session.ids.some(id => !Object.hasOwn(questionById, id))) return <>
+    <PageTitle title={session.title} description="This saved practice session needs its study pack." />
+    <Empty icon="book" title="Study pack needed" action={<button className="button secondary" onClick={() => setSession(null)}>Close saved session</button>}>
+      Reimport the pack in Settings to resume this session and restore its draft.
+    </Empty>
+  </>;
   if (session && session.ids[index]) return <>
     <PageTitle title={session.title} description={session.mode === 'review' ? 'Revisit and check what you can recall.' : 'Work at your own pace and ask for a hint when you need one.'}
       action={<button className="button secondary" onClick={() => setSession(null)}><Icon name="back" size={17} /> Back to practice</button>} />
     <QuestionDrill key={session.ids[index] + ':' + index} question={questionById[session.ids[index]]} index={index} count={session.ids.length} mode={session.mode} update={update}
-      initialAid={session.aid ?? 0} onAid={aid => setSession({ ...session, aid })}
+      draft={session.draft} onDraft={draft => setSession({ ...session, draft })}
       isLast={index === session.ids.length-1} onAdvance={() => index === session.ids.length-1 ? setComplete() : setIndex(index+1)} />
   </>;
   return <>

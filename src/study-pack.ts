@@ -103,21 +103,73 @@ async function sha256(bytes: ArrayBuffer) {
   return Array.from(new Uint8Array(hash), byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
-const acceptedModuleZips = new Set([
-  'cedbedd1c7318be4aee783fb5ccd78d7980155f824f0b9c83910f9231a72c428',
-  '80dc6ee80724ccd0f0035fe26d7eee023d27cd14734230605ec98a529568e0be',
+const acceptedModulePayloads = new Set([
+  '83a243544e75aee1405d60ab6024680579e83940131e4a2511ff35c3f003ba58',
+  '83a243544e75aee1405d60ab6024680579e83940131e4a2511ff35c3f003ba58',
+  '91386308023a54cebb12fcb5ccc09b4d15bd5d9cb673e5dcaf2b8bbd5fa125cb',
 ]);
-const acceptedModuleJson = new Set(['83a243544e75aee1405d60ab6024680579e83940131e4a2511ff35c3f003ba58']);
 const fileMismatch = 'Choose the supplied StudyQuest study pack ZIP or JSON. The project ZIP and progress backup use different formats.';
+const moduleMismatch = 'Choose the supplied module pack. StudyQuest could not verify its content. Re-download the original module pack if it was edited or the download was incomplete.';
+const unsupportedModuleArchive = 'Open the supplied module ZIP directly. It must contain one StudyQuest-Module-Pack.json file, stored or deflate-compressed.';
+
+async function modulePayload(bytes: ArrayBuffer, maxSize: number): Promise<ArrayBuffer> {
+  if (bytes.byteLength < 4) return bytes;
+  const view = new DataView(bytes);
+  if (view.getUint32(0, true) !== zipSignature) return bytes;
+  if (bytes.byteLength < 30) throw new Error(unsupportedModuleArchive);
+  const method = view.getUint16(8, true), flags = view.getUint16(6, true);
+  if (method === 0 && !(flags & 8)) return packPayload(bytes, true);
+  if ((method !== 0 && method !== 8) || (flags & 1)) throw new Error(unsupportedModuleArchive);
+
+  // Streaming ZIP writers leave the compressed sizes in the central directory.
+  let end = bytes.byteLength - 22;
+  const earliest = Math.max(0, end - 65535);
+  while (end >= earliest && (view.getUint32(end, true) !== 0x06054b50 ||
+         end + 22 + view.getUint16(end + 20, true) !== bytes.byteLength)) end--;
+  if (end < earliest || view.getUint32(end + 4, true) !== 0 ||
+      view.getUint16(end + 8, true) !== 1 || view.getUint16(end + 10, true) !== 1) throw new Error(unsupportedModuleArchive);
+
+  const directory = view.getUint32(end + 16, true);
+  if (directory + 46 > end || view.getUint32(directory, true) !== 0x02014b50 ||
+      view.getUint32(directory + 42, true) !== 0 || view.getUint16(directory + 10, true) !== method) throw new Error(unsupportedModuleArchive);
+  const length = view.getUint32(directory + 20, true);
+  const expected = view.getUint32(directory + 24, true);
+  const nameEnd = 30 + view.getUint16(26, true);
+  const start = nameEnd + view.getUint16(28, true);
+  if (start + length > directory || expected > maxSize ||
+      new TextDecoder().decode(bytes.slice(30, nameEnd)) !== modulePackEntryName) throw new Error(unsupportedModuleArchive);
+  if (method === 0) {
+    if (length !== expected) throw new Error(unsupportedModuleArchive);
+    return bytes.slice(start, start + length);
+  }
+  if (typeof DecompressionStream !== 'function') throw new Error('This browser cannot open a compressed module pack. Select the original ZIP or JSON.');
+  const data = new Uint8Array(expected);
+  let read = 0;
+  const reader = new Blob([bytes.slice(start, start + length)]).stream()
+    .pipeThrough(new DecompressionStream('deflate-raw')).getReader();
+  try {
+    for (;;) {
+      const part = await reader.read();
+      if (part.done) break;
+      if (read + part.value.byteLength > expected) throw new Error(unsupportedModuleArchive);
+      data.set(part.value, read);
+      read += part.value.byteLength;
+    }
+  } finally {
+    await reader.cancel().catch(() => {});
+  }
+  if (read !== expected) throw new Error(unsupportedModuleArchive);
+  return data.buffer;
+}
 
 async function verifiedPayload(file: Blob, modulePack = false) {
   const limit = modulePack ? 8 : 64;
-  if (file.size > limit * 1024 * 1024) throw new Error('Choose a pack under ' + limit + ' MB.');
+  const maxSize = limit * 1024 * 1024;
+  if (file.size > maxSize) throw new Error('Choose a pack under ' + limit + ' MB.');
   const archive = await file.arrayBuffer();
-  const payload = packPayload(archive, modulePack);
-  const isArchive = payload !== archive;
-  const digests = modulePack ? (isArchive ? acceptedModuleZips : acceptedModuleJson) : acceptedDigests;
-  if (!digests.has(await sha256(modulePack && isArchive ? archive : payload))) throw new Error(fileMismatch);
+  const payload = modulePack ? await modulePayload(archive, maxSize) : packPayload(archive);
+  const digests = modulePack ? acceptedModulePayloads : acceptedDigests;
+  if (!digests.has(await sha256(payload))) throw new Error(modulePack ? moduleMismatch : fileMismatch);
   return payload;
 }
 

@@ -33,6 +33,11 @@ export function arithmetic(input: string): number | null {
     .replace(/[⁺⁻]?[⁰¹²³⁴⁵⁶⁷⁸⁹]+/gu, digits => '^' + [...digits].map(char => char === '⁻' ? '-' : char === '⁺' ? '+' : '⁰¹²³⁴⁵⁶⁷⁸⁹'.indexOf(char)).join(''))
     .replace(/(?<=\d),(?=\d{3}(?:\D|$))/g, '')
     .trim();
+  const percent = /^([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)\s*%$/.exec(normalized);
+  if (percent) {
+    const value = Number(percent[1]) / 100;
+    return Number.isFinite(value) ? value : null;
+  }
   const tokens = normalized.match(/(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?|(?:sqrt|abs|ln|log2|exp|mod)\b|[()+*/^%\-]|\S/g) ?? [];
   let index = 0;
   const rank: Record<string, number> = { '+': 1, '-': 1, '*': 2, '/': 2, '%': 2, mod: 2, '^': 4 };

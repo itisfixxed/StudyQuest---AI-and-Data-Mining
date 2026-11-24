@@ -138,7 +138,7 @@ export function Planner({ progress, start, practice, openTopic }: { progress: Pr
   </>;
 }
 
-export function SettingsPage({ progress, update, onImport }: { progress:Progress; update:Update; onImport:(value:Progress)=>void }) {
+export function SettingsPage({ progress, update, onImport, fullProgress }: { progress:Progress; fullProgress: Progress; update:Update; onImport:(value:Progress)=>boolean }) {
   const [message,setMessage] = useState('');
   const [reset,setReset] = useState(false);
   const [incoming,setIncoming] = useState<Progress|null>(null);
@@ -150,7 +150,7 @@ export function SettingsPage({ progress, update, onImport }: { progress:Progress
     if (!chosen) return;
     try {
       if(chosen.size>10*1024*1024) throw new Error('Choose a StudyQuest backup smaller than 10 MB.');
-      setIncoming(parseProgress(await chosen.text())); setMessage('');
+      setIncoming(parseProgress(await chosen.text(), true)); setMessage('');
     } catch(error) { setMessage(error instanceof Error ? error.message : 'Unable to read this file.'); }
   };
   const saveGoal=()=>{
@@ -182,7 +182,7 @@ export function SettingsPage({ progress, update, onImport }: { progress:Progress
       </section>
       <section className="panel panel-pad">
         <SectionTitle title="Profile and backups" description="Study progress is saved in this browser." />
-        <div className="row wrap"><button className="button secondary" onClick={()=>exportProgress(progress,'studyquest-'+moduleInfo.id+'-progress-'+localDate()+'.json')}><Icon name="download" size={18} /> Export progress</button>
+        <div className="row wrap"><button className="button secondary" onClick={()=>exportProgress(fullProgress,'studyquest-'+moduleInfo.id+'-progress-'+localDate()+'.json')}><Icon name="download" size={18} /> Export progress</button>
           <button className="button secondary" onClick={()=>file.current?.click()}><Icon name="upload" size={18} /> Import progress</button>
           <input ref={file} className="sr-only" type="file" accept="application/json,.json" aria-label="Choose progress backup" onChange={importFile} tabIndex={-1} /></div>
         <button className="text-button danger" onClick={()=>setReset(true)}><Icon name="reset" size={17} /> Reset progress</button>
@@ -193,12 +193,12 @@ export function SettingsPage({ progress, update, onImport }: { progress:Progress
     {message&&<p className="feedback" role="status">{message}</p>}
     {incoming&&<Modal title="Import this study profile?" onClose={()=>setIncoming(null)}>
       <p>This backup contains {incoming.lessons.length} completed lessons and {incoming.attempts.length} attempts. Importing replaces the profile in this browser.</p>
-      <button className="button primary" onClick={()=>{onImport(incoming);setGoal(String(incoming.settings.goal));setIncoming(null);setMessage('Progress imported.');}}>Import profile</button>
+      <button className="button primary" onClick={()=>{if (!onImport(incoming)) return;setGoal(String(incoming.settings.goal));setIncoming(null);setMessage('Progress imported.');}}>Import profile</button>
     </Modal>}
     {reset&&<Modal title="Reset study progress?" onClose={()=>setReset(false)}>
       <p>This clears attempts, settings, bookmarks and results in this browser. Export a backup if you want to keep this profile.</p>
       <div className="row wrap"><button className="button secondary" onClick={()=>setReset(false)}>Cancel</button><button className="button destructive" onClick={()=>{
-        const next=newProgress();onImport(next);setGoal(String(next.settings.goal));setReset(false);setMessage('Study progress reset.');
+        const next=newProgress();if (!onImport(next)) return;setGoal(String(next.settings.goal));setReset(false);setMessage('Study progress reset.');
       }}>Reset profile</button></div>
     </Modal>}
   </>;

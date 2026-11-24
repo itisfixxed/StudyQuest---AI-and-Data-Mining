@@ -1,3 +1,4 @@
+import { displayOrder } from './answers.ts';
 import { useEffect, useRef, useState } from 'react';
 import { isBuiltinModule, lectures } from './content/index.ts';
 import { LectureGraphic } from './LectureGraphic.tsx';
@@ -15,8 +16,8 @@ function SceneCheck({ check, onPass, alreadyPassed }: { check:LectureScene['chec
   return <section className="check-panel lecture-check">
     <h3><MathText text={check.prompt} /></h3>
     <div className="lecture-options">
-      {check.options.map((option,i) => <button type="button" className="button secondary lecture-option"
-        aria-pressed={choice===i} key={option} onClick={() => {setChoice(i);setChecked(false);}}><MathText text={option} /></button>)}
+      {displayOrder(check).map(i => <button type="button" className="button secondary lecture-option"
+        aria-pressed={choice===i} key={i} onClick={() => {setChoice(i);setChecked(false);}}><MathText text={check.options[i]} /></button>)}
     </div>
     <div className="row wrap">
       <button type="button" className="button primary small" disabled={choice===null || checked} onClick={() => {

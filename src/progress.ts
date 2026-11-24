@@ -10,6 +10,10 @@ export function createRecordId() {
   ).join('');
 }
 
+export function assessmentEdit() {
+  return String(Date.now()).padStart(16, '0') + ':' + createRecordId();
+}
+
 export const dayMs = 86_400_000;
 const xpByDifficulty = { easy: 10, medium: 20, hard: 35, exam: 50 };
 const masteryWeight = { easy: 15, medium: 23, hard: 32, exam: 39 };
@@ -267,10 +271,46 @@ export function finalizeResult(progress: Progress, id: string) {
   const updated = result.questions.reduce((state, question) => recordAttempt(state, questionById[question], {
     answer: result.answers[question] ?? '', score: result.scores[question] ?? 0, assistance: result.assistance[question] ?? 0,
     retries: 0, confidence: 3, seconds: 0, mode: result.mode
-  }, result.at), progress);
+  }, result.at, 'assessment:' + id + ':' + question), progress);
   return { ...updated, results: updated.results.map(r => r.id === id ? { ...r, finalized: true } : r) };
 }
 
+
+function mergeActiveExam(local: ActiveExam | null, incoming: ActiveExam | null): ActiveExam | null {
+  if (!local || !incoming || local.id !== incoming.id) return incoming;
+  const pickIncoming = (a?: string, b?: string) => !a || (b !== undefined && b >= a);
+  const keys = (a: object, b: object) => [...new Set([...Object.keys(a), ...Object.keys(b)])].sort();
+  const answers: ActiveExam['answers'] = {};
+  const answerEdits: NonNullable<ActiveExam['answerEdits']> = {};
+  const flagEdits: NonNullable<ActiveExam['flagEdits']> = {};
+  const flags: string[] = [];
+  const assistance: ActiveExam['assistance'] = {};
+  for (const id of keys(local.answers, incoming.answers)) {
+    const useIncoming = Object.hasOwn(incoming.answers, id) &&
+      (!Object.hasOwn(local.answers, id) || pickIncoming(local.answerEdits?.[id], incoming.answerEdits?.[id]));
+    const exam = useIncoming ? incoming : local;
+    answers[id] = exam.answers[id];
+    const edit = exam.answerEdits?.[id];
+    if (edit) answerEdits[id] = edit;
+  }
+  for (const id of [...new Set([...local.flags, ...incoming.flags, ...keys(local.flagEdits ?? {}, incoming.flagEdits ?? {})])].sort()) {
+    const a = local.flagEdits?.[id], b = incoming.flagEdits?.[id];
+    const exam = a || b ? (pickIncoming(a, b) ? incoming : local) : incoming;
+    if (exam.flags.includes(id)) flags.push(id);
+    const edit = exam.flagEdits?.[id];
+    if (edit) flagEdits[id] = edit;
+  }
+  for (const id of keys(local.assistance, incoming.assistance)) {
+    assistance[id] = Math.max(local.assistance[id] ?? 0, incoming.assistance[id] ?? 0);
+  }
+  const cursor = pickIncoming(local.navigationEdit, incoming.navigationEdit) ? incoming : local;
+  return {
+    ...incoming, index: cursor.index, flags, answers, assistance,
+    ...(keys(answerEdits, {}).length ? { answerEdits } : {}),
+    ...(keys(flagEdits, {}).length ? { flagEdits } : {}),
+    ...(cursor.navigationEdit ? { navigationEdit: cursor.navigationEdit } : {})
+  };
+}
 
 /**
  * Merges a snapshot written by another tab into this tab's progress. Records are unioned by id so neither
@@ -278,6 +318,8 @@ export function finalizeResult(progress: Progress, id: string) {
  */
 export function mergeProgress(local: Progress, incoming: Progress): Progress {
   if (local.module !== incoming.module) return local;
+  const localRevision = local.profileRevision ?? 0, incomingRevision = incoming.profileRevision ?? 0;
+  if (localRevision !== incomingRevision) return localRevision > incomingRevision ? local : incoming;
   const byId = <T extends { id: string }>(a: T[], b: T[], prefer: (x: T, y: T) => T = x => x) => {
     const map = new Map(a.map(item => [item.id, item]));
     for (const item of b) map.set(item.id, map.has(item.id) ? prefer(map.get(item.id)!, item) : item);
@@ -287,18 +329,37 @@ export function mergeProgress(local: Progress, incoming: Progress): Progress {
   for (const [id, review] of Object.entries(incoming.reviews)) if (!reviews[id] || review.last >= reviews[id].last) reviews[id] = review;
   const lectures: Record<string, number[]> = { ...local.lectures };
   for (const [topic, scenes] of Object.entries(incoming.lectures ?? {})) lectures[topic] = [...new Set([...(lectures[topic] ?? []), ...scenes])].sort((a, b) => a - b);
-  const results = byId(local.results, incoming.results, (x, y) => x.finalized ? x : y.finalized ? y : y.marked.length >= x.marked.length ? y : x);
+  const results = byId(local.results, incoming.results, (a, b) => {
+    if (a.finalized !== b.finalized) return a.finalized ? a : b;
+    const aFirst = a.at < b.at || (a.at === b.at && JSON.stringify(a) <= JSON.stringify(b));
+    const first = aFirst ? a : b, second = aFirst ? b : a;
+    if (first.finalized) return first;
+    // Two tabs can mark different parts of the same submitted response.
+    const scores = { ...second.scores, ...first.scores };
+    return { ...first, scores: Object.fromEntries(first.questions.filter(id => Object.hasOwn(scores, id)).map(id => [id, scores[id]])),
+      marked: first.questions.filter(id => a.marked.includes(id) || b.marked.includes(id)) };
+  });
   const finished = new Set(results.map(r => r.id));
+  const activeExam = mergeActiveExam(local.activeExam, incoming.activeExam);
+  const attempts = byId(local.attempts, incoming.attempts, (a, b) => {
+    if (!a.id.startsWith('assessment:')) return (b.reviewAssistance ?? 0) > (a.reviewAssistance ?? 0) ? b : a;
+    const result = results.find(item => a.id === 'assessment:' + item.id + ':' + a.question);
+    if (!result) return a;
+    const matches = (attempt: Attempt) => attempt.score === result.scores[attempt.question] &&
+      JSON.stringify(attempt.answer) === JSON.stringify(result.answers[attempt.question] ?? '');
+    if (matches(a) !== matches(b)) return matches(a) ? a : b;
+    return a.at < b.at || (a.at === b.at && JSON.stringify(a) <= JSON.stringify(b)) ? a : b;
+  });
   // Canonical ordering lets both tabs converge on byte-identical JSON, so sync events stop after one round.
   const chrono = <T extends { id: string; at: number }>(list: T[]) => list.sort((a, b) => a.at - b.at || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   const sortKeys = <T,>(record: Record<string, T>) => Object.fromEntries(Object.entries(record).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0));
   return {
     ...incoming,
-    attempts: chrono(byId(local.attempts, incoming.attempts)),
+    attempts: chrono(attempts),
     lessons: chrono(byId(local.lessons, incoming.lessons, (x, y) => x.at <= y.at ? x : y)),
     results: chrono(results), reviews: sortKeys(reviews), lectures: sortKeys(lectures),
     bookmarks: [...new Set([...local.bookmarks, ...incoming.bookmarks])].sort(),
     overrides: [...new Set([...local.overrides, ...incoming.overrides])].sort(),
-    activeExam: incoming.activeExam && !finished.has(incoming.activeExam.id) ? incoming.activeExam : null
+    activeExam: activeExam && !finished.has(activeExam.id) ? activeExam : null
   };
 }

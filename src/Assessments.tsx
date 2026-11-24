@@ -2,7 +2,7 @@ import { examPart, paperFor, paperName, PaperSource } from './PaperSource.tsx';
 import { useEffect, useState } from 'react';
 import { hasAnswer } from './answers.ts';
 import { bossQuestions, isManual, papers, questionById, questions, topicById, topics } from './content/index.ts';
-import { createExam, finalizeResult, finishExam, markExam, profile } from './progress.ts';
+import { assessmentEdit, createExam, finalizeResult, finishExam, markExam, profile } from './progress.ts';
 import { AnswerField, Hints, QuestionDetails, QuestionPrompt, Rubric, ScreenMeta, Solution } from './Practice.tsx';
 import type { PracticeSet, Update } from './Practice.tsx';
 import type { ActiveExam, ExamResult, Progress, Question } from './types.ts';
@@ -77,19 +77,20 @@ function AssessmentScreen({ active, update, submit }: { active: ActiveExam; upda
   }, [active.deadline]);
   const patch = (create: (old: ActiveExam) => ActiveExam) => update(p => p.activeExam?.id === active.id ?
     { ...p, activeExam: create(p.activeExam) } : p);
-  const move = (index: number) => patch(old => ({ ...old, index }));
+  const move = (index: number) => patch(old => ({ ...old, index, navigationEdit: assessmentEdit() }));
   return <>
     <PageTitle title={active.title} description={active.strict ? 'Strict simulation · hints disabled' : 'Guided assessment · hints count as assistance'}
       action={seconds !== null ? <span className={'timer ' + (seconds <= 60 ? 'urgent' : '')} aria-label="Time remaining"><Icon name="timer" size={20} /> {elapsed(seconds)}</span> : <Pill>Untimed</Pill>} />
     <div className="session-cols">
       <article className="panel question-panel">
         <div className="row spread wrap"><strong>Question {active.index+1} of {active.questions.length}</strong><button className={'button secondary small ' + (flag ? 'selected' : '')} aria-pressed={flag} onClick={() => patch(old => ({
-          ...old, flags: flag ? old.flags.filter(id => id !== q.id) : [...old.flags,q.id]
+          ...old, flags: old.flags.includes(q.id) ? old.flags.filter(id => id !== q.id) : [...old.flags,q.id],
+          flagEdits: { ...old.flagEdits, [q.id]: assessmentEdit() }
         }))}><Icon name="flag" size={16} /> {flag ? 'Flagged for review' : 'Flag for review'}</button></div>
         <ScreenMeta question={q} />
         <h2>{q.source.year ? examPart(q.source) + ' · ' : ''}{q.title}</h2><QuestionPrompt question={q} />
         <AnswerField question={q} id={'exam-response-' + q.id} answer={active.answers[q.id] ?? (q.kind === 'multi' ? [] : '')} setAnswer={answer =>
-          patch(old => ({ ...old, answers: { ...old.answers,[q.id]:answer } }))} />
+          patch(old => ({ ...old, answers: { ...old.answers,[q.id]:answer }, answerEdits: { ...old.answerEdits, [q.id]: assessmentEdit() } }))} />
         <div className="row spread question-footer"><button className="button secondary" disabled={active.index===0} onClick={() => move(active.index-1)}><Icon name="back" size={18} /> Previous</button>
           {active.index+1 < active.questions.length ? <button className="button primary" onClick={() => move(active.index+1)}>Next question <Icon name="chevron" size={18} /></button> :
             <button className="button primary" onClick={() => setConfirm(true)}>Submit assessment</button>}</div>
@@ -194,7 +195,7 @@ export function ExamArena({ progress, update, resultId, selectResult, setActive,
   if (result) return <ResultScreen key={result.id} result={result} update={update} close={() => selectResult(null)} review={openTopic} practice={practice} />;
   if (progress.activeExam) return <AssessmentScreen key={progress.activeExam.id} active={progress.activeExam} update={update} submit={() => {
     const id = progress.activeExam!.id;
-    update(p => finishExam(p)); selectResult(id);
+    update(p => p.activeExam?.id === id ? finishExam(p) : p); selectResult(id);
   }} />;
   const launch = () => {
     const chosen = mode === 'paper' ? paperQuestions : mode === 'topic' ? [

@@ -39,7 +39,7 @@ npm run dev
 2. Open the deployed StudyQuest site. Go to **Settings → Private study pack → Choose study pack** and select the ZIP without extracting it. If you already have the study-pack JSON, import it and select **Download study pack ZIP** in Settings to save a ZIP copy.
 3. After the page reloads, open **Exam Arena** to choose a past paper. **Practice** also includes the adapted exercises and original questions.
 
-StudyQuest verifies this edition’s study pack and stores it using browser storage. The file is read on the device and is never sent to GitHub. If you switch browsers or clear site data, import it again. Import the study pack before restoring a progress backup containing past-paper attempts. Import the supplied study pack ZIP. The project ZIP contains the website source.
+StudyQuest verifies this edition’s study pack and stores it using browser storage. The file is read on the device and is never sent to GitHub. If you switch browsers or clear site data, import it again. If some saved records need their original pack, reimport it in Settings to restore them. Import the supplied study pack ZIP. The project ZIP contains the website source.
 
 ## Publish from VS Code
 
@@ -58,3 +58,5 @@ Import the private `StudyQuest-Study-Pack-v2.zip` under **Settings → Private s
 In **Exam Arena**, choose a paper or open a sourced question. **View paper PDF** opens the cited page in the app. Use **Open original PDF** for the full PDF in a browser tab. The app reads these files from the imported pack on this device.
 
 In authored study text, write inline math as `\( ... \)` and display math as `\[ ... \]`. Unicode symbols also work in plain text. JSON strings require doubled backslashes, for example `"The probability is \\( P(A \\mid B) \\)."`.
+
+Approved module ZIPs can be imported as supplied or repacked with the same JSON content using regular ZIP compression. Import module packs under **Settings → Modules**.
