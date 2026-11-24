@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { deflateRawSync } from 'node:zlib';
 import { activateModule, bossQuestions, lectures, lectureScenes, moduleInfo, papers, questions, topicById, topicHistory } from '../src/content/index.ts';
 import { builtinModule, validateModulePack } from '../src/module-pack.ts';
 import { mergeProgress, newProgress, storageKey } from '../src/progress.ts';
@@ -74,15 +75,48 @@ function storedEntry(pack, name = modulePackEntryName) {
   return archive;
 }
 
+function deflatedModuleEntry(payload, extractedSize = payload.length) {
+  const name = Buffer.from(modulePackEntryName);
+  const compressed = deflateRawSync(payload);
+  const local = Buffer.alloc(30);
+  local.writeUInt32LE(0x04034b50);
+  local.writeUInt16LE(8, 8);
+  local.writeUInt32LE(compressed.length, 18);
+  local.writeUInt32LE(extractedSize, 22);
+  local.writeUInt16LE(name.length, 26);
+  const directory = Buffer.alloc(46);
+  directory.writeUInt32LE(0x02014b50);
+  directory.writeUInt16LE(8, 10);
+  directory.writeUInt32LE(compressed.length, 20);
+  directory.writeUInt32LE(extractedSize, 24);
+  directory.writeUInt16LE(name.length, 28);
+  const end = Buffer.alloc(22);
+  end.writeUInt32LE(0x06054b50);
+  end.writeUInt16LE(1, 8);
+  end.writeUInt16LE(1, 10);
+  end.writeUInt32LE(directory.length + name.length, 12);
+  end.writeUInt32LE(local.length + name.length + compressed.length, 16);
+  return new Blob([local, name, compressed, directory, name, end]);
+}
+
 test('v2 parses JSON and the named stored ZIP entry, and import rejects unsigned files', async () => {
   const pack = demoPack();
   assert.deepEqual(parseModulePayload(encodedPack(pack).buffer), pack);
   assert.deepEqual(parseModulePayload(storedEntry(pack).buffer), pack);
-  assert.throws(() => parseModulePayload(storedEntry(pack, 'StudyQuest-Study-Pack.json').buffer), /does not contain/);
+  assert.throws(() => parseModulePayload(storedEntry(pack, 'StudyQuest-Study-Pack.json').buffer), /Private study pack/);
   assert.throws(() => parseModulePayload(storedEntry(pack).slice(0, -1).buffer), /does not contain/);
   await assert.rejects(readModulePack(new Blob([encodedPack(pack)])), /Choose the supplied/);
   await assert.rejects(readModulePack(new Blob([storedEntry(pack)])), /Choose the supplied/);
   await assert.rejects(readPack(new Blob([storedEntry(pack)])), /does not contain/);
+  await assert.rejects(readModulePack(new Blob([storedEntry(pack, 'StudyQuest-Study-Pack-v2.json')])), /Private study pack/);
+});
+
+test('module packs above 8 MB reach verification and ZIP extraction stays bounded at 64 MB', async () => {
+  const payload = Buffer.alloc(9 * 1024 * 1024, ' ');
+  payload.set(encodedPack(demoPack()));
+  await assert.rejects(readModulePack(new Blob([payload])), /could not verify its content/);
+  await assert.rejects(readModulePack(deflatedModuleEntry(payload)), /could not verify its content/);
+  await assert.rejects(readModulePack(deflatedModuleEntry(encodedPack(demoPack()), 64 * 1024 * 1024 + 1)), /64 MB or smaller/);
 });
 
 test('module pack validation rejects invalid metadata, references, scans, links and content', () => {

@@ -32,6 +32,8 @@ const entryName = 'StudyQuest-Study-Pack.json';
 export const studyPackFilename = 'StudyQuest-Study-Pack.zip';
 const zipType = 'application/zip';
 const zipSignature = 0x04034b50;
+const maxPackSize = 64 * 1024 * 1024;
+const packTooLarge = 'Choose a pack that is 64 MB or smaller, including after ZIP extraction.';
 
 function crc32(bytes: Uint8Array) {
   let crc = -1;
@@ -92,8 +94,14 @@ function packPayload(bytes: ArrayBuffer, modulePack = false) {
   const start = nameEnd + header.getUint16(28, true);
   const name = new TextDecoder().decode(bytes.slice(30, nameEnd));
   const previousEntry = 'StudyQuest-' + previousModuleCode + '-Study-Pack.json';
-  if (size !== header.getUint32(22, true) || start + size > bytes.byteLength ||
-      (modulePack ? name !== modulePackEntryName : name !== entryName && name !== v2EntryName && name !== previousEntry)) {
+  if (size !== header.getUint32(22, true) || start + size > bytes.byteLength) {
+    throw new Error('This ZIP does not contain the supplied study pack.');
+  }
+  const studyEntry = name === entryName || name === v2EntryName || name === previousEntry;
+  if (modulePack && studyEntry) {
+    throw new Error('Switch to ' + builtinModule.name + ' and import this ZIP under Settings → Private study pack.');
+  }
+  if (modulePack ? name !== modulePackEntryName : !studyEntry) {
     throw new Error('This ZIP does not contain the supplied study pack.');
   }
   return bytes.slice(start, start + size);
@@ -115,7 +123,7 @@ const fileMismatch = 'Choose the supplied StudyQuest study pack ZIP or JSON. The
 const moduleMismatch = 'Choose the supplied module pack. StudyQuest could not verify its content. Re-download the original module pack if it was edited or the download was incomplete.';
 const unsupportedModuleArchive = 'Open the supplied module ZIP directly. It must contain one StudyQuest-Module-Pack.json file, stored or deflate-compressed.';
 
-async function modulePayload(bytes: ArrayBuffer, maxSize: number): Promise<ArrayBuffer> {
+async function modulePayload(bytes: ArrayBuffer): Promise<ArrayBuffer> {
   if (bytes.byteLength < 4) return bytes;
   const view = new DataView(bytes);
   if (view.getUint32(0, true) !== zipSignature) return bytes;
@@ -139,8 +147,9 @@ async function modulePayload(bytes: ArrayBuffer, maxSize: number): Promise<Array
   const expected = view.getUint32(directory + 24, true);
   const nameEnd = 30 + view.getUint16(26, true);
   const start = nameEnd + view.getUint16(28, true);
-  if (start + length > directory || expected > maxSize ||
+  if (start + length > directory ||
       new TextDecoder().decode(bytes.slice(30, nameEnd)) !== modulePackEntryName) throw new Error(unsupportedModuleArchive);
+  if (expected > maxPackSize) throw new Error(packTooLarge);
   if (method === 0) {
     if (length !== expected) throw new Error(unsupportedModuleArchive);
     return bytes.slice(start, start + length);
@@ -166,11 +175,9 @@ async function modulePayload(bytes: ArrayBuffer, maxSize: number): Promise<Array
 }
 
 async function verifiedPayload(file: Blob, modulePack = false) {
-  const limit = modulePack ? 8 : 64;
-  const maxSize = limit * 1024 * 1024;
-  if (file.size > maxSize) throw new Error('Choose a pack under ' + limit + ' MB.');
+  if (file.size > maxPackSize) throw new Error(packTooLarge);
   const archive = await file.arrayBuffer();
-  const payload = modulePack ? await modulePayload(archive, maxSize) : packPayload(archive);
+  const payload = modulePack ? await modulePayload(archive) : packPayload(archive);
   const digests = modulePack ? acceptedModulePayloads : acceptedDigests;
   if (!digests.has(await sha256(payload))) throw new Error(modulePack ? moduleMismatch : fileMismatch);
   return payload;
