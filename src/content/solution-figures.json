@@ -1,0 +1,143 @@
+{
+  "case-state": [
+    {
+      "src": "/solution-figures/case-state-jug.webp",
+      "alt": "A six-move sequence reaches state (2,0) from empty jugs. Edge labels give the pour, fill or empty operation.",
+      "caption": "Each pair gives the litres in the 4 L and 3 L jugs, in that order."
+    }
+  ],
+  "case-heuristic": [
+    {
+      "src": "/solution-figures/case-heuristic-astar.webp",
+      "alt": "Weighted graph with path S to B to A to G highlighted. Cost 6.",
+      "caption": "Highlighted route: S → B → A → G. Total edge cost = 6."
+    },
+    {
+      "src": "/solution-figures/case-heuristic-greedy.webp",
+      "alt": "Weighted graph with path S to A to G highlighted. Cost 7.",
+      "caption": "Highlighted route: S → A → G. Total edge cost = 7."
+    }
+  ],
+  "case-games": [
+    {
+      "src": "/solution-figures/case-games-left-to-right.webp",
+      "alt": "Left to right. The root value is 7 via C. Pruned nodes: B2, B3.",
+      "caption": "Green marks the chosen branch. Dashed edges and pink nodes mark pruned branches; bounds appear where branches are cut. Internal nodes show returned values or cutoff bounds."
+    },
+    {
+      "src": "/solution-figures/case-games-right-to-left.webp",
+      "alt": "Right to left. The root value is 7 via C. Pruned nodes: A1, A2.",
+      "caption": "Green marks the chosen branch. Dashed edges and pink nodes mark pruned branches; bounds appear where branches are cut. Internal nodes show returned values or cutoff bounds."
+    }
+  ],
+  "game-levels": [
+    {
+      "src": "/solution-figures/game-levels-tree.webp",
+      "alt": "Value backup. The root value is 6 via R. Every leaf is shown.",
+      "caption": "Green marks the chosen branch. Each internal node shows its backed-up value."
+    }
+  ],
+  "game-skip": [
+    {
+      "src": "/solution-figures/game-skip-tree.webp",
+      "alt": "Left-to-right cutoffs. The root value is 6 via A. Pruned nodes: B2, B3.",
+      "caption": "Green marks the chosen branch. Dashed edges and pink nodes mark pruned branches; bounds appear where branches are cut. Internal nodes show returned values or cutoff bounds."
+    }
+  ],
+  "case-trees": [
+    {
+      "src": "/solution-figures/case-trees-splits.webp",
+      "alt": "Split B has weighted Gini one third, lower than Split A at 0.375. Child weights are shown.",
+      "caption": "The two children of Split B contribute 0 and (12/16)(4/9), for a total of 1/3."
+    }
+  ],
+  "case-neighbors": [
+    {
+      "src": "/solution-figures/case-neighbors-margin.webp",
+      "alt": "All four points touch the margin. The solid green line is the decision boundary and the circled points are support vectors. Margin width 4.",
+      "caption": "Decision line x₁ = 2, margin lines x₁ = 0 and 4. Multiplying both w and b by 3 leaves the geometry unchanged."
+    }
+  ],
+  "case-neural": [
+    {
+      "src": "/solution-figures/case-neural-network.webp",
+      "alt": "Two ReLU hidden units feed the output. Only the first hidden bias changes because the second activation is zero.",
+      "caption": "Forward pass is top to bottom. The nonzero error signal follows the highlighted connection back to h₁."
+    }
+  ],
+  "case-cnn": [
+    {
+      "src": "/solution-figures/case-cnn-shapes.webp",
+      "alt": "Four input and output shapes with a total of 1,244 trainable parameters.",
+      "caption": "Read each shape as height × width × channels. The two convolutions contribute 368 + 876 = 1,244 parameters."
+    }
+  ],
+  "case-generalization": [
+    {
+      "src": "/solution-figures/case-generalization-checkpoint.webp",
+      "alt": "Keep the epoch-3 checkpoint. Training and held-out curves are labelled. The chosen setting is 3 on the horizontal axis.",
+      "caption": "Validation loss is lowest at epoch 3. Training loss keeps falling as validation loss rises."
+    }
+  ],
+  "case-clustering": [
+    {
+      "src": "/solution-figures/case-clustering-iterations.webp",
+      "alt": "Number line with points shown as circles or squares by cluster and centroid locations indicated by stars.",
+      "caption": "The dashed marker is the assignment midpoint. In round 2 the tie at 3 goes to the smaller centroid."
+    },
+    {
+      "src": "/solution-figures/case-clustering-single-link.webp",
+      "alt": "Single linkage gives the same groups. Leaves are labelled and every join is annotated with its linkage height.",
+      "caption": "Cut above height 2 to keep the groups {0, 2, 3} and {9, 10}."
+    }
+  ],
+  "kmeans-update-d": [
+    {
+      "src": "/solution-figures/kmeans-update-d-assignment.webp",
+      "alt": "Number line with points shown as circles or squares by cluster and centroid locations indicated by stars.",
+      "caption": "Point 4 ties at the old midpoint and joins the left cluster. The larger updated mean is 9."
+    }
+  ],
+  "case-pca": [
+    {
+      "src": "/solution-figures/case-pca-projection.webp",
+      "alt": "The original point is connected by a perpendicular line to its reconstruction on the first component.",
+      "caption": "After adding the mean back, the reconstruction is (3, 4). The squared residual length is 2."
+    }
+  ],
+  "pca-proj-d": [
+    {
+      "src": "/solution-figures/pca-proj-d-projection.webp",
+      "alt": "The original point is connected by a perpendicular line to its reconstruction on the first component.",
+      "caption": "Project to (6/5, 8/5). The residual is (4/5, −3/5), with squared length 1."
+    }
+  ],
+  "case-regression": [
+    {
+      "src": "/solution-figures/case-regression-fit.webp",
+      "alt": "Observed points with the OLS line y = 1.2x + 0.7. Vertical dotted lines are regression residuals.",
+      "caption": "OLS minimizes the sum of squared vertical residuals. The PCA direction goes through the same sample mean but minimizes perpendicular distances."
+    }
+  ],
+  "ols-slope-d": [
+    {
+      "src": "/solution-figures/ols-slope-d-fit.webp",
+      "alt": "Observed points with the OLS line y = 2.2x + 0.5. Vertical dotted lines are regression residuals.",
+      "caption": "OLS minimizes the sum of squared vertical residuals. The fitted line passes through the sample mean."
+    }
+  ],
+  "knn-dist": [
+    {
+      "src": "/solution-figures/knn-dist-triangle.webp",
+      "alt": "Right triangle with horizontal leg 3 and vertical leg 4. Squared diagonal length 25.",
+      "caption": "The squared Euclidean distance is 3² + 4² = 25."
+    }
+  ],
+  "fp-branch": [
+    {
+      "src": "/solution-figures/fp-branch-prefix.webp",
+      "alt": "One branch, eight suffix patterns. Each node shows the item and the count accumulated along that prefix.",
+      "caption": "Each of the 8 subsets of {A, B, C} can be combined with X (including the empty prefix)."
+    }
+  ]
+}

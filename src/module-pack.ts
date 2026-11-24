@@ -104,7 +104,7 @@ export function validateModulePack(value: unknown): ModulePack {
   if (questionIds.size !== all.length) return fail('duplicate question');
   const limits = new Map([['easy', 3], ['medium', 5], ['hard', 8], ['exam', 10]]);
   for (const question of all) {
-    const { guidance, rubric, figures } = question;
+    const { guidance, rubric, figures, solutionFigures } = question;
     const limit = limits.get(String(question.difficulty));
     if (!id(question.id) || !concepts.get(question.topic)?.has(question.subtopic) ||
         ![question.title, question.prompt, question.objective, question.explanation, question.misconception].every(text) ||
@@ -112,7 +112,9 @@ export function validateModulePack(value: unknown): ModulePack {
         !limit || !oneOf(question.kind, ['choice', 'multi', 'truefalse', 'number', 'expression', 'blank', 'short', 'structured']) ||
         !(text(question.answer) || list(question.answer, text) && question.answer.length > 0) ||
         !list(question.solution, text) || !question.solution.length ||
-        (figures !== undefined && (!list(figures, record) || !figures.every(f => text(f.src) && scanPaths.has(f.src) && text(f.alt))))) return fail('question ' + question.id);
+        (figures !== undefined && (!list(figures, record) || !figures.every(f => text(f.src) && scanPaths.has(f.src) && text(f.alt)))) ||
+        (solutionFigures !== undefined && (!list(solutionFigures, record) ||
+          !solutionFigures.every(f => text(f.src) && scanPaths.has(f.src) && text(f.alt) && text(f.caption))))) return fail('question ' + question.id);
     if ((question.kind === 'choice' || question.kind === 'multi') &&
         (!list(question.options, text) || question.options.length < 2 || !unique(question.options) ||
           (question.kind === 'choice' ? !text(question.answer) || !question.options.includes(question.answer) :

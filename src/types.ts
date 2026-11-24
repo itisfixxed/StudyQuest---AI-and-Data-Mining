@@ -26,6 +26,7 @@ export interface Reference {
   recall?: [prompt: string, answer: string]; source: Source;
 }
 export interface Criterion { text: string; points: number }
+export interface SolutionFigure { src: string; alt: string; caption: string }
 export interface Step {
   prompt: string; options?: string[]; answer: string | number;
   why: string; retry: string;
@@ -60,6 +61,7 @@ export interface Question {
   difficulty: Difficulty; kind: Kind; answer: Answer; options?: string[];
   optionFeedback?: string[]; tolerance?: number; relative?: number;
   figures?: { src: string; alt: string }[];
+  solutionFigures?: SolutionFigure[];
   marks: number; minutes: number; objective: string; formulas: string[];
   source: Source; origin: 'generated' | 'original' | 'adapted' | 'exercise';
   explanation: string; misconception: string; guidance: Guidance;

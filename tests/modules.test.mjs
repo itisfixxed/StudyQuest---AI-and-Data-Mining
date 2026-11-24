@@ -128,6 +128,7 @@ test('module pack validation rejects invalid metadata, references, scans, links 
     [p => { p.lectures['example-topic'].scenes[0].check.right = 2; }, /lecture scene/],
     [p => { p.practiceQuestions[0].guidance.ladder[0].formulas = ['missing']; }, /hint level/],
     [p => { p.scans['sample.webp'] = 'bad'; }, /WebP/],
+    [p => { p.questions[0].solutionFigures = [{ src: 'missing.webp', alt: 'Graph', caption: 'Worked path' }]; }, /question past-example/],
     [p => { p.papers[0].parts[0].marks = 3; }, /paper part/],
     [p => { p.exercises = p.practiceQuestions; }, /duplicate question/],
     [p => { p.practiceQuestions[0].kind = 'short'; }, /boss case/],

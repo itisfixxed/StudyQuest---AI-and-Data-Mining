@@ -22,6 +22,7 @@ const acceptedDigests = new Set([
   // Regenerated pack with step-by-step hint ladders for every past-paper part and exercise.
   'b5dd1efc9ed686d1d0dc8edcef5ecd0db4b1d4ac85eca735ed8d3eb02e7242ef',
   '911acdde6306992ec5b93b00b6b4378d9945760f39af26db385b8926bfe915a8',
+  'ff0a86279535cdd6cf1e0723ca1b75ab12107cd386f1d79ecf159e90cc2aeee7',
 ]);
 // Keep already imported packs accessible in the existing IndexedDB database.
 const databaseName = 'studyquest-' + previousModuleCode.toLowerCase() + '-study-packs';

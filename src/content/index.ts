@@ -8,7 +8,8 @@ import rawExamQuestions from './exam-questions.json' with { type: 'json' };
 import rawDrills from './drills.json' with { type: 'json' };
 import rawLectures from './lectures.json' with { type: 'json' };
 import rawLadders from './ladders.json' with { type: 'json' };
-import type { Concept, Difficulty, Guidance, HintStep, Lecture, ModuleInfo, Paper, PaperDocument, Question, Reference, Topic } from '../types.ts';
+import rawSolutionFigures from './solution-figures.json' with { type: 'json' };
+import type { Concept, Difficulty, Guidance, HintStep, Lecture, ModuleInfo, Paper, PaperDocument, Question, Reference, SolutionFigure, Topic } from '../types.ts';
 
 export const topics = [...rawTopics] as Topic[];
 export const moduleInfo: ModuleInfo = { ...builtinModule };
@@ -83,7 +84,9 @@ const drills = [...rawDrills] as Question[];
 export const practiceQuestions = [...knowledgeQuestions, ...applied, ...drills];
 /** Authored step-by-step hint ladders (and fuller worked solutions) for generated questions, keyed by question id. */
 export const ladders = { ...rawLadders } as Record<string, { steps: HintStep[]; solution?: string[] }>;
+const solutionFigures: Record<string, SolutionFigure[]> = rawSolutionFigures;
 for (const question of practiceQuestions) {
+  if (solutionFigures[question.id]) question.solutionFigures = solutionFigures[question.id];
   const entry = ladders[question.id];
   if (!entry) continue;
   question.guidance = { ...question.guidance, ladder: entry.steps };
@@ -115,6 +118,7 @@ function addScans(scans: Record<string, string>, questions: Question[]) {
   ]));
   for (const question of questions) {
     for (const figure of question.figures ?? []) figure.src = urls[figure.src];
+    for (const figure of question.solutionFigures ?? []) figure.src = urls[figure.src];
   }
 }
 
@@ -178,7 +182,7 @@ export async function prepareStudyContent() {
       replaceIndex(lectureScenes, Object.entries(lectures).map(([id, lecture]) => [id, lecture.scenes.length]));
     }
     Object.assign(paperDocuments, pack.documents);
-    addScans(pack.scans, pack.questions);
+    addScans(pack.scans, [...pack.questions, ...pack.exercises]);
     papers.push(...pack.papers);
     historicalQuestions.push(...pack.questions);
     drills.push(...pack.exercises);

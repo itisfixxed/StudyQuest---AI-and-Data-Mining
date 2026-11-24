@@ -50,6 +50,20 @@ test('the public package contains generated questions only', () => {
   assert.equal(existsSync(new URL('../public/papers', import.meta.url)), false);
 });
 
+test('generated solution diagrams are bundled and attached to their worked questions', () => {
+  const illustrated = questions.filter(question => question.solutionFigures?.length);
+  assert.ok(illustrated.length > 0);
+  for (const question of illustrated) {
+    assert.equal(question.origin, 'generated');
+    assert.ok(question.solution?.length && question.guidance.ladder?.length, question.id);
+    for (const { src, alt, caption } of question.solutionFigures) {
+      assert.match(src, /^\/solution-figures\/[a-z0-9-]+\.webp$/);
+      assert.ok(existsSync(new URL('../public' + src, import.meta.url)), src);
+      assert.ok(alt.trim() && caption.trim(), question.id);
+    }
+  }
+});
+
 test('numeric answers accept scientific notation with a signed Unicode exponent', () => {
   assert.equal(arithmetic('2.5 × 10⁻⁴'), arithmetic('2.5e-4'));
   assert.equal(arithmetic('2 × 10⁺³'), 2000);

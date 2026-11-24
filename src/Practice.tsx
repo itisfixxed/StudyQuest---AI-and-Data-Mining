@@ -7,7 +7,7 @@ import { createRecordId, dueQuestions, recordAttempt } from './progress.ts';
 import { matchesQuestionNumber, questionNumber } from './study-search.ts';
 import { groupWorkings, questionParts, splitResponse } from './question-parts.ts';
 import { SymbolInput } from './SymbolInput.tsx';
-import type { Answer, HintStep, Progress, Question, Step } from './types.ts';
+import type { Answer, HintStep, Progress, Question, SolutionFigure, Step } from './types.ts';
 import { Bubble, Empty, Icon, MathBlock, MathText, PageTitle, Pill, ProgressBar, SectionTitle, SourceNote, focusSection } from './ui.tsx';
 
 export type Update = (fn: (progress: Progress) => Progress) => void;
@@ -142,9 +142,24 @@ function LadderStep({ step, index, count, raise }: { step: HintStep; index: numb
   </div>;
 }
 
-function LadderHints({ steps, level, change }: { steps: HintStep[]; level: number; change: (level: number) => void }) {
+function SolutionFigures({ figures }: { figures: SolutionFigure[] }) {
+  return <div className="solution-figures">{figures.map(figure => {
+    const src = figure.src.startsWith('blob:') ? figure.src : import.meta.env.BASE_URL + figure.src.slice(1);
+    return <figure key={figure.src}>
+      <a href={src} target="_blank" rel="noreferrer" aria-label={'Open diagram at full size. ' + figure.alt}>
+        <img src={src} alt={figure.alt} loading="lazy" />
+      </a>
+      <figcaption><MathText text={figure.caption} /></figcaption>
+    </figure>;
+  })}</div>;
+}
+
+function LadderHints({ steps, level, change, figures }: {
+  steps: HintStep[]; level: number; change: (level: number) => void; figures?: SolutionFigure[];
+}) {
   // After navigating away and back, reopen the levels already paid for by the recorded assistance.
   const [opened, setOpened] = useState(() => { const i = steps.findIndex(step => step.aid > level); return level ? (i === -1 ? steps.length : i) : 0; });
+  const [showDiagrams, setShowDiagrams] = useState(level === 5);
   const raise = (aid: number) => change(Math.max(level, aid));
   const next = steps[opened];
   return <div className="hint-area ladder">
@@ -153,11 +168,18 @@ function LadderHints({ steps, level, change }: { steps: HintStep[]; level: numbe
     {next && <button type="button" className="button secondary" onClick={() => { setOpened(opened + 1); raise(next.aid); }}>
       <Icon name="bulb" size={17} /> {opened === 0 ? 'Get a hint' : 'Next hint'} ({opened + 1} of {steps.length} · {kindLabel[next.kind]})
     </button>}
+    {!next && !!figures?.length && <>
+      <button type="button" className="button secondary" aria-expanded={showDiagrams} onClick={() => {
+        if (!showDiagrams) raise(5);
+        setShowDiagrams(!showDiagrams);
+      }}>{showDiagrams ? 'Hide solution diagrams' : 'Reveal solution diagrams'}</button>
+      {showDiagrams && <SolutionFigures figures={figures} />}
+    </>}
   </div>;
 }
 
 export function Hints({ question, level, change }: { question: Question; level: number; change: (level: number) => void }) {
-  if (question.guidance.ladder?.length) return <LadderHints steps={question.guidance.ladder} level={level} change={change} />;
+  if (question.guidance.ladder?.length) return <LadderHints steps={question.guidance.ladder} level={level} change={change} figures={question.solutionFigures} />;
   return <LegacyHints question={question} level={level} change={change} />;
 }
 
@@ -206,6 +228,7 @@ export function Solution({ question, answer }: { question: Question; answer?: An
       {label && <h4>{label === 'summary' ? 'Final results' : 'Part (' + label + ')'}</h4>}
       <WorkingSteps steps={steps} />
     </div>)}
+    {!!question.solutionFigures?.length && <SolutionFigures figures={question.solutionFigures} />}
     {!isManual(question) && <div><strong>Answer</strong><p><MathText text={Array.isArray(question.answer) ? question.answer.join(', ') : question.answer} /></p></div>}
     <div className="callout"><Icon name="bulb" size={18} /><span><MathText text={question.misconception} /></span></div>
     {question.optionFeedback && question.options && <details><summary>Why each option fits or fails</summary><ul>{question.options.map((option,i) => <li key={option}><strong><MathText text={option} /></strong> · <MathText text={question.optionFeedback![i]} /></li>)}</ul></details>}

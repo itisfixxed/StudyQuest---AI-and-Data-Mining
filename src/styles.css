@@ -655,5 +655,10 @@ tbody tr:last-child td,tbody tr:last-child th { border:0; }
 .worked-part + .worked-part { margin-top:.9rem; }
 .worked-part h4 { margin-bottom:.35rem; }
 .working-steps li + li { margin-top:.5rem; }
+.solution-figures { display:grid; grid-template-columns:minmax(0,1fr); gap:.7rem; margin:.65rem 0; }
+.solution-figures figure { min-width:0; margin:0; }
+.solution-figures a { display:block; max-width:100%; cursor:zoom-in; }
+.solution-figures img { display:block; width:100%; height:auto; border:1px solid var(--border); border-radius:.6rem; background:#fff; }
+.solution-figures figcaption { margin-top:.25rem; font-size:.86rem; color:var(--muted); overflow-wrap:anywhere; }
 .answer-review dt { margin-top:.45rem; font-weight:650; }
 .answer-review dd { margin:0; }
