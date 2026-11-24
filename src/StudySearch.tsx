@@ -72,7 +72,10 @@ function SearchDialog({ close, openTopic, openQuestion, currentQuestion, hasPrac
         <span className="sr-only">Search {moduleInfo.name}</span>
         <input ref={input} type="search" value={query} onChange={event => changeQuery(event.target.value)}
           onKeyDown={event => {
-            if (event.key === 'Enter') resultList.current?.querySelector('button')?.focus();
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              resultList.current?.querySelector('button')?.focus();
+            }
             if (event.key === 'Escape') { event.preventDefault(); close(); }
           }}
           placeholder="Topic, keyword, or question number" maxLength={120} autoComplete="off" />
